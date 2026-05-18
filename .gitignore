@@ -1,0 +1,46 @@
+# Environnement
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+coverage.xml
+docs/coverage/
+
+# Modèles entraînés (trop lourds pour git)
+models/*.pkl
+models/*.log
+models/results.json
+
+# Plots générés
+docs/plots/*.png
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+feature_store/*.db
+
+# Secrets & credentials — ne jamais commiter
+.env
+.env.local
+.env.production
+*.pem
+*.key
+nginx/certs/
+secrets/
+
+# Feature Store DB
+feature_store/*.db
+feature_store/*.db-shm
+feature_store/*.db-wal
+
+# Drift reports (peuvent contenir des données sensibles)
+reports/drift_report_*.json
+
+# MLflow runs (volumineux)
+mlruns/

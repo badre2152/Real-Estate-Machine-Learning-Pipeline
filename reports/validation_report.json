@@ -1,0 +1,259 @@
+{
+  "passed": false,
+  "n_rows": 489,
+  "n_cols": 18,
+  "n_passed": 16,
+  "n_failed": 6,
+  "n_warnings": 4,
+  "timestamp": "2026-05-17T20:10:06.678987",
+  "results": [
+    {
+      "name": "non_empty",
+      "passed": true,
+      "message": "DataFrame non vide : 489 lignes",
+      "severity": "error",
+      "details": {}
+    },
+    {
+      "name": "required_columns",
+      "passed": true,
+      "message": "Toutes les colonnes obligatoires présentes et non-vides (3)",
+      "severity": "error",
+      "details": {}
+    },
+    {
+      "name": "dtype_prix",
+      "passed": true,
+      "message": "[prix] type : float64 ✓",
+      "severity": "info",
+      "details": {}
+    },
+    {
+      "name": "dtype_surface_m2",
+      "passed": true,
+      "message": "[surface_m2] type : float64 ✓",
+      "severity": "info",
+      "details": {}
+    },
+    {
+      "name": "duplicates",
+      "passed": true,
+      "message": "0 doublons (0.0%)",
+      "severity": "warning",
+      "details": {
+        "n_duplicates": 0,
+        "pct": 0.0
+      }
+    },
+    {
+      "name": "price_range",
+      "passed": false,
+      "message": "137 prix hors [1,000, 100,000,000] (28.0%)",
+      "severity": "error",
+      "details": {
+        "out_of_range": 137,
+        "pct": 28.02
+      }
+    },
+    {
+      "name": "surface_range",
+      "passed": true,
+      "message": "6 surfaces hors [5.0, 10000.0] (2.3%)",
+      "severity": "warning",
+      "details": {
+        "out_of_range": 6,
+        "pct": 2.28
+      }
+    },
+    {
+      "name": "price_outliers",
+      "passed": false,
+      "message": "7 outliers extrêmes (|z|>4) dans prix (1.43%)",
+      "severity": "warning",
+      "details": {
+        "n_outliers": 7,
+        "pct": 1.431
+      }
+    },
+    {
+      "name": "missing_id",
+      "passed": true,
+      "message": "[id] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "id",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_prix",
+      "passed": true,
+      "message": "[prix] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "prix",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_ville",
+      "passed": true,
+      "message": "[ville] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "ville",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_quartier",
+      "passed": true,
+      "message": "[quartier] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "quartier",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_surface_m2",
+      "passed": false,
+      "message": "[surface_m2] valeurs manquantes : 46.2%",
+      "severity": "warning",
+      "details": {
+        "column": "surface_m2",
+        "missing_pct": 0.4622
+      }
+    },
+    {
+      "name": "missing_nb_chambres",
+      "passed": false,
+      "message": "[nb_chambres] valeurs manquantes : 35.0%",
+      "severity": "warning",
+      "details": {
+        "column": "nb_chambres",
+        "missing_pct": 0.3497
+      }
+    },
+    {
+      "name": "missing_nb_salles_bain",
+      "passed": false,
+      "message": "[nb_salles_bain] valeurs manquantes : 51.7%",
+      "severity": "error",
+      "details": {
+        "column": "nb_salles_bain",
+        "missing_pct": 0.5174
+      }
+    },
+    {
+      "name": "missing_etage",
+      "passed": true,
+      "message": "[etage] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "etage",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_annee_construction",
+      "passed": false,
+      "message": "[annee_construction] valeurs manquantes : 100.0%",
+      "severity": "error",
+      "details": {
+        "column": "annee_construction",
+        "missing_pct": 1.0
+      }
+    },
+    {
+      "name": "missing_prix_par_m2",
+      "passed": false,
+      "message": "[prix_par_m2] valeurs manquantes : 46.2%",
+      "severity": "warning",
+      "details": {
+        "column": "prix_par_m2",
+        "missing_pct": 0.4622
+      }
+    },
+    {
+      "name": "missing_age_bien",
+      "passed": false,
+      "message": "[age_bien] valeurs manquantes : 99.0%",
+      "severity": "error",
+      "details": {
+        "column": "age_bien",
+        "missing_pct": 0.9898
+      }
+    },
+    {
+      "name": "missing_categorie_prix",
+      "passed": true,
+      "message": "[categorie_prix] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "categorie_prix",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_titre",
+      "passed": true,
+      "message": "[titre] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "titre",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_lien",
+      "passed": true,
+      "message": "[lien] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "lien",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_scraped_at",
+      "passed": true,
+      "message": "[scraped_at] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "scraped_at",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_loaded_at",
+      "passed": true,
+      "message": "[loaded_at] valeurs manquantes : 0.0%",
+      "severity": "info",
+      "details": {
+        "column": "loaded_at",
+        "missing_pct": 0.0
+      }
+    },
+    {
+      "name": "missing_region_label",
+      "passed": false,
+      "message": "[region_label] valeurs manquantes : 78.9%",
+      "severity": "error",
+      "details": {
+        "column": "region_label",
+        "missing_pct": 0.7894
+      }
+    },
+    {
+      "name": "missing_is_grande_ville",
+      "passed": false,
+      "message": "[is_grande_ville] valeurs manquantes : 78.9%",
+      "severity": "error",
+      "details": {
+        "column": "is_grande_ville",
+        "missing_pct": 0.7894
+      }
+    }
+  ]
+}

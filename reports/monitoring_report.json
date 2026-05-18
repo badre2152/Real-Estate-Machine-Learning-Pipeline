@@ -1,0 +1,116 @@
+{
+  "pipeline": "ML Pipeline",
+  "timestamp": "2026-05-17T20:11:39.343774",
+  "total_duration_s": 93.715,
+  "steps": [
+    {
+      "name": "1_extraction",
+      "duration_s": 0.154,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "2_validation",
+      "duration_s": 0.065,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "3_cleaning",
+      "duration_s": 0.011,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "4_split",
+      "duration_s": 0.004,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "5_feature_engineering",
+      "duration_s": 0.034,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "6_encoding_scaling",
+      "duration_s": 0.038,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "7_baselines",
+      "duration_s": 0.088,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "8_smote",
+      "duration_s": 0.131,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "9a_regression_train",
+      "duration_s": 42.745,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "9a_regression_eval",
+      "duration_s": 0.023,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "9b_classification_train",
+      "duration_s": 20.932,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "9b_classification_eval",
+      "duration_s": 0.275,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "10_prediction_intervals",
+      "duration_s": 0.046,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "11_shap",
+      "duration_s": 2.311,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "12_plots",
+      "duration_s": 5.081,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "12a_feature_store",
+      "duration_s": 1.663,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "12b_drift_detection",
+      "duration_s": 1.136,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "13_report",
+      "duration_s": null,
+      "success": true,
+      "error": null
+    }
+  ],
+  "alerts": []
+}

@@ -1,0 +1,574 @@
+feature,shap_mean
+ecart_prix_ville,2.725226346684536
+ville_prix_median,0.6742131308347961
+ville_rang_prix,0.6657849482243601
+ville_prix_mean,0.19113717152584478
+surface_m2,0.05342214623267718
+prix_par_m2,0.01795695506696933
+ville_Rabat,0.015294208983111656
+surface_x_chambres,0.014897277452109963
+nb_chambres,0.01475918396729025
+ville_Marrakech,0.01083861999605357
+ville_Agadir,0.008576339616633274
+lien_https://www.avito.ma/fr/semlalia/appartements/Studio_à_vendre_à_semlalia_56725035.htm,0.008573501457085192
+region_label_None,0.008426451643985084
+quartier_Agdal,0.0068963609248645485
+is_grande_ville_None,0.005911556586500601
+nb_salles_bain,0.005633678877560003
+surface_par_chambre,0.005405220069631667
+etage_Non précisé,0.004616593401895178
+etage_,0.002113239861877441
+ratio_chambres_bains,0.0020399190195656185
+lien_https://www.avito.ma/fr/agdal/appartements/Appartement_%C3%A9quip%C3%A9_et_propre_%C3%A0_louer_%C3%A0_la_journ%C3%A9e_%C3%A0_F%C3%A8s_56565777.htm,0.0020144517603272387
+quartier_M'Hamid,0.0020079082089595815
+ville_Oued Zem,0.0016683905424576318
+quartier_Route De Fès,0.0016600289098216265
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrains_commerciaux_id%C3%A9alement_situ%C3%A9s_Skhirat_42120461.htm,0.0016354882231623016
+etage_3,0.0015914582227949236
+quartier_Hay Riad,0.001443295566812587
+etage_2,0.001413913855726037
+is_grande_ville_False,0.00136768103260916
+etage_0,0.0013295230002942965
+quartier_Talborjt,0.0012960011602519599
+ville_Benslimane,0.0012301069029997647
+region_label_Marrakech-Safi,0.0011564488722301367
+etage_4,0.0011185298877157775
+quartier_Yacoub El Mansour,0.0010933276756078453
+quartier_Tilila,0.0010826868789820413
+quartier_Belvédère,0.0010750757291906109
+ville_Témara,0.001064855459591754
+lien_https://www.avito.ma/fr/arghoud/appartements/Appartement_Dchira_Jawhara_Alaarfan_57496549.htm,0.0009491632594965986
+quartier_Semlalia,0.0008488908356649589
+quartier_Taïbia,0.0007385640759097626
+lien_https://www.avito.ma/fr/route_de_casablanca/villas_et_riads/Villa_vvip_padel_57439106.htm,0.000667262128995759
+quartier_Founty,0.0006299555661582183
+lien_https://www.avito.ma/fr/route_de_f%C3%A8s/villas_et_riads/ville_location_jour_famille_56559105.htm,0.0006285570652360365
+quartier_Guéliz,0.0005851420780454208
+ville_Beni Mellal,0.0005799609239942073
+lien_https://www.avito.ma/fr/tilila/appartements/Appartement_%C3%A0_vendre_55_m%C2%B2_%C3%A0_Agadir_57826488.htm,0.0005448508316241576
+quartier_Marina,0.0005300784644270178
+lien_https://www.avito.ma/fr/agdal/appartements/Appartement_d_h%C3%B4tel_de_luxe__neuf_et_propre__35_m%C3%A8tres__chambre_et_salon_54444844.htm,0.00048113569913153375
+lien_https://www.avito.ma/fr/m_hamid/appartements/Appartements_%C3%A9conomiques_%C3%A0_vendre_%C3%A0_Marrakech_57207961.htm,0.0004566292878143613
+ville_Casablanca,0.00045247181080752753
+etage_1,0.0004490306947683141
+lien_https://www.avito.ma/fr/ta%C3%AFbia/local/Commerces_rentables_de_13_%C3%A0_51m%C2%B2_%C3%A0_Hay_Ta%C3%AFbia_49189765.htm,0.0004441542891787521
+quartier_Route D'Ourika,0.0004401294441123502
+quartier_Sidi Maarouf,0.00041126662368293643
+quartier_Route De Sidi A. Ghiat,0.0003963719136008554
+ville_Ensoleillé En Plein Centre,0.0003912980502962848
+lien_https://www.avito.ma/fr/autre_secteur/appartements/Appartement_%C3%A0_louer_72_m%C2%B2_%C3%A0_Skhirat_57826557.htm,0.0003777101787954562
+lien_https://www.avito.ma/fr/racine/appartements/Appartement_Racine_Casablanca_320m%C2%B2_57787060.htm,0.00037246517807852506
+quartier_Toute La Ville,0.00037037382184929534
+lien_https://www.avito.ma/fr/hay_riad/appartements/Appartement_%C3%A0_louer_et_%C3%A0_vendre_143_m%C2%B2_%C3%A0_Hay_Riad_56341034.htm,0.0003501022365988943
+lien_https://www.avito.ma/fr/agdal/appartements/Appartement_une_chambre_et_salon_excellent_et_propre__meilleur_emplacement_AGDAL_54663996.htm,0.00033616654710386844
+lien_https://www.avito.ma/fr/allal_el_fassi/bureaux/Plateaux_Bureaux_et_Commerces_a_partir_de_13000dh_56624993.htm,0.0003250804603674497
+quartier_Autre Secteur,0.00031350148438158415
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Tooop_Ferme_Villa_Piscine_%C3%A0_bouznika_Benslimane_54227310.htm,0.0003124407588428835
+ville_Dar Bouazza,0.0002969548837946966
+quartier_Rue 52 11,0.0002815681783046044
+lien_https://www.avito.ma/fr/sidi_maarouf/appartements/Appartement_%C3%A0_louer_%C3%A0_c%C3%B4t%C3%A9_du_Nearshore_57526871.htm,0.00026501603869451555
+lien_https://www.avito.ma/fr/oued_zem/terrains_et_fermes/Terrain_Agricole_à_Vendre_57823877.htm,0.0002451027913816968
+lien_https://www.avito.ma/fr/yacoub_el_mansour/appartements/Appartements_familiaux_56194279.htm,0.000234406317689905
+lien_https://www.avito.ma/fr/route_d_agadir___essaouira/villas_et_riads/Villa_moderne_location_Longue_dur%C3%A9e_57799136.htm,0.00021537199968778745
+is_grande_ville_True,0.00021464173125587205
+quartier_Tghat,0.00021396672966542428
+lien_https://www.avito.ma/fr/talborjt/appartements/S%C3%A9jour_haut_standing_Talborjt_Agadir_57777084.htm,0.00020959431554422282
+lien_https://www.avito.ma/fr/marina/appartements/Location_de_vacances_Marina_casablanca_56405715.htm,0.00020181535881678202
+lien_https://www.avito.ma/fr/autre_secteur/appartements/BEN_MA_1119___Appartement_à_vendre_à_Mansouria_B____57356776.htm,0.00019902353296971274
+quartier_Allal El Fassi,0.00018841970939793777
+ville_Fès,0.00018788393776994301
+lien_https://www.avito.ma/fr/hay_riad/bureaux/Espace_de_bureau_pour_2_personnes_%C3%A0_Mahaj_Ryad_55896087.htm,0.00018756133109074175
+lien_https://www.avito.ma/fr/route_de_sidi_a._ghiat/terrains_et_fermes/Terrain_à_vendre_sur_route_de_Sidi_A_Ghiat_5_ha_57721092.htm,0.00018018897488204544
+region_label_Souss-Massa,0.0001787086252668563
+quartier_Hay Salam,0.00017613722922400093
+lien_https://www.avito.ma/fr/autre_secteur/appartements/RBA_YA_1053___Appartement_à_vendre_à_Hay_El_Menzah_56835389.htm,0.000174218209434818
+quartier_Route De Tahanaoute,0.00017036795603684796
+lien_https://www.avito.ma/fr/hay_massira/appartements/Appartement_de_luxe_au_centre_ville_57262775.htm,0.00016195787214872797
+lien_https://www.avito.ma/fr/californie/bureaux/Bureau_Neuf_%C3%A0_Louer_%C3%A0_bd_haifa_californie_57532282.htm,0.00015930819323841096
+quartier_Route D'Agadir - Essaouira,0.00015247697887294475
+region_label_Autre,0.0001521108683279902
+quartier_Racine,0.00015058614783170225
+ville_Tétouan,0.00014684612606781624
+lien_https://www.avito.ma/fr/le_centre_ville/appartements/appartement_centre_ville_agadir_50577439.htm,0.00014398697539331156
+lien_https://www.avito.ma/fr/founty/appartements/Appartement_haut_standing_Agadir_Bay_1_57776919.htm,0.0001249234019302906
+ville_Zenith Pour 3 Personnes,0.00012124795932747437
+ville_Sidi Bouknadel,0.000104758082094443
+lien_https://www.avito.ma/fr/tghat/appartements/Appartement_à_vendre_100_m²_à_Fès_55542483.htm,0.00010224841532641284
+lien_https://www.avito.ma/fr/sidi_bernoussi/appartements/Joli_appartement_%C3%A0_louer_Alliance_Darna_57707933.htm,0.00010221158194688355
+quartier_Bir Rami,9.435823075647572e-05
+quartier_Achakar,9.381727957760476e-05
+lien_https://www.avito.ma/fr/agdal/appartements/Tr%C3%A8s_joli_studio_Marrakech_prestigia_57826624.htm,9.352375709862692e-05
+lien_https://www.avito.ma/fr/souissi/villas_et_riads/3160_plain_pied_%C3%A0_Rabat_Souissi_57666991.htm,9.142200594582637e-05
+ville_Tanger,9.037912839024708e-05
+lien_https://www.avito.ma/fr/route_de_f%C3%A8s/appartements/Duplex_rez_de_jardin_piscine_Atlas_golf_resort_57448233.htm,9.024895504050455e-05
+quartier_Hay Karima,7.802565682430477e-05
+region_label_Tanger-Tétouan-Al Hoceïma,6.940449079485005e-05
+quartier_Bourgogne,6.933346109948677e-05
+lien_https://www.avito.ma/fr/hay_salam/appartements/Appartement_à_vendre_118_m²_Jardins_d_Émeraude_57129440.htm,6.550359356009052e-05
+region_label_Casablanca-Settat,6.292914861596615e-05
+lien_https://www.avito.ma/fr/maarif/appartements/Appartement_%C3%A0_louer_54_m%C2%B2_%C3%A0_Casablanca_55544408.htm,5.8628569058567834e-05
+quartier_Oulfa,5.811418574679519e-05
+lien_https://www.avito.ma/fr/route_d_ourika/villas_et_riads/Vente_Villa_7_pi%C3%A8ces_de_7000_m2_%C3%A0_Marrakech_56267459.htm,5.763820453052342e-05
+lien_https://www.avito.ma/fr/route_de_tahanaoute/villas_et_riads/___Villa_%C3%A0_vendre_en_face_noria_golf_57371098.htm,5.6354913606464464e-05
+lien_https://www.avito.ma/fr/gauthier/appartements/Studio_meubl%C3%A9_34m%C2%B2_Gauthier_57733710.htm,5.385897635696357e-05
+quartier_Le Centre-Ville,4.834832658351767e-05
+lien_https://www.avito.ma/fr/hassan/appartements/Appartement_d_Exception_Vue_Panoramique_%C3%A0_Hassan_57723200.htm,4.775786300623605e-05
+region_label_Fès-Meknès,4.374619593251639e-05
+ville_Bouznika,4.324191254222337e-05
+lien_https://www.avito.ma/fr/bourgogne/appartements/CMN_AN_1884___Appartement_à_vendre_à_Bourgogne_57370097.htm,4.31166369905758e-05
+quartier_Hassan,4.2963692028448104e-05
+lien_https://www.avito.ma/fr/said_hajji/appartements/Appartement_à_vendre_opportunité_unique_à_Saïd_Hajji___Salé_57812395.htm,4.068643432925009e-05
+quartier_Souissi,4.000170016279969e-05
+lien_https://www.avito.ma/fr/marjane/appartements/Appartement_meubl%C3%A9_familial_sans_interm%C3%A9diaire_Wi_Fi_54131806.htm,3.9808867516150464e-05
+lien_https://www.avito.ma/fr/harhoura/terrains_et_fermes/A_vendre__un_terrain_à_Harhoura_57006433.htm,3.91319993909904e-05
+lien_https://www.avito.ma/fr/agdal/villas_et_riads/Villa_de_luxe_pour_vos_vacances_57757575.htm,3.845162236189484e-05
+lien_https://www.avito.ma/fr/bir_rami_est/villas_et_riads/Villa_%C3%A0_vendre_57677915.htm,3.8245300455458436e-05
+quartier_Hay Massira,3.8207082405283154e-05
+quartier_Harhoura,3.6858125552635134e-05
+quartier_Wifak,3.593594332067958e-05
+quartier_Ville Nouvelle,3.471542707229737e-05
+lien_https://www.avito.ma/fr/mdiq/appartements/location_de_vacances_marina_Smir_57033097.htm,3.454505197275222e-05
+lien_https://www.avito.ma/fr/hay_riad/villas_et_riads/Villa_%C3%A0_louer_%C3%A0_Hay_Riad_Rabat_57766891.htm,3.4152000374783755e-05
+lien_https://www.avito.ma/fr/route_de_casablanca/villas_et_riads/Belle_villa_à_prix_attractif_à_vendre_57774021.htm,3.369760834344686e-05
+quartier_Riviera,3.309745412523762e-05
+quartier_Ferme Bretone,3.124916522152387e-05
+ville_Tahla,3.060549675418266e-05
+lien_https://www.avito.ma/fr/ville_nouvelle/appartements/Appartement_calme_57813926.htm,3.0437056241198317e-05
+lien_https://www.avito.ma/fr/hay_el_matar/appartements/Appartement_meubl%C3%A9_avec_Wifi_fibre_optique_%C3%A0_Nador_57110018.htm,3.043367949886042e-05
+quartier_Malabata,2.8773697369249228e-05
+ville_Mdiq,2.8705813179995465e-05
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Ferme_à_vendre_à_Bouznika_57040857.htm,2.8226864894114678e-05
+lien_https://www.avito.ma/fr/bir_rami/appartements/À_vendre___Appartement_haut_standing_à_Bir_Rami_49131411.htm,2.6776956636812652e-05
+lien_https://www.avito.ma/fr/hay_karima/bureaux/Locaux_pour_cabinets_m%C3%A9dicaux_%C3%A0_louer_56194283.htm,2.6532748333065375e-05
+ville_90080 Tanger Assilah,2.6132607301330338e-05
+ville_Temara,2.5837410190293848e-05
+quartier_Hay Charaf,2.4574772747066153e-05
+ville_Skhirat,2.454890424227671e-05
+lien_https://www.avito.ma/fr/agdal/appartements/Appartement_moderne_%C3%A0_vendre_Prestigia_2ch_57740061.htm,2.409195336783348e-05
+lien_https://www.avito.ma/fr/ben_guerir/appartements/2_Appartements_moyen_standing_à_vendre___Benguerir_56548870.htm,2.3221331354507004e-05
+lien_https://www.avito.ma/fr/hay_riad/villas_et_riads/Villa_%C3%A0_louer_Hay_Riad_Rabat_57766922.htm,2.297252214678075e-05
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_familial_favorable_au_centre_ville_56991930.htm,2.19655561940307e-05
+ville_Berrechid,2.1144929246556062e-05
+lien_https://www.avito.ma/fr/semlalia/appartements/Superbe_Appartement_À_Semlalia_À_La_Vente_57779634.htm,2.057041764045007e-05
+lien_https://www.avito.ma/fr/la_prairie/appartements/Jolie_appartements_meubl%C3%A9es_%C3%A0_louer_30638963.htm,2.0380978919755872e-05
+lien_https://www.avito.ma/fr/ville_verte/terrains_et_fermes/A_vendre_Terrain_pr_villa_Bouskoura_57508136.htm,2.036839902525837e-05
+quartier_Victoria,1.901173639195169e-05
+quartier_Route De Casablanca,1.5475793336900944e-05
+lien_https://www.avito.ma/fr/hay_charaf/local/%C3%80_VENDRE_LOCAL_COMMERCIAL_EMPLACEMENT_STRAT%C3%89GIQUE_57814318.htm,1.5462717863464306e-05
+lien_https://www.avito.ma/fr/tiznit/terrains_et_fermes/Lots_à_vendre_avec_facilités_de_paiement_53355937.htm,1.5386752878954605e-05
+lien_https://www.avito.ma/fr/hay_al_wahda/appartements/Appartement_à_vendre_55592654.htm,1.511745432173058e-05
+quartier_Aïn Chock,1.4588490581169744e-05
+quartier_Bureau À Casablanca,1.3668743094541882e-05
+lien_https://www.avito.ma/fr/m_hamid/appartements/Appartement_neuf_à_vendre_71_m²_à_Marrakech_53696929.htm,1.3431617490046409e-05
+lien_https://www.avito.ma/fr/bouskoura_centre/terrains_et_fermes/Lot_de_terrain_pour_villa_à_vendre_à_Bouskoura_57745863.htm,1.3088062666492225e-05
+lien_https://www.avito.ma/fr/ahlane/appartements/Appartements_%C3%A0_louer_%C3%A0_Ahla_57731492.htm,1.2871418013864473e-05
+lien_https://www.avito.ma/fr/ville_nouvelle/appartements/Appartement_meubl%C3%A9_centre_ville_wifi_57826647.htm,1.2630499928630375e-05
+lien_https://www.avito.ma/fr/maarif/appartements/%C3%80_louer_Grand_appartement_3ch___Vide_57731352.htm,1.2465674899900672e-05
+lien_https://www.avito.ma/fr/wifak/appartements/Appartement_meubl%C3%A9_%C3%A0_louer_%C3%A0_Wifak_55230858.htm,1.243641821685694e-05
+lien_https://www.avito.ma/fr/hay_hassani/appartements/Appartement_excellent_%C3%A0_louer_quotidiennement_pour_les_familles_57826627.htm,1.2130685482985465e-05
+lien_https://www.avito.ma/fr/martil/appartements/Appartement_à_vendre_65_m²_à_Martil_55449361.htm,1.1663973030272647e-05
+lien_https://www.avito.ma/fr/hay_mohammadi/appartements/Appartement_meubl%C3%A9_%C3%A0_louer_%C3%A0_la_journ%C3%A9e_57826694.htm,1.1663119964789835e-05
+lien_https://www.avito.ma/fr/agdal/appartements/Appartement_spacieux_%C3%A0_Prestigia_Golf_City_56653089.htm,1.0941800063032988e-05
+lien_https://www.avito.ma/fr/hay_salam/appartements/Appart_%C3%A0_louer_avec_balcon_54278250.htm,1.0346732728051408e-05
+region_label_Rabat-Salé-Kénitra,9.777202860864374e-06
+lien_https://www.avito.ma/fr/hay_hassani/appartements/Appartement_meubl%C3%A9_familial_sans_interm%C3%A9diaire_Wi_Fi_54131222.htm,9.301544347221906e-06
+quartier_Médina De Rabat,8.794787898930743e-06
+quartier_Centre Ville,8.456619371857693e-06
+quartier_Appartement Propre,8.001659459796185e-06
+lien_https://www.avito.ma/fr/hay_massira/appartements/Appartement_charmant_%C3%A0_louer__WIFI_et_ascenseur_55103662.htm,7.092039706436373e-06
+quartier_Hay Mohammadi,6.27864803092131e-06
+quartier_Av Mohammed Vi,5.952512505670391e-06
+lien_https://www.avito.ma/fr/béni_mellal/terrains_et_fermes/TERRAIN_TITRÉ_À_VENDRE_À_BENI_MELLAL_57823731.htm,5.433596186951074e-06
+quartier_Marjane,5.398061199016804e-06
+lien_https://www.avito.ma/fr/route_d_ourika/terrains_et_fermes/Vente_Terrain_nu_de_10000_m2_à_Marrakech_57764867.htm,4.425925795646415e-06
+ville_Meknès,3.4932778975549652e-06
+lien_https://www.avito.ma/fr/agdal/appartements/Jolie_appartement_vue_sur_piscine_23902726.htm,1.4451685745736203e-06
+ville_Safi,1.125578221702402e-06
+ville_Mohammedia,5.589080550952487e-07
+quartier_Riad Oulad Mtaa,0.0
+quartier_Val D'Anfa,0.0
+quartier_Val D'Or,0.0
+quartier_Val Fleuri,0.0
+quartier_Quartier Industriel,0.0
+quartier_Ville Verte,0.0
+quartier_Ziatene,0.0
+ville_Ouled Teïma,0.0
+quartier_Quartier Du Parc,0.0
+ville_Salé,0.0
+ville_Sidi Kacem,0.0
+ville_Sidi Rahal,0.0
+ville_Sidi Yahya,0.0
+quartier_Quartier Des Hôpitaux,0.0
+quartier_Palmier,0.0
+ville_Tiznit,0.0
+etage_5,0.0
+etage_6,0.0
+etage_7,0.0
+etage_8,0.0
+etage_membre depuis 2015,0.0
+etage_membre depuis 2019,0.0
+etage_membre depuis 2021,0.0
+etage_membre depuis 2024,0.0
+annee_construction_None,0.0
+lien_https://www.avito.ma/fr/2_mars/appartements/Appart_avec_3_chambres_sur_2_mars_pour_location_57622404.htm,0.0
+lien_https://www.avito.ma/fr/2_mars/appartements/Appartement_%C3%A0_vendre_144_m%C2%B2_%C3%A0_Casablanca_57742925.htm,0.0
+lien_https://www.avito.ma/fr/2_mars/appartements/CMN_ME_1690___Appartement_à_vendre_à_2_Mars_57325115.htm,0.0
+lien_https://www.avito.ma/fr/2_mars/appartements/CMN_ME_1691___Appartement_à_vendre_à_2_Mars_57340227.htm,0.0
+lien_https://www.avito.ma/fr/a%C3%AFn_chock/appartements/Appartement_%C3%A0_louer_%C3%A0_Hay_Moulay_Abdellah_Ain_Chock_57423659.htm,0.0
+lien_https://www.avito.ma/fr/a%C3%AFn_chock/local/Local_%C3%A0_louer_avec_contrat_de_gestion_57826497.htm,0.0
+lien_https://www.avito.ma/fr/a%C3%AFn_diab/appartements/%C3%80_LOUER_APPARTEMENT_MEUBL%C3%89_VUE_MER_%C3%80_AIN_DIAB_57658666.htm,0.0
+lien_https://www.avito.ma/fr/a%C3%AFn_diab/appartements/Duplex_vue_Mer_sur_Ain_Diab_57560887.htm,0.0
+lien_https://www.avito.ma/fr/abdelmoumen/appartements/Appartement_%C3%A0_CFC_en_location_meubl%C3%A9_57775338.htm,0.0
+lien_https://www.avito.ma/fr/abdelmoumen/appartements/Appartement_%C3%A0_louer_47_m%C2%B2_%C3%A0_Casablanca_57806328.htm,0.0
+lien_https://www.avito.ma/fr/abdelmoumen/appartements/Appartement_à_vendre_157_m²_à_Casablanca_57322735.htm,0.0
+lien_https://www.avito.ma/fr/abdelmoumen/appartements/Studio_neuf_meubl%C3%A9_%C3%A0_louer_avec_terrasse_21_m%C2%B2_57664271.htm,0.0
+lien_https://www.avito.ma/fr/achakar/appartements/Un_joli_Appartement_%C3%A0_la_plage_vue_sur_mer_57487194.htm,0.0
+lien_https://www.avito.ma/fr/agdal/appartements/Appartement_d_exception_à_vendre_au_c_ur_d_Agdal_57779106.htm,0.0
+quartier_Palmeraie,0.0
+quartier_Oued Eddahab,0.0
+quartier_Oasis,0.0
+lien_https://www.avito.ma/fr/agdal/appartements/Prestigieux_appartement_2_chambres_%C3%A0_Prestigia_57104056.htm,0.0
+lien_https://www.avito.ma/fr/agdal/appartements/Studio_Argan_Golf_Resort__Marrakech_57712327.htm,0.0
+lien_https://www.avito.ma/fr/agdal/bureaux/Bureau_professionnel_240_m%C2%B2_%C3%A0_Agdal_Rabat_55583830.htm,0.0
+lien_https://www.avito.ma/fr/ahlane/appartements/Appartement_à_vendre_78_m²_à_Tanger_57262591.htm,0.0
+quartier_Nassim,0.0
+lien_https://www.avito.ma/fr/ain_amiyer/appartements/Appartement_%C3%A9quip%C3%A9_pour_familles_uniquement_57252627.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/appartements/Appartement_%C3%A0_vendre_78_m%C2%B2_%C3%A0_Casablanca_57644805.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/appartements/Appartement_%C3%A0_vendre_86_m%C2%B2_%C3%A0_Ain_sebaa_57279636.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/appartements/Appartement_de_122m_à_vendre_à_Ain_Sebaa_52873292.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/appartements/Appartement_meubl%C3%A9_%C3%A0_louer_92_m%C2%B2_%C3%A0_A%C3%AFn_Seba%C3%A2_57736166.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/appartements/Appartement_à_vendre_66_m²_à_proximité_du_tram_57823755.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/local/Caf%C3%A9_%C3%A0_vendre_%C3%A0_Ain_Sebaa_57708338.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/local/Magasin_30_m²_à_vendre_avec_soupente_56702361.htm,0.0
+lien_https://www.avito.ma/fr/ain_sebaa/local/Magasin_a_vendre_57644927.htm,0.0
+lien_https://www.avito.ma/fr/ait_melloul/appartements/appartement_à_vendre_ait_meloul_57810300.htm,0.0
+lien_https://www.avito.ma/fr/al_maghrib_al_arabi/appartements/Appartement_de_80_m%C2%B2_%C3%A0_K%C3%A9nitra_al_maghrib_al_arabi_57816665.htm,0.0
+lien_https://www.avito.ma/fr/allal_el_fassi/appartements/appartement_%C3%A0_louer_court_dur%C3%A9e_55546028.htm,0.0
+lien_https://www.avito.ma/fr/alliance/appartements/Appartement_%C3%A0_vendre_90_m%C2%B2_%C3%A0_K%C3%A9nitra_alliance_57410314.htm,0.0
+lien_https://www.avito.ma/fr/almaz/appartements/Appartement_%C3%A0_vendre_71_m%C2%B2_%C3%A0_ALMAZ_57442813.htm,0.0
+lien_https://www.avito.ma/fr/almaz/terrains_et_fermes/Terrain_%C3%A0_vendre___Almaz_57675106.htm,0.0
+lien_https://www.avito.ma/fr/almaz/terrains_et_fermes/Terrain_%C3%A0_vendre___Nakhil_Almaz_Fa%C3%A7ade_57675082.htm,0.0
+lien_https://www.avito.ma/fr/anfa/appartements/Appartement_%C3%A0_louer_par_mois_%C3%A0_Bourgogne_57785849.htm,0.0
+lien_https://www.avito.ma/fr/anfa/appartements/Appartement_de_175_m%C2%B2_%C3%A0_vendre_%C3%A0_Casablanca_57097559.htm,0.0
+lien_https://www.avito.ma/fr/anfa/appartements/Studio_%C3%A0_c%C3%B4t%C3%A9_de_Lyc%C3%A9e_Lyautey_57806934.htm,0.0
+lien_https://www.avito.ma/fr/aouama_gharbia/terrains_et_fermes/Rue_52_11__90080_Tanger_Assilah_57826487.htm,0.0
+lien_https://www.avito.ma/fr/asilah/appartements/Appartement_vue_sur_mer_à_vendre_à_Asilah_57749648.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/appartements/Appartement_%C3%A0_louer_76_m%C2%B2_%C3%A0_Mohammedia_57814303.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/appartements/Appartement_%C3%A0_vendre_53_m%C2%B2_%C3%A0_Temara_57826571.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/appartements/Appartement_%C3%A0_vendre_82_m%C2%B2_%C3%A0_Bouznika_57112740.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/appartements/Appartement_meubl%C3%A9_%C3%A0_Louer_57749336.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/appartements/Appartements_de_luxe_%C3%A0_louer_par_jour_57814313.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/appartements/CMN_MA_2450___Appartement_à_vendre_à_Bd_Anoual_57276428.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/appartements/À_VENDRE_APPARTEMENT_SALON_3_CHAMBRES_70m2_57279776.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/maisons/Magnifique_Villa_de_Plain_Pied_56587043.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/maisons/Maison_90m2_RDC_et_3_%C3%A9tages_en_Vente_%C3%A0_Bouznika__45655252.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrain_%C3%A0_vendre_%C3%A0_Jamaa_El_Souk_El_Kadim__T%C3%A9touan_56543487.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrain_%C3%A0_vendre_T%C3%A9touan_56821918.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrain_R5_titr%C3%A9_de_300m%C2%B2_%C3%A0_Casablanca_53484378.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrain_agricole_3486m%C2%B2_croisement_Route_tliyta_57592004.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrain_titré_à_vendre_55330744.htm,0.0
+quartier_Hay Saada,0.0
+quartier_Hay Targa,0.0
+quartier_Hivernage,0.0
+quartier_La Colline,0.0
+quartier_La Gironde,0.0
+quartier_La Prairie,0.0
+quartier_La Siesta,0.0
+quartier_Les Princesses,0.0
+quartier_Lissasfa,0.0
+quartier_Maarif,0.0
+quartier_Mabella,0.0
+quartier_Majorelle,0.0
+quartier_Mimosas,0.0
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrain_à_vendre_avec_vue_panoramique_56377932.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/terrains_et_fermes/Terrain_à_vendre_près_de_Tétouan_57079584.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/villas_et_riads/Grande_Villa_a_vendre_Oum_Azza_56060899.htm,0.0
+lien_https://www.avito.ma/fr/autre_secteur/villas_et_riads/Superbe_Villa_220_m%C2%B2_%C3%A0_Dar_Bouazza_57642829.htm,0.0
+lien_https://www.avito.ma/fr/av_mohammed_vi/terrains_et_fermes/Terrain_A_Vendre_57431398.htm,0.0
+lien_https://www.avito.ma/fr/azemmour/terrains_et_fermes/Villa_dans_un_terrain_titr%C3%A9_%C3%A0_vendre_%C3%A0_Sidi_Rahal_57821958.htm,0.0
+lien_https://www.avito.ma/fr/azzouzia/appartements/Appartement_%C3%A0_vendre_88_m%C2%B2_%C3%A0_Marrakech_57719266.htm,0.0
+lien_https://www.avito.ma/fr/b%C3%A9ni_mellal/appartements/Appartement_calme_%C3%A0_louer_57826630.htm,0.0
+lien_https://www.avito.ma/fr/b%C3%A9ni_mellal/appartements/Appartement_de_luxe_%C3%A0_louer_%C3%A0_la_journ%C3%A9e_57826646.htm,0.0
+lien_https://www.avito.ma/fr/b%C3%A9ni_mellal/appartements/Appartement_familial_%C3%A0_louer_centre_ville_57826591.htm,0.0
+lien_https://www.avito.ma/fr/b%C3%A9ni_mellal/appartements/Appartements_%C3%A0_louer_%C3%A0_Beni_Mellal_57826521.htm,0.0
+lien_https://www.avito.ma/fr/b%C3%A9ni_mellal/appartements/Appartements_%C3%A0_louer_quotidiennement_%C3%A0_Beni_Mellal_57826556.htm,0.0
+lien_https://www.avito.ma/fr/b%C3%A9ni_mellal/appartements/Appartements_de_vacances_apparemment_57826617.htm,0.0
+lien_https://www.avito.ma/fr/b%C3%A9ni_mellal/appartements/Excellent_appartements_familiaux_avec_Wi_Fi_57826628.htm,0.0
+lien_https://www.avito.ma/fr/bachkou/appartements/Investissement_s%C3%A9curis%C3%A9___Rentabilit%C3%A9_Assur%C3%A9e_57624294.htm,0.0
+lien_https://www.avito.ma/fr/belv%C3%A9d%C3%A8re/appartements/Appartement_122m%C2%B2_%C3%A0_Belv%C3%A9d%C3%A8re_%C3%A0_vendre_%C3%A0_Casa__54407975.htm,0.0
+lien_https://www.avito.ma/fr/belvédère/appartements/appartement_a_vendre_57823866.htm,0.0
+quartier_Mers Sultan,0.0
+lien_https://www.avito.ma/fr/ben_guerir/local/Café_Restaurant_équipé_à_vendre_à_Ben_Guerir_56550839.htm,0.0
+lien_https://www.avito.ma/fr/ben_m_sick/local/Local_commercial_à_vendre_163_m²_à_Casablanca_57624440.htm,0.0
+lien_https://www.avito.ma/fr/berrechid/appartements/%D8%B4%D9%82%D8%A9_%D9%81%D8%A7%D8%AE%D8%B1%D8%A9_%D9%84%D9%84%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1_%D8%A8%D8%AD%D9%8A_%D8%A8%D9%8A%D8%B1%D9%83%D9%88%D8%B1_57123305.htm,0.0
+lien_https://www.avito.ma/fr/bir_rami/appartements/Appartement_%C3%A0_vendre_70_m%C2%B2_%C3%A0_K%C3%A9nitra_bir_rami_57770705.htm,0.0
+lien_https://www.avito.ma/fr/bir_rami/terrains_et_fermes/Terrain_r%C3%A9sidentiel_150_m%C3%A8tres_R3_Jnane_3_Mohafada_57496611.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/Appartement_95m_Meubl%C3%A9_Ziraoui_57605536.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/Appartement_au_c_ur_de_Bourgogne_42970371.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/Appartement_prestigieux_%C3%A0_Bourgogne_Courte_dur%C3%A9e_54346725.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/Appartement_à_vendre_105_m²_à_Casablanca_57208557.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/Appartement_à_vendre_94_m²_sur_bourgogne_57729273.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/CMN_AN_1875___Appartement_à_vendre_à_Bourgogne_57306326.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/CMN_SI_1877___Appartement_%C3%A0_vendre_%C3%A0_Bourgogne_Est_57328148.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/Rehina_Bourgogne_57784368.htm,0.0
+lien_https://www.avito.ma/fr/bourgogne/appartements/luxe_apt_boulevard_tantan_57522781.htm,0.0
+lien_https://www.avito.ma/fr/bouskoura_centre/appartements/Coquet_studio_meubl%C3%A9_%C3%A0_bouskoura_56296585.htm,0.0
+lien_https://www.avito.ma/fr/bouskoura_centre/appartements/NEUF_appart_haut_standing_%C3%A0_Calif_56882687.htm,0.0
+quartier_Maârif Extension,0.0
+quartier_Studio Argan Golf Resort,0.0
+lien_https://www.avito.ma/fr/californie/appartements/%C3%80_Californie_Appartement_pr%C3%A8s_de_l_%C3%A9cole_am%C3%A9ricaine_57697638.htm,0.0
+lien_https://www.avito.ma/fr/californie/appartements/3_Chambres_%C3%A0_vendre_112_m%C2%B2_%C3%A0_Californie_56564980.htm,0.0
+lien_https://www.avito.ma/fr/californie/appartements/3_Chambres_à_vendre_112_m²_à_Californie_56564980.htm,0.0
+lien_https://www.avito.ma/fr/californie/appartements/Appartement_82m%C2%B2_meubl%C3%A9_%C3%A0_louer_%C3%A0_Californie_57807729.htm,0.0
+lien_https://www.avito.ma/fr/californie/appartements/Appartement_RDC_Jardin_99m%C2%B2___Les_Perles_de_Californie_57789200.htm,0.0
+lien_https://www.avito.ma/fr/californie/appartements/Bel_appart_haut_standing_%C3%A0_Californie_56151985.htm,0.0
+lien_https://www.avito.ma/fr/californie/bureaux/Bureau_%C3%A0_vendre_Emplacement_Strat%C3%A9gique_57697562.htm,0.0
+lien_https://www.avito.ma/fr/californie/local/Local_commercial_%C3%A0_vendre_57807216.htm,0.0
+lien_https://www.avito.ma/fr/centre/appartements/Appartement_%C3%A0_louer_110_m%C2%B2_%C3%A0_K%C3%A9nitra_57826536.htm,0.0
+lien_https://www.avito.ma/fr/centre/local/Local_à_vendre_Jibrane_Khali_Jibrane__Hay_Matar__57814205.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_%C3%A0_louer_court_dur%C3%A9e_55458492.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_%C3%A0_louer_quotidiennement_56235549.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_112_m²___8e_étage___Riad_Tétouan_57725391.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_Moulay_Ismail_57826527.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_au_c_ur_du_centre_ville_57826552.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_meubl%C3%A9_55114224.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_spacieux_%C3%A0_vendre___proche_Avenue_F%C3%A8s_57813923.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/appartements/Appartement_à_vendre_deux_façades_57676901.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/bureaux/Bureau_Haut_Standing_au_Centre_Ville_56809216.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/bureaux/Bureau_et_plateau_en_location_56247907.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/local/Local_commercial_1_350_m%C2%B2___Av_Moulay_Ismail_57754907.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/local/Magasin_30_m%C2%B2_%C3%A0_vendre___Moussa_Ibn_Nosair_57515817.htm,0.0
+lien_https://www.avito.ma/fr/centre_ville/villas_et_riads/R%C3%A9sidence_de_prestige___Bel_appartement_%C3%A0_vendre_57256735.htm,0.0
+lien_https://www.avito.ma/fr/dar_bouazza/appartements/Appartement_%C3%A0_vendre_88_m%C2%B2_%C3%A0_Dar_Bouazza_57569111.htm,0.0
+lien_https://www.avito.ma/fr/dar_bouazza/villas_et_riads/Superbe_Villa_meubl%C3%A9e_%C3%A0_louer_%C3%A0_dar_bouazza_57716909.htm,0.0
+lien_https://www.avito.ma/fr/dar_bouazza/villas_et_riads/Tr%C3%A8s_belle_villa_dans_une_r%C3%A9sidence_de_renom_57476943.htm,0.0
+lien_https://www.avito.ma/fr/dar_bouazza/villas_et_riads/Villa_meubl%C3%A9e_%C3%A0_louer_%C3%A0_Dar_Bouazza_57813939.htm,0.0
+lien_https://www.avito.ma/fr/deroua/appartements/Appartement_%C3%A0_vendre_98_m%C2%B2_%C3%A0_Deroua_57631348.htm,0.0
+lien_https://www.avito.ma/fr/du_golf/appartements/Superbe_appartement_à_vendre_dans_le_quartier_Golf__route_des_Rmilat_57030107.htm,0.0
+lien_https://www.avito.ma/fr/ferme_bretone/appartements/Bel_appartement_vide_%C3%A0_Ferme_Bretonne_57752763.htm,0.0
+lien_https://www.avito.ma/fr/ferme_bretone/appartements/Studio_Meubl%C3%A9_%C3%A0_Louer_Quartier_Ferme_Bretonne_57726170.htm,0.0
+lien_https://www.avito.ma/fr/ferme_bretone/appartements/Superbe_appartement_meubl%C3%A9_hd_ferme_bretonne_57752764.htm,0.0
+lien_https://www.avito.ma/fr/florida/local/Magasin_%C3%A0_louer_%C3%A0_florida_superficie_de_126m___57305445.htm,0.0
+lien_https://www.avito.ma/fr/fnideq/terrains_et_fermes/Terrain_%C3%A0_vendre_%C3%A0_Al_Alliyine_57289743.htm,0.0
+lien_https://www.avito.ma/fr/gauthier/appartements/Appartement_%C3%A0_Gauthier_54166629.htm,0.0
+lien_https://www.avito.ma/fr/gauthier/appartements/Appartement_à_vendre_51_m²_à_Casablanca_57808527.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_%C3%A0_c%C3%B4t%C3%A9_de_Acima_Gu%C3%A9liz_57817202.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_%C3%A0_louer_56753853.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_%C3%A0_louer_80_m%C2%B2_%C3%A0_Marrakech_57332871.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_%C3%A0_louer_pour_les_vacances_57814979.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_%C3%A0_louer_quotidiennement_au_c_ur_de_Marrakech_55541919.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_%C3%A0_vendre_52_m%C2%B2_%C3%A0_Marrakech_56035043.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_46_de_vacances_%C3%A0_Gu%C3%A9liz_57635849.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_avec_chauffage_57814974.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_avec_grand_terrasse_%C3%A0_Gu%C3%A9liz_55811861.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_avec_parking_souterrain_57798287.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_centre_de_Marrakech_57814956.htm,0.0
+ville_Azemmour,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_meubl%C3%A9_57814936.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_proche_de_McDonald_s_Gu%C3%A9liz_57814970.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Appartement_propre_bien_%C3%A9quip%C3%A9_57814983.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Beau_studio_57826655.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Belle_appartement_%C3%A0_Gueliz_56987051.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Joli_appart_centre_ville_57814967.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Location_septembre_56893272.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Magnifique_Studio_%C3%A0_vendre_55_m%C2%B2_%C3%A0_Gu%C3%A9liz_57638000.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Propre_appart_5_min_de_gueliz_Wi_Fi_49779711.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Studio_%C3%A0_prix_raisonnable_57804787.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Studio_avec_climatiseur_57826622.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Studio_avec_piscine_9k_56560583.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Studio_calme_%C3%A0_Gu%C3%A9liz_57757736.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Studio_centre_ville_57806491.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Studio_de_60_m%C2%B2_%C3%A0_vendre_%C3%A0_Marrakech_57765700.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Studio_plein_Gueliz_r%C3%A9sidence_neuve_57761429.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Superbe_Studio_de_37_m%C2%B2_proche_du_Carr%C3%A9_Eden_57634732.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/Tr%C3%A8s_joli_studio_57826616.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/appartement_%C3%A0_coter_de_marjane_57700087.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/joli_studio_57658520.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/studio_%C3%A0_centre_de_marrakech_57647475.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/appartements/studio_tr%C3%A8s_calme_57806497.htm,0.0
+lien_https://www.avito.ma/fr/gu%C3%A9liz/villas_et_riads/Magnifique_Duplex_%C3%A0_vendre_%C3%A0_Marrakech_57765840.htm,0.0
+lien_https://www.avito.ma/fr/guéliz/appartements/Appartement_en_vente_61m²_à_Gueliz_Piscine_Rooftop_57656300.htm,0.0
+lien_https://www.avito.ma/fr/guéliz/appartements/Appartement_à_vendre_111_m²_à_Marrakech_57757647.htm,0.0
+lien_https://www.avito.ma/fr/guéliz/appartements/Appartement_à_vendre_60_m²_à_Marrakech_57585644.htm,0.0
+lien_https://www.avito.ma/fr/had_soualem/appartements/R%C3%A9sidence_Riyad_Sahel_52185333.htm,0.0
+lien_https://www.avito.ma/fr/hamria/terrains_et_fermes/A_vendre_terrain_2366_m²_Méknès_57324050.htm,0.0
+lien_https://www.avito.ma/fr/harhoura/appartements/Appartement_%C3%A0_vendre_%C3%A0_Harhoura_56546117.htm,0.0
+lien_https://www.avito.ma/fr/harhoura/appartements/Appartement_%C3%A0_vendre_Sable_d_Or_%C3%A0_Harhoura_57704808.htm,0.0
+lien_https://www.avito.ma/fr/hassan/bureaux/Bureau_%C3%A0_louer_sur_Hassan_51451705.htm,0.0
+ville_Moulay Bousselham,0.0
+age_bien,0.0
+lien_https://www.avito.ma/fr/ziatene/villas_et_riads/VILLA_A_VENDRE_ZIATEN_TANGER_55715317.htm,0.0
+lien_https://www.avito.ma/fr/ziatene/appartements/Duplex_meublé_à_vendre_près_du_stade_Ibn_Batouta_57110774.htm,0.0
+quartier_Arghoud,0.0
+lien_https://www.avito.ma/fr/wifak/appartements/Tr%C3%A8s_bel_appartement_%C3%A0_vendre_57296128.htm,0.0
+quartier_Florida,0.0
+quartier_Gauthier,0.0
+quartier_Hamria,0.0
+quartier_Hay Al Wahda,0.0
+lien_https://www.avito.ma/fr/wifak/appartements/Magnifique_penthouse_à_vendre_ou_à_louer_à_Wifac_57321110.htm,0.0
+quartier_Hay El Matar,0.0
+quartier_Hay Hassani,0.0
+ville_El Jadida,0.0
+ville_Deroua,0.0
+lien_https://www.avito.ma/fr/hay_hassani/appartements/Appartement_meublé_3_chambres_à_vendre_Tanger_57304897.htm,0.0
+lien_https://www.avito.ma/fr/souissi/terrains_et_fermes/Terrain_Commercial_%C3%A0_Vendre_Souissi_Rabat_57814311.htm,0.0
+lien_https://www.avito.ma/fr/hay_mohammadi/appartements/Appartement_RDC_91_m2_%C3%A0_Hay_Mohammadi_57684858.htm,0.0
+lien_https://www.avito.ma/fr/souissi/appartements/Appart_luxueux_3_ch_meubl%C3%A9_%C3%A0_louer_Jnane_Souissi_57632052.htm,0.0
+lien_https://www.avito.ma/fr/hay_mohammadi/bureaux/Bureau_54m2_%C3%A0_louer_pour_Cabinet_Medical_____57029324.htm,0.0
+lien_https://www.avito.ma/fr/hay_mohammadi/local/Appartement_RDC_avec_Magasin_%C3%A0_vendre_%C3%A0_H_M_Casablanca_53754916.htm,0.0
+lien_https://www.avito.ma/fr/hay_mohammadi/local/Magasin_%C3%A0_louer_Al_Hizam_avec_contrat_de_bail_54363354.htm,0.0
+lien_https://www.avito.ma/fr/hay_riad/appartements/Appartement_%C3%A0_louer_100_m%C2%B2_Hay_Riad_Rabat_57484287.htm,0.0
+lien_https://www.avito.ma/fr/hay_riad/appartements/Appartement_bien_ensoleill%C3%A9_a_Hay_riad_57577479.htm,0.0
+ville_Ait Melloul,0.0
+lien_https://www.avito.ma/fr/hay_saada/appartements/Appartement_meubl%C3%A9_%C3%A9quip%C3%A9_%C3%A0_Hay_Saada_Agdal_F%C3%A8s_57052411.htm,0.0
+ville_Nador,0.0
+lien_https://www.avito.ma/fr/hay_targa/appartements/Un_appartement_location_a_Targa_56068754.htm,0.0
+lien_https://www.avito.ma/fr/hay_targa/villas_et_riads/RAK_GU_1276___Villa_%C3%A0_vendre_%C3%A0_Targa_57225746.htm,0.0
+lien_https://www.avito.ma/fr/hivernage/appartements/APPARTEMENT_À_VENDRE_AU_C_UR_DE_GUELIZ_57713078.htm,0.0
+lien_https://www.avito.ma/fr/hivernage/appartements/Appartement_à_vendre_100_m²_à_Marrakech_57764655.htm,0.0
+lien_https://www.avito.ma/fr/hivernage/appartements/Joli_appartement_1_chambre_meubl%C3%A9_piscine_57255722.htm,0.0
+lien_https://www.avito.ma/fr/la_colline/appartements/Appartement_à_vendre_79_m²_à_Mohammedia_57722735.htm,0.0
+lien_https://www.avito.ma/fr/la_gironde/appartements/Appartement_%C3%A0_louer_3_ch_vide_bd_la_resistance_57550423.htm,0.0
+lien_https://www.avito.ma/fr/la_gironde/appartements/Superbe_appartement_meubl%C3%A9_%C3%A0_louer___La_Gironde_57778904.htm,0.0
+lien_https://www.avito.ma/fr/la_prairie/appartements/Chalets_et_appartements_tr%C3%A8s_propres_au_centre_46572794.htm,0.0
+lien_https://www.avito.ma/fr/souissi/villas_et_riads/Villa_%C3%A0_louer_Souissi_57805023.htm,0.0
+lien_https://www.avito.ma/fr/la_siesta/appartements/Appartement_%C3%A0_vendre_93_m%C2%B2_%C3%A0_R%C3%A9sidence_La_Siesta_56578309.htm,0.0
+lien_https://www.avito.ma/fr/larache/appartements/Appartement_au_centre_ville_d_Arcila_%C3%A0_un_prix_tr%C3%A8s_raisonnable_57826503.htm,0.0
+lien_https://www.avito.ma/fr/les_princesses/appartements/Appartement_terrasse_meubl%C3%A9_Les_Princesses_56542695.htm,0.0
+lien_https://www.avito.ma/fr/les_princesses/appartements/Bel_appartement_meubl%C3%A9_%C3%A0_louer_%C3%A0_Les_Princesses_57815557.htm,0.0
+lien_https://www.avito.ma/fr/les_princesses/appartements/CMN_MA_2404___Appartement_%C3%A0_vendre_%C3%A0_Les_princesses_57234386.htm,0.0
+lien_https://www.avito.ma/fr/les_princesses/appartements/LES_PRINCESSES_SUPERBE_STUDIO_NEUF_MEUBL%C3%89_%C3%80_LOUER_57621846.htm,0.0
+lien_https://www.avito.ma/fr/lissasfa/appartements/CMN_HA_1848___Appartement_%C3%A0_vendre_%C3%A0_Lissasfa_57291337.htm,0.0
+lien_https://www.avito.ma/fr/skikina/local/Garages_à_vendre_avec_excellentes_caractéristiques__coin___Témara_57712691.htm,0.0
+lien_https://www.avito.ma/fr/ma%C3%A2rif_extension/appartements/Appart_90m_Meubl%C3%A9_%C3%80_Maarif_Ex_Pr%C3%A8s_Route_Eljadida_57700307.htm,0.0
+lien_https://www.avito.ma/fr/ma%C3%A2rif_extension/appartements/Appartement_126m_%C3%A0_Maarif_Extension_Socrate_57090002.htm,0.0
+lien_https://www.avito.ma/fr/ma%C3%A2rif_extension/appartements/Appartement_Meubl%C3%A9_neuf_%C3%A0_louer_sur_Ma%C3%A2rif_57451616.htm,0.0
+lien_https://www.avito.ma/fr/skikina/villas_et_riads/Villa_%C3%A0_vendre_%C3%A0_Temara_Skikina_57791624.htm,0.0
+lien_https://www.avito.ma/fr/maarif/appartements/Appartement_%C3%A0_louer_57_m%C2%B2_%C3%A0_Casablanca_55544630.htm,0.0
+lien_https://www.avito.ma/fr/maarif/appartements/Appartement_à_vendre_118_m²_à_Casablanca_57775545.htm,0.0
+lien_https://www.avito.ma/fr/maarif/appartements/CMN_MA_2478___Appartement_à_vendre_à_Burger_57365012.htm,0.0
+lien_https://www.avito.ma/fr/maarif/appartements/Location_vacances_%C3%A0_Maarif_56211758.htm,0.0
+lien_https://www.avito.ma/fr/maarif/appartements/Studio_%C3%A0_louer___Maarif_57750103.htm,0.0
+lien_https://www.avito.ma/fr/maarif/appartements/Studio_58m_Haut_Standing_Maarif_Extension_57250456.htm,0.0
+lien_https://www.avito.ma/fr/maarif/appartements/___Studio_confortable____56313973.htm,0.0
+lien_https://www.avito.ma/fr/mabella/appartements/Appartement_meubl%C3%A9_3_chambres_double_salon_57821909.htm,0.0
+lien_https://www.avito.ma/fr/majorelle/appartements/Studio_à_vendre_58_m²_à_Marrakech_57292606.htm,0.0
+lien_https://www.avito.ma/fr/majorelle/appartements/___Appartement_%C3%A0_vendre_57652250.htm,0.0
+lien_https://www.avito.ma/fr/malabata/appartements/Appartement_%C3%A0_louer_par_jour_48490215.htm,0.0
+lien_https://www.avito.ma/fr/malabata/appartements/Appartement_%C3%A0_louer_quotidiennement_%C3%A0_la_Corniche_Malabata_sans_interm%C3%A9diaire_54222431.htm,0.0
+lien_https://www.avito.ma/fr/malabata/appartements/Appartement_avec_vue_sur_mer_au_centre_ville_sans_interm%C3%A9diaire_54450439.htm,0.0
+lien_https://www.avito.ma/fr/malabata/appartements/Appartement_vue_sur_mer_4_chambres_%C3%A0_vendre_57703965.htm,0.0
+lien_https://www.avito.ma/fr/malabata/appartements/Des_appartements_%C3%A0_louer_journ%C3%A9e_55576207.htm,0.0
+lien_https://www.avito.ma/fr/malabata/appartements/Studio_vue_mer_pour_investissement_Airbnb_57819390.htm,0.0
+lien_https://www.avito.ma/fr/marina/appartements/Appartements_meubl%C3%A9es_%C3%A0_louer_%C3%A0_la_MARINA_47497401.htm,0.0
+lien_https://www.avito.ma/fr/marina/appartements/Appartements_meubl%C3%A9s_%C3%A0_LA_MARINA_47882183.htm,0.0
+lien_https://www.avito.ma/fr/marjane/appartements/Appartement_à_vendre___Quartier_Marjane__Tanger_57604786.htm,0.0
+lien_https://www.avito.ma/fr/marjane/appartements/Meublé_à_vendre_à_Moulay_Smail_65_m²_57823829.htm,0.0
+lien_https://www.avito.ma/fr/martil/appartements/Appartement_%C3%A0_vendre_65_m%C2%B2_%C3%A0_Martil_55449361.htm,0.0
+quartier_Skikina,0.0
+lien_https://www.avito.ma/fr/mers_sultan/appartements/2_appartements_%C3%A0_vendre_%C3%A0_Mers_Sultan_57466419.htm,0.0
+lien_https://www.avito.ma/fr/mimosas/appartements/APPART_86m_MEUBL%C3%89_%C3%A0_aswak_assalam_avc_WIFI_PARKING_50963012.htm,0.0
+lien_https://www.avito.ma/fr/mimosas/appartements/Studio_Meubl%C3%A9_Longue_Dur%C3%A9e_57707299.htm,0.0
+lien_https://www.avito.ma/fr/moulay_bousselham/terrains_et_fermes/Terrain_villa_201m%C2%B2_%C3%A0_vendre_%C3%A9change_reprise_Moulay_Bousselham_51309416.htm,0.0
+lien_https://www.avito.ma/fr/médina_de_rabat/villas_et_riads/Magnifique_riad_à_vendre_Médina_Rabat_57550432.htm,0.0
+lien_https://www.avito.ma/fr/nassim/appartements/Appartement_Nassim_Mohammedia_57826659.htm,0.0
+lien_https://www.avito.ma/fr/oasis/appartements/Studio_Meuble_a_Louer_%C3%A0_Oasis_Bd_Ghandi_57775436.htm,0.0
+lien_https://www.avito.ma/fr/oued_eddahab/appartements/Appartement_%C3%A0_vendre_115_m%C2%B2_%C3%A0_Temara_57774592.htm,0.0
+lien_https://www.avito.ma/fr/ouled_teïma/appartements/Appartement_à_vendre_90_m²_Limoune_à_Ouled_Teïma_56824722.htm,0.0
+lien_https://www.avito.ma/fr/oulfa/appartements/Appartement_%C3%A0_vendre_70_m%C2%B2_%C3%A0_Casablanca_57826736.htm,0.0
+lien_https://www.avito.ma/fr/oulfa/appartements/Appartements_%C3%A0_louer_par_jour_54541779.htm,0.0
+lien_https://www.avito.ma/fr/oulfa/appartements/CMN_HA_1920___Appartement_%C3%A0_vendre_%C3%A0_Oulfa_57324742.htm,0.0
+lien_https://www.avito.ma/fr/oulfa/villas_et_riads/Villa_Jumel%C3%A9e_Al_Laymoune_486m%C2%B2_57789145.htm,0.0
+lien_https://www.avito.ma/fr/palmeraie/terrains_et_fermes/Terrain_à_vendre_176_m²_City_Sport_Marrakech_56107930.htm,0.0
+lien_https://www.avito.ma/fr/palmier/appartements/Appartement_à_vendre_42_m²_à_Casablanca_57823729.htm,0.0
+lien_https://www.avito.ma/fr/palmier/appartements/Studio_meubl%C3%A9_Neuf_%C3%A0_LOUER_%C3%A0_PALMIER_57185767.htm,0.0
+lien_https://www.avito.ma/fr/palmier/appartements/Studio_à_vendre_33m²_à_Palmier_57737757.htm,0.0
+lien_https://www.avito.ma/fr/quartier_des_h%C3%B4pitaux/appartements/Appartement_%C3%A0_vendre_sur_quartier_des_hopitaux_57627351.htm,0.0
+lien_https://www.avito.ma/fr/quartier_des_h%C3%B4pitaux/appartements/Studio_38m_Neuf_Quartier_Des_H%C3%B4pitaux_Proche_Tram_57709684.htm,0.0
+lien_https://www.avito.ma/fr/quartier_des_h%C3%B4pitaux/appartements/Studio_Vide_Neuf_au_QUARTIER_DES_HOPITAUX_57688538.htm,0.0
+lien_https://www.avito.ma/fr/quartier_des_hôpitaux/appartements/A_vendre_un_appart_de_4_chambres_sans_voisins_57375208.htm,0.0
+lien_https://www.avito.ma/fr/quartier_du_parc/appartements/Appartement_à_vendre_104_m²_à_Mohammedia_57711440.htm,0.0
+lien_https://www.avito.ma/fr/quartier_du_parc/appartements/appartement_spacieux_57826504.htm,0.0
+lien_https://www.avito.ma/fr/quartier_industriel/appartements/Appartement_meubl%C3%A9_Bouznika_Kettani_57826636.htm,0.0
+lien_https://www.avito.ma/fr/racine/appartements/Appartement_haut_standing_au_Racine_55157403.htm,0.0
+lien_https://www.avito.ma/fr/racine/appartements/CMN_MA_2188___Appartement_à_vendre_à_Racine_56537855.htm,0.0
+quartier_Californie,0.0
+quartier_Centre,0.0
+lien_https://www.avito.ma/fr/sidi_rahal/terrains_et_fermes/Terrain_titré_de_138m2_à_Vendre_57727678.htm,0.0
+quartier_Du Golf,0.0
+quartier_2 Mars,0.0
+quartier_Abdelmoumen,0.0
+quartier_Ahlane,0.0
+quartier_Ain Amiyer,0.0
+quartier_Ain Sebaa,0.0
+quartier_Al Maghrib Al Arabi,0.0
+quartier_Alliance,0.0
+quartier_Almaz,0.0
+quartier_Anfa,0.0
+lien_https://www.avito.ma/fr/racine/appartements/Duplex_%C3%A0_louer_364_m%C2%B2_%C3%A0_Dernier_%C3%A9tage2_min_Paul_57811714.htm,0.0
+lien_https://www.avito.ma/fr/riad_oulad_mtaa/bureaux/LOCATION_BUREAUX_NEUFS_M%C3%89DECINS_RIAD_OULAD_MTAA_57706515.htm,0.0
+lien_https://www.avito.ma/fr/riad_oulad_mtaa/local/Magasin_%C3%A0_louer_ou_%C3%A0_vendre_Oulad_Mtaa_TEMARA_57816762.htm,0.0
+lien_https://www.avito.ma/fr/riviera/appartements/Studio_%C3%A0_Maarif_pour_location_journali%C3%A8re_et_demi_journ%C3%A9e_55041508.htm,0.0
+lien_https://www.avito.ma/fr/roches_noires/appartements/Appartement_92m%C2%B2_1er_%C3%A0_Roches_Noires_%C3%A0_vendre_Casa_55901112.htm,0.0
+lien_https://www.avito.ma/fr/roches_noires/appartements/Appartement_meubl%C3%A9_%C3%A0_louer___Emile_Zola_57749761.htm,0.0
+lien_https://www.avito.ma/fr/route_d_amezmiz/maisons/Villa_%C3%A0_5_minutes_de_Morocco_Mall_Marrakech_57804442.htm,0.0
+region_label_Béni Mellal-Khénifra,0.0
+lien_https://www.avito.ma/fr/route_de_casablanca/appartements/Appartement_propre_Jnane_Ourad__Proche_de_McDonald_s_route_de_Safi_56387203.htm,0.0
+lien_https://www.avito.ma/fr/route_de_casablanca/appartements/Appartement_à_vendre_154_m²_à_Marrakech_57804075.htm,0.0
+lien_https://www.avito.ma/fr/route_de_casablanca/appartements/Appartement_à_vendre_57_m²_à_Madame_Plaza_57808180.htm,0.0
+lien_https://www.avito.ma/fr/route_de_fès/terrains_et_fermes/Terrain_à_vendre_superficie_hectare_et_demi_57706198.htm,0.0
+lien_https://www.avito.ma/fr/sal%C3%A9/appartements/Appartement_%C3%A9conomique_%C3%A0_vendre_54265071.htm,0.0
+lien_https://www.avito.ma/fr/victoria/terrains_et_fermes/Lots_de_terrains_%C3%A0_partir_de_300m%C2%B2_%C3%A0_Bouskoura_57774229.htm,0.0
+lien_https://www.avito.ma/fr/sidi_bernoussi/appartements/Appartement_85m%C2%B2_%C3%A0_Sidi_Bernoussi_Casa__53160051.htm,0.0
+lien_https://www.avito.ma/fr/sidi_bernoussi/appartements/cabinet_m%C3%A9dical_anassi_54881974.htm,0.0
+lien_https://www.avito.ma/fr/sidi_bernoussi/bureaux/Bureau_duplex_5000dh_53672443.htm,0.0
+lien_https://www.avito.ma/fr/sidi_bernoussi/local/MAGASIN_AM%C3%89NAG%C3%89_%C3%80_VENDRE_SUR_RIAD_SIDI_BERNOUSSI_57813931.htm,0.0
+lien_https://www.avito.ma/fr/sidi_bernoussi/maisons/Docker_City_2018_57826566.htm,0.0
+lien_https://www.avito.ma/fr/sidi_bouknadel/appartements/Appartement_%C3%A0_Vendre_Avec_Vue_D%C3%A9gag%C3%A9e_sur_MER_56471763.htm,0.0
+lien_https://www.avito.ma/fr/sidi_bouknadel/appartements/Vente_Appartement_vue_d%C3%A9gag%C3%A9e_sur_Mer_57574323.htm,0.0
+lien_https://www.avito.ma/fr/sidi_kacem/appartements/Appartement_%C3%A0_vendre_%C3%A0_Sidi_Kacem_85_m%C2%B2_56161941.htm,0.0
+lien_https://www.avito.ma/fr/sidi_kacem/appartements/Appartement_propre__ensoleill%C3%A9_en_plein_centre_57615121.htm,0.0
+lien_https://www.avito.ma/fr/sidi_maarouf/appartements/%C3%80_louer_Appartements_neufs_%C3%A0_Sidi_Maarouf_57799319.htm,0.0
+lien_https://www.avito.ma/fr/sidi_maarouf/appartements/Appartement_meubl%C3%A9_%C3%A0_louer___Ahfad_Sidi_Ma%C3%A2rouf_57749309.htm,0.0
+lien_https://www.avito.ma/fr/sidi_maarouf/appartements/Appartement_à_vendre_74_m²_à_Casablanca_57677252.htm,0.0
+lien_https://www.avito.ma/fr/sidi_maarouf/appartements/CMN_AC_1971___Appartement_%C3%A0_vendre_%C3%A0_Sidi_Maarouf_57245006.htm,0.0
+lien_https://www.avito.ma/fr/sidi_maarouf/appartements/CMN_AC_2063___Appartement_%C3%A0_vendre_%C3%A0_Sidi_Maarouf_57349576.htm,0.0
+lien_https://www.avito.ma/fr/sidi_maarouf/appartements/CMN_AC_2063___Appartement_à_vendre_à_Sidi_Maarouf_57349576.htm,0.0
+lien_https://www.avito.ma/fr/sidi_maarouf/bureaux/Bureau_%C3%A0_CASABLANCA__Zenith_pour_3_personnes_55895852.htm,0.0
+lien_https://www.avito.ma/fr/sidi_othmane/appartements/Appartement_neuf_parking_ascenseur_55520112.htm,0.0
+lien_https://www.avito.ma/fr/sidi_othmane/terrains_et_fermes/Terrain_à_vendre_à_usage_clinique_57788251.htm,0.0
+lien_https://www.avito.ma/fr/sidi_rahal/appartements/Appartement_%C3%A0_vendre_76_m%C2%B2_%C3%A0_Sidi_Rahal_57775612.htm,0.0
+lien_https://www.avito.ma/fr/sidi_rahal/appartements/Appartement_vue_sur_mer_57623537.htm,0.0
+lien_https://www.avito.ma/fr/sidi_rahal/appartements/Appartement_à_vendre_85_m²_à_Sidi_Rahal_57616748.htm,0.0
+ville_Asilah,0.0
+lien_https://www.avito.ma/fr/souissi/villas_et_riads/Villa_%C3%A0_vendre_Souissi_Rabat_57624112.htm,0.0
+ville_Essaouira,0.0
+ville_Fnideq,0.0
+ville_Had Soualem,0.0
+ville_Ifrane,0.0
+ville_Kénitra,0.0
+ville_Larache,0.0
+ville_Martil,0.0
+quartier_Roches Noires,0.0
+quartier_Route D'Amezmiz,0.0
+lien_https://www.avito.ma/fr/victoria/local/Local_54m%C2%B2_sur_boulevard__fa%C3%A7ade_vitr%C3%A9e__Victoria_57666719.htm,0.0
+quartier_Said Hajji,0.0
+quartier_Sidi Bernoussi,0.0
+quartier_Sidi Othmane,0.0
+lien_https://www.avito.ma/fr/tahla/terrains_et_fermes/Domaine_priv%C3%A9_%C3%A0_vendre_57826670.htm,0.0
+ville_Ben Guerir,0.0
+lien_https://www.avito.ma/fr/sidi_rahal/terrains_et_fermes/Terrain_à_vendre_3_Hectares_titré_à_35_min_de_Casa_57783580.htm,0.0
+lien_https://www.avito.ma/fr/sidi_rahal/villas_et_riads/Lots_de_villas_de_158_M%C2%B2_%C3%A0_Sidi_Rahal_Chatai_55726056.htm,0.0
+lien_https://www.avito.ma/fr/sidi_yahya/terrains_et_fermes/Terrain_titré_2250_m²_à_Sidi_Yahya_Zaer_57790840.htm,0.0
+lien_https://www.avito.ma/fr/val_fleuri/appartements/CMN_MA_1139___Appartement_%C3%A0_vendre_%C3%A0_Val_Fleurie_57319442.htm,0.0
+lien_https://www.avito.ma/fr/val_fleuri/appartements/BEL_APPARTEMENT_MEUBLE_A_VAL_FLEURI_A_VENDRE_57826607.htm,0.0
+ville_Bouskoura,0.0
+quartier_Azzouzia,0.0
+lien_https://www.avito.ma/fr/val_fleuri/appartements/Appartement_à_vendre_97_m²_à_Casablanca_57583411.htm,0.0
+quartier_Aïn Diab,0.0
+quartier_Bachkou,0.0
+quartier_Ben M'Sick,0.0
+quartier_Bir Rami Est,0.0
+quartier_Bouskoura Centre,0.0
+lien_https://www.avito.ma/fr/val_d_or/appartements/Bel_Appartement_meubl%C3%A9_%C3%A0_Val_d_or_57441843.htm,0.0
+lien_https://www.avito.ma/fr/val_d_anfa/appartements/Studio_%C3%A0_louer_50_m%C2%B2_%C3%A0_Val_d_Anfa_57634457.htm,0.0

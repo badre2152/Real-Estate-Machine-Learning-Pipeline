@@ -1,0 +1,212 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# ml-pipeline.yml v3 — CI/CD complet
+#
+# Jobs:
+#   1. test      → Tests unitaires + couverture
+#   2. lint      → Vérification style (ruff)
+#   3. build     → Build Docker image + push vers Docker Hub
+#   4. deploy    → Deploy vers Render (sur push main uniquement)
+#
+# Secrets GitHub à configurer (Settings → Secrets → Actions):
+#   DOCKERHUB_USERNAME  → ton username Docker Hub
+#   DOCKERHUB_TOKEN     → Access Token Docker Hub
+#   RENDER_API_KEY      → API Key de Render.com
+#   RENDER_SERVICE_ID   → ID du service dans Render (srv-xxxx)
+#   PROD_API_KEY        → La clé API de ton app en production
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: ML Pipeline CI/CD v3
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/avito-ml-api
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 1 — Tests
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+  test:
+    name: 🧪 Tests & Couverture
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: real_estate_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Installer les dépendances
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: 🧪 Lancer les tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_NAME: real_estate_db
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          API_KEYS: test-key-ci
+        run: |
+          pytest tests/ -v \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=75 \
+            -x
+
+      - name: Upload coverage (Codecov)
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+          fail_ci_if_error: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 2 — Lint
+# ─────────────────────────────────────────────────────────────────────────────
+  lint:
+    name: 🔍 Linting (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check src/ tests/ --ignore E501,E402
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 3 — Build & Push Docker Image
+# ─────────────────────────────────────────────────────────────────────────────
+  build:
+    name: 🐳 Build & Push Docker
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    # فقط على push (مش على pull_request)
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: 🐳 Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          target: api
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 📝 Image digest
+        run: echo "Image pushed → ${{ env.DOCKER_IMAGE }}:latest"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 4 — Deploy vers Render (main branch uniquement)
+# ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy → Render
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - name: 🚀 Trigger Render Deploy
+        run: |
+          curl -s -X POST \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": false}' \
+            | jq .
+
+      - name: ⏳ Attendre que le deploy soit prêt (max 5 min)
+        run: |
+          echo "Attendre 30s pour que le deploy démarre..."
+          sleep 30
+          MAX_TRIES=10
+          for i in $(seq 1 $MAX_TRIES); do
+            STATUS=$(curl -s \
+              "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              | jq -r '.serviceDetails.url // empty')
+            if [ -n "$STATUS" ]; then
+              echo "✅ Service URL: $STATUS"
+              break
+            fi
+            echo "⏳ Tentative $i/$MAX_TRIES — attendre 30s..."
+            sleep 30
+          done
+
+      - name: 🏥 Smoke test — /health
+        env:
+          SERVICE_URL: https://avito-ml-api.onrender.com
+        run: |
+          echo "Test /health endpoint..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/health")
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✅ /health → $HTTP_STATUS OK"
+          else
+            echo "❌ /health → $HTTP_STATUS FAILED"
+            exit 1
+          fi
+
+      - name: 🔐 Smoke test — Auth (sans clé)
+        env:
+          SERVICE_URL: https://avito-ml-api.onrender.com
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/v1/info")
+          if [ "$HTTP_STATUS" = "401" ]; then
+            echo "✅ Auth fonctionnel → 401 sans clé"
+          else
+            echo "❌ Auth cassé → attendu 401, reçu $HTTP_STATUS"
+            exit 1
+          fi
+
+      - name: ✅ Deploy réussi
+        run: echo "🎉 Deploy production terminé avec succès!"

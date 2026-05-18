@@ -1,0 +1,154 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# docker-compose.yml v3 — Avito Real Estate ML Platform
+# Services: PostgreSQL + API FastAPI + MLflow UI + Nginx
+#
+# Usage:
+#   docker compose up -d                  → API + DB + MLflow
+#   docker compose --profile train up     → + Pipeline training
+#   docker compose --profile nginx up     → + Nginx reverse proxy
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: avito_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - avito_net
+
+  # ── API FastAPI ───────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    image: avito-ml-api:3.0
+    container_name: avito_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Database
+      DB_HOST:     db
+      DB_PORT:     5432
+      DB_NAME:     ${DB_NAME}
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # API Security  ← NEW v3
+      API_KEYS:              ${API_KEYS:-dev-key-change-me}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
+      CORS_ORIGINS:          ${CORS_ORIGINS:-*}
+      # MLflow
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      # App
+      MODELS_DIR: /app/models
+      LOG_LEVEL:  ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    healthcheck:
+      # ✅ FIXED: يستعمل /health (endpoint الجديد)
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - avito_net
+
+  # ── MLflow UI ─────────────────────────────────────────────────────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.3
+    container_name: avito_mlflow
+    restart: unless-stopped
+    command: >
+      mlflow server
+        --host 0.0.0.0
+        --port 5000
+        --backend-store-uri sqlite:////mlflow/mlflow.db
+        --default-artifact-root /mlflow/artifacts
+    volumes:
+      - mlflow_data:/mlflow
+    ports:
+      - "5000:5000"
+    networks:
+      - avito_net
+
+  # ── Pipeline ML (training) ────────────────────────────────────────────────────
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: pipeline
+    container_name: avito_pipeline
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST:     db
+      DB_PORT:     5432
+      DB_NAME:     ${DB_NAME}
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+      - ./docs/plots:/app/docs/plots
+      - mlflow_data:/app/mlruns
+    networks:
+      - avito_net
+    profiles:
+      - train
+
+  # ── Nginx Reverse Proxy (optional) ───────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: avito_nginx
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - avito_net
+    profiles:
+      - nginx
+
+# ── Volumes ────────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  mlflow_data:
+    driver: local
+
+# ── Network ────────────────────────────────────────────────────────────────────
+networks:
+  avito_net:
+    driver: bridge
