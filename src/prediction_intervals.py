@@ -7,8 +7,8 @@ Au lieu de renvoyer une seule valeur, le modèle retourne un intervalle
 de confiance [lower, upper] autour de la prédiction centrale.
 
 Deux méthodes disponibles :
-  1. Quantile (GradientBoosting / XGBoost natif) — précise et rapide
-  2. Bootstrap — universelle, fonctionne avec tout modèle sklearn
+  1. Quantile (GradientBoosting / XGBoost natif): précise et rapide
+  2. Bootstrap: universelle, fonctionne avec tout modèle sklearn
 
 Usage :
     from prediction_intervals import PredictionIntervalBuilder
@@ -27,9 +27,9 @@ from logger_setup import get_logger
 logger = get_logger(__name__)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Builder principal
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class PredictionIntervalBuilder:
     """
@@ -80,7 +80,7 @@ class PredictionIntervalBuilder:
             f"CI={self.confidence_level:.0%}, alpha={self.alpha:.3f}"
         )
 
-    # ── Fit ───────────────────────────────────────────────────────────────────
+    # Fit
 
     def fit(self, model, X_train, y_train) -> "PredictionIntervalBuilder":
         """
@@ -141,7 +141,7 @@ class PredictionIntervalBuilder:
 
         logger.info(f"   ✅ {self.n_bootstrap} modèles bootstrap entraînés")
 
-    # ── Predict ───────────────────────────────────────────────────────────────
+    # Predict
 
     def predict_with_interval(self, X_test) -> pd.DataFrame:
         """
@@ -169,7 +169,7 @@ class PredictionIntervalBuilder:
             lower = np.quantile(all_preds, self.alpha / 2, axis=1)
             upper = np.quantile(all_preds, 1 - self.alpha / 2, axis=1)
 
-        # ── Sanity checks — prix immobilier toujours positif ─────────────────
+        # Sanity checks — prix immobilier toujours positif
         # lower < 0 possible si les résidus sont très négatifs → clip à 0
         lower = np.maximum(lower, 0.0)
         # Garantir lower <= prediction <= upper (interval ne doit pas être inversé)
@@ -202,7 +202,7 @@ class PredictionIntervalBuilder:
 
         return df
 
-    # ── Rapport ───────────────────────────────────────────────────────────────
+    # Rapport
 
     def evaluate_coverage(
         self, X_test, y_test
@@ -235,7 +235,7 @@ class PredictionIntervalBuilder:
 
         if abs(metrics["coverage_gap"]) > 0.05:
             logger.warning(
-                f"   ⚠️  Écart couverture > 5% — envisager une recalibration"
+                f"   ⚠️  Écart couverture > 5%: envisager une recalibration"
             )
 
         return metrics
@@ -244,14 +244,14 @@ class PredictionIntervalBuilder:
         """Formate une ligne de résultat en texte lisible."""
         return (
             f"{row['prediction']:,.0f} MAD "
-            f"[{row['lower']:,.0f} – {row['upper']:,.0f}] "
+            f"[{row['lower']:,.0f} à {row['upper']:,.0f}] "
             f"(±{row['interval_width']/2:,.0f})"
         )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Fonction utilitaire rapide
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def predict_with_ci(
     model,
