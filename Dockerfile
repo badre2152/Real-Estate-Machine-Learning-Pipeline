@@ -13,9 +13,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc g++ libpq-dev curl git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./
+ARG REQUIREMENTS_FILE=requirements-api.txt
+COPY requirements.txt requirements-api.txt ./
 RUN pip install --upgrade pip \
-    && pip install --prefix=/install --no-cache-dir -r requirements.txt
+    && pip install --prefix=/install --no-cache-dir -r "$REQUIREMENTS_FILE"
 
 # Stage 2 : Runtime
 FROM python:3.11-slim AS runtime
