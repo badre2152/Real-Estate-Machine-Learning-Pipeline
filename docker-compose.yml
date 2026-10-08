@@ -53,12 +53,13 @@ services:
       DB_USER:     ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       # API Security
-      API_KEYS:              ${API_KEYS:-dev-key-change-me}
+      API_KEYS:              ${API_KEYS:?Set API_KEYS in .env}
       ENVIRONMENT:           ${ENVIRONMENT:-dev}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
       CORS_ORIGINS:          ${CORS_ORIGINS:-*}
       # MLflow
       MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_UI_URL:       http://mlflow:5000
       # App
       MODELS_DIR: /app/models
       LOG_LEVEL:  ${LOG_LEVEL:-INFO}
