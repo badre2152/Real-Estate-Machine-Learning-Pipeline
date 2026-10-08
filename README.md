@@ -1,4 +1,4 @@
-# 🏠 Avito Real Estate — ML Pipeline
+# 🏠 Avito Real Estate ML Pipeline
 
 Pipeline Machine Learning complet pour la **prédiction et la classification de prix immobiliers au Maroc**.  
 Connecté au projet ETL : [real-estate-pipeline](https://github.com/badre2152/real-estate-pipeline).
@@ -8,30 +8,21 @@ Connecté au projet ETL : [real-estate-pipeline](https://github.com/badre2152/re
 ## Architecture du Pipeline
 
 ```
-PostgreSQL ─── ml_schema.feature_store (OBT)
-                         │
-              ┌──────────▼──────────┐
-              │   [1] extract.py    │  Connexion + retry + validation schéma
-              └──────────┬──────────┘
-                         │
-              ┌──────────▼──────────┐
-              │   [2] features.py   │  Feature Engineering avancé (+14 features)
-              └──────────┬──────────┘
-                         │
-              ┌──────────▼──────────┐
-              │   [3] prepare.py    │  Split / Imputation / OHE / Scaling / SMOTE
-              └──────┬──────┬───────┘
-                     │      │
-         ┌───────────▼─┐  ┌─▼──────────────┐
-         │[4a] regression│  │[4b] classification│
-         │  MAE/RMSE/R²  │  │  F1/ROC-AUC    │
-         └───────────┬─┘  └─┬──────────────┘
-                     └──┬───┘
-              ┌──────────▼──────────┐
-              │   [5] evaluate.py   │  Plots + SHAP + Learning curve
-              └──────────┬──────────┘
-                         │
-              models/*.pkl  +  models/results.json
+PostgreSQL
+    ↓
+ml_schema.feature_store
+    ↓
+extract.py
+    ↓
+features.py
+    ↓
+prepare.py
+    ↓
+regression.py + classification.py
+    ↓
+evaluate.py
+    ↓
+models/*.pkl + models/results.json
 ```
 
 ---
@@ -40,12 +31,13 @@ PostgreSQL ─── ml_schema.feature_store (OBT)
 
 ```bash
 # 1. Cloner & installer
-git clone https://github.com/badre2152/real-estate-pipeline
-cd Machine_Learning_Pipeline
+git clone https://github.com/badre2152/Real-Estate-Machine-Learning-Pipeline.git
+cd Real-Estate-Machine-Learning-Pipeline
 make install-dev
 
 # 2. Configurer
-cp .env .env.local   # Remplir DB_PASSWORD
+cp .env.example .env
+# Remplacer les valeurs change_me avant l'exécution
 
 # 3. Lancer
 make run             # Pipeline standard
@@ -67,7 +59,7 @@ python src/pipeline.py --no-plots --table ml_schema.feature_store
 | Option | Effet |
 |---|---|
 | `--optimize` | RandomizedSearchCV (plus lent, meilleurs résultats) |
-| `--log-target` | Régression sur log₁(prix) — distribution plus gaussienne |
+| `--log-target` | Régression sur log₁(prix), distribution plus gaussienne |
 | `--smote` | SMOTE automatique si déséquilibre de classes |
 | `--calibrate` | Calibration isotonique des probabilités |
 | `--no-plots` | Désactiver les visualisations (CI/CD) |
@@ -100,12 +92,12 @@ python src/pipeline.py --no-plots --table ml_schema.feature_store
 
 ## Modèles
 
-### Régression — Prédiction du prix
+### Régression: Prédiction du prix
 
 Candidats : **Ridge**, **RandomForest**, **GradientBoosting**, **XGBoost**  
 Métriques : MAE, MSE, RMSE, MAPE, R²
 
-### Classification — Catégorie de prix
+### Classification: Catégorie de prix
 
 Candidats : **LogisticRegression**, **RandomForest**, **GradientBoosting**, **XGBoost**  
 Métriques : Accuracy, Precision, Recall, F1-Score, ROC-AUC
@@ -135,7 +127,7 @@ make test-cov      # Tests + couverture HTML
 make lint          # Linting ruff
 ```
 
-**Couverture cible : ≥ 75%**
+**Seuil CI configuré : couverture minimale de 75%.** Cette valeur est un seuil de validation, pas une affirmation de couverture actuelle.
 
 ---
 
@@ -149,3 +141,9 @@ models/
 ├── results.json               Métriques + durées + options
 └── pipeline_YYYYMMDD.log      Log complet de l'exécution
 ```
+
+
+## Auteur
+
+**BRAHIM BADRE**  
+Data Analyst | Data Engineer
