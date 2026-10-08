@@ -95,6 +95,7 @@ def run_pipeline(
     use_calibration: bool = None,
     generate_plots: bool  = None,
     table: str            = None,
+    input_parquet: str    = None,
     test_size: float      = None,
     random_state: int     = None,
 ) -> dict:
@@ -166,7 +167,7 @@ def run_pipeline(
             logger.info("\n" + "=" * 50)
             logger.info("📥 ÉTAPE 1: Extraction OBT")
             logger.info("=" * 50)
-            df = extract_obt(table=table)
+            df = pd.read_parquet(input_parquet) if input_parquet else extract_obt(table=table)
 
         if df.empty:
             logger.error("❌ DataFrame vide: vérifier la base de données.")
@@ -631,6 +632,7 @@ def _parse_args():
     p.add_argument("--calibrate",  action="store_true", default=None)
     p.add_argument("--no-plots",   action="store_true")
     p.add_argument("--table",      default=None, help="Table OBT (défaut : config.yaml)")
+    p.add_argument("--input-parquet", default=None, help="Read extracted OBT from Parquet instead of PostgreSQL")
     p.add_argument("--test-size",  type=float, default=None)
     p.add_argument("--seed",       type=int,   default=None)
     return p.parse_args()
@@ -645,6 +647,7 @@ if __name__ == "__main__":
         use_calibration = args.calibrate  or None,
         generate_plots  = not args.no_plots,
         table           = args.table,
+        input_parquet   = args.input_parquet,
         test_size       = args.test_size,
         random_state    = args.seed,
     )
