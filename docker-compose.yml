@@ -24,7 +24,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -69,7 +69,7 @@ services:
       - ./models:/app/models:ro
       - ./logs:/app/logs
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     healthcheck:
       # API healthcheck
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -95,7 +95,7 @@ services:
     volumes:
       - mlflow_data:/mlflow
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     networks:
       - avito_net
 
