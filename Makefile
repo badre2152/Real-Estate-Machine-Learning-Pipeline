@@ -7,7 +7,7 @@ PYTHON  = python
 PYTEST  = pytest
 SRC_DIR = src
 TST_DIR = tests
-API_KEY ?= dev-key-change-me
+API_KEY ?= change_me_api_key
 MLFLOW_TRACKING_URI ?= sqlite:///mlflow.db
 
 # Aide
