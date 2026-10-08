@@ -8,7 +8,7 @@ ORDRE CORRECT selon le contexte :
 
 DONC : les features qui calculent des statistiques sur le dataset (ex: prix médian
 par ville) DOIVENT être calculées uniquement sur le train set, puis appliquées au
-test set — pour éviter la fuite de données (data leakage).
+test set: pour éviter la fuite de données (data leakage).
 
 Les fonctions de ce module sont donc appelées APRÈS le split.
 Les fonctions stateless (log, ratio, interaction) peuvent s'appliquer librement.
@@ -32,13 +32,13 @@ TARGET_REGRESSION     = "prix"
 TARGET_CLASSIFICATION = "categorie_prix"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FEATURES STATELESS — applicables indépendamment sur train et test
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# FEATURES STATELESS: applicables indépendamment sur train et test
+# 
 
 def add_log_price(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFrame:
     """
-    Log1p transformation du prix — distribution plus gaussienne.
+    Log1p transformation du prix: distribution plus gaussienne.
 
     ATTENTION Data Leakage :
       log_prix = log(prix) utilise la TARGET.
@@ -54,7 +54,7 @@ def add_log_price(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFrame:
 
 def add_price_per_m2(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFrame:
     """
-    Prix au m² — feature clé en immobilier. +1 évite la division par zéro.
+    Prix au m²: feature clé en immobilier. +1 évite la division par zéro.
 
     ATTENTION Data Leakage :
       prix_par_m2 = prix / surface_m2 utilise la TARGET.
@@ -111,19 +111,19 @@ def add_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
         df["mois_annonce"]  = df[date_col].dt.month
         df["trimestre"]     = df[date_col].dt.quarter
         df["est_weekend"]   = (df[date_col].dt.dayofweek >= 5).astype(int)
-        # Ancienneté relative au max du TRAIN — passée en paramètre pour éviter leakage
+        # Ancienneté relative au max du TRAIN: passée en paramètre pour éviter leakage
         df["jours_depuis_annonce"] = (
             df[date_col].max() - df[date_col]
         ).dt.days.clip(lower=0)
         logger.info(f"   ✅ Features temporelles créées depuis '{date_col}'")
     else:
-        logger.warning("   ⚠️  Pas de colonne date — features temporelles ignorées")
+        logger.warning("   ⚠️  Pas de colonne date: features temporelles ignorées")
     return df
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FEATURES STATEFUL — fit sur train, apply sur train+test séparément
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# FEATURES STATEFUL: fit sur train, apply sur train+test séparément
+# 
 
 def fit_geographic_stats(df_train: pd.DataFrame) -> dict:
     """
@@ -185,9 +185,9 @@ def apply_geographic_stats(df: pd.DataFrame, geo_stats: dict) -> pd.DataFrame:
     return df
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# VARIABLE CIBLE — Classification
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# VARIABLE CIBLE: Classification
+# 
 
 def add_classification_target(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -200,7 +200,7 @@ def add_classification_target(df: pd.DataFrame) -> pd.DataFrame:
     Sinon → fallback sur 'categorie_prix' (bas/moyen/élevé) dérivé du prix.
 
     Note : la cible classification ne doit PAS être dérivée directement de 'prix'
-    si 'prix' est aussi la cible de régression — risque de fuite de données.
+    si 'prix' est aussi la cible de régression: risque de fuite de données.
     """
     # Priorité 1 : type de bien (classification naturelle)
     if "type_bien" in df.columns and TARGET_CLASSIFICATION not in df.columns:
@@ -224,7 +224,7 @@ def add_classification_target(df: pd.DataFrame) -> pd.DataFrame:
             labels=["bas", "moyen", "élevé"],
         )
         logger.info(
-            f"   ⚠️  categorie_prix ← segments de prix (fallback — bas<{p33:,.0f} | moyen<{p66:,.0f} | élevé)"
+            f"   ⚠️  categorie_prix ← segments de prix (fallback: bas<{p33:,.0f} | moyen<{p66:,.0f} | élevé)"
         )
         logger.warning(
             "   ⚠️  La cible classification est dérivée du prix de régression. "
@@ -234,16 +234,16 @@ def add_classification_target(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PIPELINE STATELESS — appelé APRÈS le split sur chaque subset séparément
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# PIPELINE STATELESS: appelé APRÈS le split sur chaque subset séparément
+# 
 
 def apply_stateless_features(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFrame:
     """
     Applique toutes les features stateless.
 
     Args:
-        is_inference: True en mode API/test — exclut les features dérivées de la target
+        is_inference: True en mode API/test: exclut les features dérivées de la target
                       (prix_par_m2, log_prix) pour éviter le data leakage.
 
     Features toujours calculées (safe sur train + test + inference) :
@@ -252,12 +252,12 @@ def apply_stateless_features(df: pd.DataFrame, is_inference: bool = False) -> pd
     Features train-only (utilisent la target) :
       add_log_price, add_price_per_m2
     """
-    # Features safe — ne dépendent pas de la target
+    # Features safe: ne dépendent pas de la target
     df = add_surface_rooms_interaction(df)
     df = add_luxury_score(df)
     df = add_temporal_features(df)
 
-    # Features target-dependent — train uniquement
+    # Features target-dependent: train uniquement
     df = add_log_price(df, is_inference=is_inference)
     df = add_price_per_m2(df, is_inference=is_inference)
 
@@ -272,7 +272,7 @@ def engineer_features_train(df_train: pd.DataFrame) -> tuple[pd.DataFrame, dict]
     À appeler APRÈS le split.
     """
     logger.info("\n" + "=" * 50)
-    logger.info("⚙️  FEATURE ENGINEERING — TRAIN SET")
+    logger.info("⚙️  FEATURE ENGINEERING: TRAIN SET")
     logger.info("=" * 50)
 
     n_before = df_train.shape[1]
@@ -293,10 +293,10 @@ def engineer_features_test(df_test: pd.DataFrame, geo_stats: dict) -> pd.DataFra
     À appeler APRÈS engineer_features_train().
 
     Passe is_inference=True pour exclure les features dérivées de la target
-    (prix_par_m2, log_prix) — ces features ne sont pas calculables au moment
+    (prix_par_m2, log_prix): ces features ne sont pas calculables au moment
     de la prédiction car la target est inconnue → anti data leakage.
     """
-    logger.info("\n⚙️  FEATURE ENGINEERING — TEST SET")
+    logger.info("\n⚙️  FEATURE ENGINEERING: TEST SET")
     df_test = apply_stateless_features(df_test, is_inference=True)
     df_test = apply_geographic_stats(df_test, geo_stats)
     logger.info(f"✅ Test FE terminé : {df_test.shape[1]} colonnes")
