@@ -1,14 +1,18 @@
-"""conftest.py — Configure sys.path pour les imports de tests.
+"""conftest.py: Configure sys.path pour les imports de tests.
 
 Ajoute le répertoire racine ET src/ au sys.path afin que :
   - les modules dans src/ (api, pipeline, drift_detector...) s'importent directement
   - les fixtures partagées entre tous les tests soient disponibles
 """
+import os
 import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).parent
 _SRC  = _ROOT / "src"
+
+os.environ.setdefault("API_KEYS", "test-key-ci")
+os.environ.setdefault("ENVIRONMENT", "test")
 
 # Root en premier (pour conftest, config/, etc.)
 if str(_ROOT) not in sys.path:
