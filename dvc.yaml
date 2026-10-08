@@ -124,18 +124,7 @@ stages:
 
   # Stage 5 : Évaluation & Rapport
   evaluate:
-    cmd: python -c "
-      import json
-      with open('models/results.json') as f:
-          r = json.load(f)
-      reg = r.get('regression', {})
-      clf = r.get('classification') or {}
-      print(f'R2={reg.get(\"R2\",0):.4f} | MAE={reg.get(\"MAE\",0):,.0f}')
-      if clf:
-          print(f'F1={clf.get(\"F1\",0):.4f} | Acc={clf.get(\"Accuracy\",0):.4f}')
-      "
+    cmd: python src/evaluate_dvc.py
     deps:
       - models/results.json
-    metrics:
-      - models/results.json:
-          cache: false
+      - src/evaluate_dvc.py
