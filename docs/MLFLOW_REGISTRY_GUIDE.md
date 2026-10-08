@@ -1,73 +1,58 @@
-# 📋 دليل MLflow Registry — Avito ML Pipeline v3
+# Guide MLflow Registry
 
-## الفرق بين Tracking والـ Registry
+## Suivi et registre
 
-```
-Tracking  → يسجّل كل run (metrics, params, plots)
-Registry  → يختار أحسن model ويحط فيه label رسمي
-```
+Le pipeline utilise `MLflowTracker` pour enregistrer les expériences, métriques et artefacts. `MLflowRegistry` sert à enregistrer les modèles et gérer les étapes `Staging`, `Production` et `Archived`.
 
-## Lifecycle ديال الـ Model
+## Configuration locale avec Docker
 
-```
-Training Run
-     │
-     ▼
-register()        → version "None"   (مسجّل لكن غير مفعّل)
-     │
-     ▼
-promote_to_staging()  → "Staging"    (تحت الاختبار)
-     │
-     ▼ (إذا النتائج كويسة)
-promote_to_production() → "Production" (في الخدمة الفعلية)
-     │
-     ▼ (عند تجاوزه بـ model أحسن)
-archive()             → "Archived"   (محفوظ لكن غير مستعمل)
+```bash
+cp .env.example .env
+docker compose up -d
 ```
 
-## كيفاش يشتغل تلقائياً في الـ Pipeline
+Configurer `DB_PASSWORD` et `API_KEYS` dans `.env` avant le démarrage.
+
+L'interface MLflow est exposée localement sur `http://localhost:5000`. Entre conteneurs Docker, l'URI de suivi est `http://mlflow:5000`.
+
+Pour un lancement sans Docker, `make mlflow-ui` utilise l'URI de suivi locale définie dans le Makefile. Il ne faut pas confondre cette commande avec le serveur MLflow démarré par Docker Compose.
+
+## Enregistrement dans le pipeline
+
+Après l'entraînement, `src/pipeline.py` journalise les modèles puis appelle `auto_register_and_promote` :
 
 ```python
-# pipeline.py — بعد كل training:
 result = auto_register_and_promote(
-    run_id         = tracker.run_id,
-    model_name     = "avito-regression",
-    artifact_path  = "regression_model",
-    primary_metric = "reg/R2",          # المقياس الرئيسي
-    higher_is_better = True,
+    run_id=tracker.run_id,
+    model_name="avito-regression",
+    artifact_path="regression_model",
+    primary_metric="reg/R2",
+    higher_is_better=True,
 )
-
-# النتيجة:
-# {"version": "3", "promoted": True,  "reason": "New reg/R2 is better than production"}
-# {"version": "4", "promoted": False, "reason": "New reg/R2 did not beat production"}
 ```
 
-## API Endpoints الجديدة
+La classification utilise `avito-classification`, l'artefact `classification_model` et la métrique `clf/F1`.
 
-```bash
-# حالة الـ Registry
+La fonction enregistre une version puis compare les métriques avec la version en Production. Elle essaie ensuite de promouvoir les versions vers `Staging` ou `Production` selon la comparaison. Le succès effectif dépend de la disponibilité et de la configuration de MLflow ; il n'a pas été vérifié ici.
+
+## Endpoints API
+
+Les endpoints du registre exigent l'en-tête `X-API-Key` :
+
+```text
 GET /v1/registry
-Headers: X-API-Key: your-key
-
-# Promote يدوي (rollback أو ترقية)
 POST /v1/registry/promote?model_name=avito-regression&version=2&stage=Production
-Headers: X-API-Key: your-key
 ```
 
-## Rollback — كيفاش ترجع لـ version سابقة
+Exemples de commandes locales après configuration :
 
 ```bash
-# 1. شوف الـ versions المتاحة
-make registry-status
-
-# 2. ارجع لـ version 2 مثلاً
-make registry-promote MODEL=avito-regression VERSION=2 STAGE=Production
+make registry-status API_KEY=your_actual_key
+make registry-promote MODEL=avito-regression VERSION=2 STAGE=Production API_KEY=your_actual_key
 ```
 
-## MLflow UI
+Remplacer les valeurs d'exemple avant exécution. La commande de promotion modifie le registre des modèles : ne l'utiliser que pour une version volontairement sélectionnée.
 
-```bash
-make mlflow-ui
-# افتح http://localhost:5000
-# Models → avito-regression → ستشوف كل الـ versions والـ stages
-```
+## Limites
+
+Les API de stages MLflow documentées ici correspondent à l'implémentation actuelle du projet. Elles ne constituent pas une validation du déploiement MLflow ni une garantie de compatibilité avec toutes les versions futures. Aucun modèle n'a été enregistré ou promu durant cette revue.
