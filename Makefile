@@ -1,7 +1,7 @@
 # Makefile: Avito Real Estate ML Pipeline
 # Usage : make <target>
 
-.PHONY: help install install-dev test test-cov lint run run-full clean
+.PHONY: help install install-dev test test-cov lint lint-full run run-full clean
 
 PYTHON  = python
 PYTEST  = pytest
@@ -19,7 +19,8 @@ help:
 	@echo "  make install-dev   Installer toutes les dépendances (prod + dev)"
 	@echo "  make test          Lancer les tests unitaires"
 	@echo "  make test-cov      Tests + rapport de couverture"
-	@echo "  make lint          Vérification du style (ruff)"
+	@echo "  make lint          Vérifications Ruff critiques"
+	@echo "  make lint-full     Audit Ruff complet"
 	@echo "  make run           Lancer le pipeline (mode standard)"
 	@echo "  make run-full      Lancer le pipeline avec toutes les options"
 	@echo "  make clean         Supprimer les fichiers générés"
@@ -48,6 +49,9 @@ test-fast:
 
 # Linting
 lint:
+	ruff check $(SRC_DIR)/ $(TST_DIR)/ --select E9,F63,F7,F82
+
+lint-full:
 	ruff check $(SRC_DIR)/ $(TST_DIR)/ --ignore E501,E402
 
 # Pipeline
