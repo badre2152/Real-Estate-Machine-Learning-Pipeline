@@ -119,9 +119,9 @@ class TestAuthentication:
 
 class TestRateLimit:
     def test_rate_limiter_allows_normal_traffic(self):
-        from src.api import _rate_limiter, RATE_LIMIT_PER_MINUTE
-        # Une seule requête doit passer
-        allowed, remaining = _rate_limiter.is_allowed("test-ip-normal")
+        from src.api import _InMemoryRateLimiter, RATE_LIMIT_PER_MINUTE
+        limiter = _InMemoryRateLimiter(max_calls=RATE_LIMIT_PER_MINUTE)
+        allowed, remaining = limiter.is_allowed("test-ip-normal")
         assert allowed is True
         assert remaining == RATE_LIMIT_PER_MINUTE - 1
 
