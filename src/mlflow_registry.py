@@ -154,7 +154,7 @@ class MLflowRegistry:
             return version
 
         except MlflowException as exc:
-            logger.warning(f"⚠️  Registry.register échoué : {exc}")
+            logger.warning(f"⚠️  Registry.register échoué : {type(exc).__name__}")
             return None
 
     # Transitions de stage
@@ -175,7 +175,7 @@ class MLflowRegistry:
             )
             return True
         except MlflowException as exc:
-            logger.warning(f"⚠️  Transition vers {stage} échouée : {exc}")
+            logger.warning(f"⚠️  Transition vers {stage} échouée : {type(exc).__name__}")
             return False
 
     def promote_to_staging(self, version: str) -> bool:
@@ -240,7 +240,7 @@ class MLflowRegistry:
             return value
 
         except MlflowException as exc:
-            logger.warning(f"⚠️  get_production_metric échoué : {exc}")
+            logger.warning(f"⚠️  get_production_metric échoué : {type(exc).__name__}")
             return None
 
     def is_better_than_production(
@@ -293,7 +293,7 @@ class MLflowRegistry:
             return is_better
 
         except MlflowException as exc:
-            logger.warning(f"⚠️  is_better_than_production échoué : {exc}")
+            logger.warning(f"⚠️  is_better_than_production échoué : {type(exc).__name__}")
             return False
 
     # Chargement des modèles
@@ -315,7 +315,7 @@ class MLflowRegistry:
             logger.info(f"   ✅ Modèle Production chargé : '{self.model_name}'")
             return model
         except MlflowException as exc:
-            logger.warning(f"⚠️  load_production_model échoué : {exc}")
+            logger.warning(f"⚠️  load_production_model échoué : {type(exc).__name__}")
             return None
 
     def load_staging_model(self) -> Optional[Any]:
@@ -328,7 +328,7 @@ class MLflowRegistry:
             logger.info(f"   ✅ Modèle Staging chargé : '{self.model_name}'")
             return model
         except MlflowException as exc:
-            logger.warning(f"⚠️  load_staging_model échoué : {exc}")
+            logger.warning(f"⚠️  load_staging_model échoué : {type(exc).__name__}")
             return None
 
     def load_version(self, version: str) -> Optional[Any]:
@@ -341,7 +341,7 @@ class MLflowRegistry:
             logger.info(f"   ✅ Modèle v{version} chargé : '{self.model_name}'")
             return model
         except MlflowException as exc:
-            logger.warning(f"⚠️  load_version({version}) échoué : {exc}")
+            logger.warning(f"⚠️  load_version({version}) échoué : {type(exc).__name__}")
             return None
 
     # Informations et historique
@@ -372,7 +372,7 @@ class MLflowRegistry:
                 for v in versions
             ]
         except MlflowException as exc:
-            logger.warning(f"⚠️  get_latest_versions échoué : {exc}")
+            logger.warning(f"⚠️  get_latest_versions échoué : {type(exc).__name__}")
             return []
 
     def get_production_info(self) -> Optional[dict]:
