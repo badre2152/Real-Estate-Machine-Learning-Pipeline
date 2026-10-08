@@ -47,8 +47,14 @@ def _resolve_env(value: str) -> str:
     pattern = r"\$\{(\w+)(?::([^}]*))?\}"
 
     def _replacer(match):
-        var, default = match.group(1), match.group(2) or ""
-        return os.getenv(var, default)
+        var, default = match.group(1), match.group(2)
+        value = os.getenv(var)
+        if value is not None:
+            return value
+        if default is not None:
+            return default
+        logger.warning("Environment variable %s is not configured", var)
+        return ""
 
     return re.sub(pattern, _replacer, value)
 
