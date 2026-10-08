@@ -80,5 +80,5 @@ def load_config(path: Path = _CONFIG_PATH) -> _AttrDict:
     return _AttrDict(resolved)
 
 
-# Singleton global — importez `cfg` directement
+# Singleton global: importez `cfg` directement
 cfg = load_config()
