@@ -1,83 +1,41 @@
-# DVC — Versioning Données & Modèles
+# Guide DVC
 
-## Installation
+DVC est présent dans ce dépôt avec `dvc.yaml` et `.dvc/config`. Il sert à décrire les étapes et les artefacts du pipeline, mais le workflow DVC complet n'est **pas encore confirmé comme exécutable**.
+
+## État du pipeline
+
+Le fichier `dvc.yaml` définit cinq étapes : `extract`, `validate`, `featurize`, `train` et `evaluate`.
+
+| Étape | Rôle déclaré | Réserve |
+| --- | --- | --- |
+| `extract` | Extraction PostgreSQL vers `data/raw/obt.parquet` | La commande demande `--output`, mais `src/extract.py` ne prend actuellement pas cet argument en charge |
+| `validate` | Validation des données et rapport JSON | Dépend de la sortie de l'extraction |
+| `featurize` | Préparation des données et features | Dépend des fichiers Parquet et des signatures de fonctions |
+| `train` | Exécution de `src/pipeline.py` | Le pipeline lit également PostgreSQL directement |
+| `evaluate` | Lecture de `models/results.json` | Dépend des artefacts de training |
+
+Ne pas présenter `dvc repro` comme un processus validé tant que la configuration et les commandes n'ont pas été alignées sur le code.
+
+## Commandes de consultation
+
+Depuis la racine du dépôt, après installation des dépendances :
 
 ```bash
-pip install dvc
-# Pour S3 :  pip install dvc-s3
-# Pour GDrive : pip install dvc-gdrive
-```
-
-## Initialisation (première fois)
-
-```bash
-dvc init                        # initialise DVC dans le projet Git
-dvc remote add -d myremote s3://my-bucket/avito-ml-dvc   # configurer remote
-dvc remote modify myremote region eu-west-1
-```
-
-## Utilisation quotidienne
-
-```bash
-# Lancer le pipeline complet (reproduit uniquement les stages modifiés)
-dvc repro
-
-# Lancer un stage spécifique
-dvc repro train
-
-# Vérifier le statut du pipeline
-dvc status
-
-# Pousser les artefacts vers le remote
-dvc push
-
-# Récupérer les artefacts depuis le remote
-dvc pull
-
-# Comparer les métriques entre versions
-dvc metrics diff HEAD~1
-
-# Voir les métriques du run courant
-dvc metrics show
-
-# Afficher le graphe du pipeline
 dvc dag
+dvc status
+dvc metrics show
 ```
 
-## Flux de travail typique
+Ces commandes décrivent le workflow prévu et nécessitent un environnement DVC correctement configuré. Leur bon fonctionnement n'a pas été vérifié dans cette revue.
+
+## Reproduction
 
 ```bash
-# 1. Modifier les paramètres dans config/config.yaml
-# 2. Rejouer le pipeline
 dvc repro
-
-# 3. Comparer avec la version précédente
-dvc metrics diff
-
-# 4. Si les métriques s'améliorent, committer
-git add dvc.lock models/results.json
-git commit -m "feat: amélioration R² de 0.72 → 0.78"
-dvc push
 ```
 
-## Stages définis dans dvc.yaml
+Attention : cette commande est **susceptible d'échouer** à l'étape `extract` en raison de `--output`. Corriger le workflow avant de l'utiliser.
 
-| Stage      | Input                  | Output                          |
-|------------|------------------------|---------------------------------|
-| extract    | DB PostgreSQL          | data/raw/obt.parquet            |
-| validate   | obt.parquet            | reports/validation_report.json  |
-| featurize  | obt.parquet            | data/processed/train_fe.parquet |
-| train      | processed/             | models/*.pkl                    |
-| evaluate   | models/results.json    | affichage métriques             |
+Le dépôt contient déjà `.dvc/config`, donc ne pas lancer `dvc init` une seconde fois sans besoin précis. Aucun stockage distant DVC opérationnel n'est configuré dans la version examinée. `dvc push` et `dvc pull` nécessitent d'abord un remote valide.
 
-## Métriques trackées
-
-```bash
-dvc metrics show models/results.json
-```
-
-Exemple de sortie :
-```
-Path                 regression.R2    regression.MAE    classification.F1
-models/results.json  0.7842           43250             0.7614
-```
+Les métriques citées dans les anciens exemples de cette documentation étaient illustratives, pas des performances mesurées et vérifiées du dépôt.
