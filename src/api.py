@@ -59,9 +59,13 @@ VALID_API_KEYS: set = {k.strip() for k in _API_KEYS_RAW.split(",") if k.strip()}
 RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
 
 # Security configuration
-_ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").lower()
-if _ENVIRONMENT == "production" and not VALID_API_KEYS:
-    raise RuntimeError("API_KEYS must be configured when ENVIRONMENT=production")
+_ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").strip().lower()
+_CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",") if origin.strip()]
+if _ENVIRONMENT == "production":
+    if not VALID_API_KEYS or "change_me_api_key" in VALID_API_KEYS:
+        raise RuntimeError("Configure non-placeholder API_KEYS for production")
+    if not _CORS_ORIGINS or "*" in _CORS_ORIGINS:
+        raise RuntimeError("Configure explicit CORS_ORIGINS for production")
 if not VALID_API_KEYS:
     logger.warning("API_KEYS is empty. Authenticated endpoints will reject all requests.")
 
@@ -115,7 +119,7 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
+    allow_origins=_CORS_ORIGINS,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
