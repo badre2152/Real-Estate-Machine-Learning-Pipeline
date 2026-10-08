@@ -1,0 +1,40 @@
+# Source control and credentials
+.git
+.github
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+nginx/certs/
+secrets/
+
+# Local virtual environments and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+
+# Data, generated models and runtime artifacts
+data/
+models/
+logs/
+reports/
+mlruns/
+mlflow.db*
+feature_store/
+docs/plots/
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Local tools and unrelated assets
+.vscode/
+.idea/
+tests/
