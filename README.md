@@ -125,7 +125,7 @@ Aucun workflow GitHub Actions de CI ou CD n'est configuré dans ce dépôt. Le b
 
 Le proxy Nginx est optionnel et se lance avec `docker compose --profile nginx up -d`. Il attend que l'API soit healthy avant de démarrer. Pour activer HTTPS, fournir les certificats `nginx/certs/fullchain.pem` et `nginx/certs/privkey.pem` avant de lancer ce profil. Sans ces fichiers, Nginx ne peut pas démarrer avec la configuration SSL actuelle.
 
-Attention : le service API publie aussi directement le port 8000. Pour imposer le passage par Nginx dans un déploiement public, restreindre cet accès direct au réseau local ou privé.
+Les ports PostgreSQL (5433), FastAPI (8000) et MLflow (5000) sont liés à 127.0.0.1 sur la machine hôte. Ils restent accessibles localement, mais pas directement depuis le réseau externe par ces ports. Les conteneurs communiquent entre eux via le réseau Docker. Le profil Nginx publie les ports 80 et 443 et nécessite des certificats HTTPS valides pour démarrer.
 
 ---
 
