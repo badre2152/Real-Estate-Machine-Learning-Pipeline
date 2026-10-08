@@ -119,6 +119,10 @@ Métriques : Accuracy, Precision, Recall, F1-Score, ROC-AUC
 
 ---
 
+## Sécurité de l'API
+
+Pour un déploiement avec `ENVIRONMENT=production`, remplacer `API_KEYS=change_me_api_key` par une clé forte et définir `CORS_ORIGINS` avec les origines HTTPS autorisées, séparées par des virgules. La valeur `*` est refusée en production. Ne pas versionner le fichier `.env`.
+
 ## Déploiement
 
 Aucun workflow GitHub Actions de CI ou CD n'est configuré dans ce dépôt. Le build Docker et tout déploiement éventuel doivent être lancés et vérifiés manuellement.
