@@ -55,7 +55,7 @@ services:
         fromService:
           name: avito-ml-db
           type: pserv
-          property: connectionString
+          envVarKey: POSTGRES_PASSWORD
 
       # App
       - key: MODELS_DIR
