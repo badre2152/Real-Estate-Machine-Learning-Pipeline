@@ -9,7 +9,7 @@ Le fichier `dvc.yaml` définit cinq étapes : `extract`, `validate`, `featurize`
 | Étape | Rôle déclaré | Réserve |
 | --- | --- | --- |
 | `extract` | Extraction PostgreSQL vers `data/raw/obt.parquet` | `src/extract.py` accepte désormais `--output` et enregistre le fichier Parquet avec `pyarrow` |
-| `validate` | Validation des données via `src/validate_dvc.py` et rapport JSON | Enregistre le rapport même si les contrôles obligatoires échouent, puis retourne un code d'échec |
+| `validate` | Validation des données via `src/validate_dvc.py` et rapport JSON | Écrit `reports/dvc/validation_report.json` et retourne un code d'échec si une validation obligatoire échoue |
 | `featurize` | `src/featurize_dvc.py` prépare les jeux train et test et enregistre les statistiques géographiques | Sorties : `train_fe.parquet`, `test_fe.parquet`, `geo_stats.pkl` |
 | `train` | Entraînement à partir des fichiers Parquet brut et préparés | Réutilise `train_fe.parquet` et `test_fe.parquet` sans refaire les transformations |
 | `evaluate` | `src/evaluate_dvc.py` affiche les métriques présentes dans `models/results.json` | Dépend du rapport produit par `train`, sans redéclarer le même fichier comme métrique DVC |
@@ -47,3 +47,9 @@ Le stage `train` transmet `--input-parquet data/raw/obt.parquet`, `--train-featu
 ## Métriques DVC
 
 Le fichier `models/results.json` est déclaré une seule fois dans `dvc.yaml`, sous `train.metrics`. `evaluate` le référence seulement comme dépendance et affiche les valeurs réellement présentes. Les champs de régression `R2` et `MAE` sont requis, tandis que `F1` et `Accuracy` sont lus seulement si un résultat de classification existe. Aucune valeur zéro fictive n'est affichée pour une métrique absente. Les commandes n'ont pas été exécutées dans cette revue.
+
+## Dépendances et sorties DVC
+
+La validation DVC écrit son rapport dans `reports/dvc/validation_report.json` pour éviter un conflit avec le rapport `reports/validation_report.json` généré séparément par le pipeline d'entraînement. `train` dépend explicitement du rapport DVC, des fichiers train et test préparés et du Parquet brut. DVC ne déclare comme sorties de modèles que `best_regression_model.pkl`, `preprocessor.pkl` et `feature_names.pkl` ; les fichiers de classification ou de prédiction d'intervalles peuvent être absents suivant la configuration. Le répertoire `docs/plots/` n'est pas déclaré comme sortie DVC, car il contient déjà un CSV suivi par Git. Ces fichiers restent des artefacts produits par le pipeline, sans gestion DVC spécifique.
+
+Cette correction porte sur la cohérence des dépendances et des chemins, et ne valide pas l'exécution complète. Les autres dépendances du pipeline peuvent encore nécessiter des adaptations.
