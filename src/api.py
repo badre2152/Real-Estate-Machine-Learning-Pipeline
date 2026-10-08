@@ -58,15 +58,12 @@ _API_KEYS_RAW = os.getenv("API_KEYS", "")
 VALID_API_KEYS: set = {k.strip() for k in _API_KEYS_RAW.split(",") if k.strip()}
 RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
 
-# Sécurité : vérifier que la clé par défaut n'est pas utilisée en production
-_DEFAULT_KEY = "dev-key-change-me"
-if _DEFAULT_KEY in VALID_API_KEYS and os.getenv("ENVIRONMENT", "dev") == "production":
-    import warnings
-    warnings.warn(
-        "🔴 SECURITE : Clé API par défaut détectée en production ! "
-        "Changer API_KEYS dans les variables d'environnement.",
-        stacklevel=1,
-    )
+# Security configuration
+_ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").lower()
+if _ENVIRONMENT == "production" and not VALID_API_KEYS:
+    raise RuntimeError("API_KEYS must be configured when ENVIRONMENT=production")
+if not VALID_API_KEYS:
+    logger.warning("API_KEYS is empty. Authenticated endpoints will reject all requests.")
 
 # 
 # Rate Limiter (sliding window in-memory)
@@ -643,7 +640,7 @@ async def registry_status():
                 "production": clf_registry.get_production_info(),
                 "all_versions": clf_registry.get_latest_versions(),
             },
-            "mlflow_ui": os.getenv("MLFLOW_UI_URL", "http://localhost:5000"),
+            "mlflow_ui": os.getenv("MLFLOW_UI_URL"),
         }
     except Exception as exc:
         raise HTTPException(500, detail={"error": "registry_error", "message": str(exc)})
