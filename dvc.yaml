@@ -38,18 +38,11 @@ stages:
 
   # Stage 2 : Validation
   validate:
-    cmd: python -c "
-      import pandas as pd
-      from src.data_validation import DataValidator
-      df = pd.read_parquet('data/raw/obt.parquet')
-      v = DataValidator()
-      r = v.validate(df, stage='dvc_validate')
-      v.save_report(r, output_dir='reports')
-      import sys; sys.exit(0 if r.passed else 1)
-      "
+    cmd: python src/validate_dvc.py --input data/raw/obt.parquet --output-dir reports
     deps:
       - data/raw/obt.parquet
       - src/data_validation.py
+      - src/validate_dvc.py
     params:
       - config/config.yaml:
           - validation.required_columns
