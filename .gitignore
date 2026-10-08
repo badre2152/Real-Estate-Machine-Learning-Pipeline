@@ -42,5 +42,8 @@ feature_store/*.db-wal
 # Drift reports (peuvent contenir des données sensibles)
 reports/drift_report_*.json
 
-# MLflow runs (volumineux)
+# MLflow local tracking artifacts
+mlflow.db
+mlflow.db-shm
+mlflow.db-wal
 mlruns/
