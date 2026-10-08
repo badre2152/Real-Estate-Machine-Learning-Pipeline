@@ -4,11 +4,12 @@
 # كيفاش تستعمله:
 #   1. سجل في https://render.com (مجاني)
 #   2. New to Blueprint to ربط الـ GitHub repo
-#   3. Render يقرأ هذا الملف ويعمل deploy تلقائي
+#   3. Configure an existing PostgreSQL database in the Render Dashboard
+#   4. Render deploys the API service using the supplied credentials
 #
 # Variables اللي تحتاج تغيّرها في Dashboard:
 #   - API_KEYS          to كلمة السر ديال الـ API
-#   - DB_PASSWORD       to كلمة السر ديال قاعدة البيانات
+#   - DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 # 
 
 services:
@@ -20,7 +21,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     dockerCommand: "uvicorn src.api:app --host 0.0.0.0 --port $PORT --workers 1"
-    # تغيّر إلى "standard" (7$/شهر) للـ production
+    # Review the current plan and resource limits before deployment
     plan: free
 
     healthCheckPath: /health
@@ -36,26 +37,18 @@ services:
       - key: CORS_ORIGINS
         sync: false
 
-      # Database: من الـ PostgreSQL service أسفله
+      # Configure an existing PostgreSQL instance in the Render Dashboard.
+      # Do not commit database credentials to the repository.
       - key: DB_HOST
-        fromService:
-          name: avito-ml-db
-          type: pserv
-          property: host
+        sync: false
       - key: DB_PORT
-        fromService:
-          name: avito-ml-db
-          type: pserv
-          property: port
+        sync: false
       - key: DB_NAME
-        value: real_estate_db
+        sync: false
       - key: DB_USER
-        value: postgres
+        sync: false
       - key: DB_PASSWORD
-        fromService:
-          name: avito-ml-db
-          type: pserv
-          envVarKey: POSTGRES_PASSWORD
+        sync: false
 
       # App
       - key: MODELS_DIR
@@ -65,20 +58,3 @@ services:
       - key: LOG_LEVEL
         value: INFO
 
-  # PostgreSQL
-  - type: pserv
-    name: avito-ml-db
-    runtime: docker
-    image: postgres:15-alpine
-    plan: free
-    envVars:
-      - key: POSTGRES_DB
-        value: real_estate_db
-      - key: POSTGRES_USER
-        value: postgres
-      - key: POSTGRES_PASSWORD
-        generateValue: true     # Render يولّد password عشوائي تلقائياً
-    disk:
-      name: postgres-data
-      mountPath: /var/lib/postgresql/data
-      sizeGB: 1
