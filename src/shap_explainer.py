@@ -31,7 +31,7 @@ try:
     SHAP_AVAILABLE = True
 except ImportError:
     SHAP_AVAILABLE = False
-    logger.warning("⚠️  shap non installé — interprétabilité désactivée (pip install shap)")
+    logger.warning("⚠️  shap non installé: interprétabilité désactivée (pip install shap)")
 
 try:
     import matplotlib
@@ -120,7 +120,7 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  SHAP explainer échoué : {exc}")
             return None
 
-    # ── Calcul des SHAP values ────────────────────────────────────────────────
+    # Calcul des SHAP values
 
     def compute(self, X_test) -> Optional[np.ndarray]:
         """
@@ -153,10 +153,10 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  Calcul SHAP échoué : {exc}")
             return None
 
-    # ── Plots ─────────────────────────────────────────────────────────────────
+    # Plots
 
     def plot_summary(self, output_dir: str, prefix: str = "") -> Optional[str]:
-        """Summary plot (beeswarm) — vue globale des features."""
+        """Summary plot (beeswarm): vue globale des features."""
         if not self._ready() or not MPL_AVAILABLE:
             return None
         try:
@@ -178,7 +178,7 @@ class SHAPExplainer:
             return None
 
     def plot_bar(self, output_dir: str, prefix: str = "") -> Optional[str]:
-        """Bar plot — importance moyenne |SHAP| par feature."""
+        """Bar plot: importance moyenne |SHAP| par feature."""
         if not self._ready() or not MPL_AVAILABLE:
             return None
         try:
@@ -203,7 +203,7 @@ class SHAPExplainer:
     def plot_waterfall(
         self, output_dir: str, sample_idx: int = 0, prefix: str = ""
     ) -> Optional[str]:
-        """Waterfall plot — explication d'une seule prédiction."""
+        """Waterfall plot: explication d'une seule prédiction."""
         if not self._ready() or not MPL_AVAILABLE:
             return None
         try:
@@ -231,7 +231,7 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  SHAP waterfall échoué : {exc}")
             return None
 
-    # ── Export des importance SHAP ────────────────────────────────────────────
+    # Export des importance SHAP
 
     def get_feature_importance(self) -> Optional[pd.DataFrame]:
         """
@@ -247,7 +247,7 @@ class SHAPExplainer:
         }).sort_values("shap_mean", ascending=False).reset_index(drop=True)
         return df
 
-    # ── Interface principale ──────────────────────────────────────────────────
+    # Interface principale
 
     def run(
         self, X_test, output_dir: str = "docs/plots", prefix: str = ""
@@ -260,11 +260,11 @@ class SHAPExplainer:
         """
         os.makedirs(output_dir, exist_ok=True)
         logger.info("\n" + "=" * 50)
-        logger.info("🔍 SHAP — Interprétabilité du modèle")
+        logger.info("🔍 SHAP: Interprétabilité du modèle")
         logger.info("=" * 50)
 
         if not SHAP_AVAILABLE:
-            logger.warning("   SHAP non disponible — skip")
+            logger.warning("   SHAP non disponible: skip")
             return {}
 
         self.compute(X_test)
@@ -285,7 +285,7 @@ class SHAPExplainer:
 
         return plots
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    # Helpers
 
     def _ready(self) -> bool:
         return SHAP_AVAILABLE and self.explainer is not None and self.shap_values is not None
