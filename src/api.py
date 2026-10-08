@@ -27,6 +27,7 @@ Lancer :
 """
 
 import json
+import hashlib
 import os
 import pickle
 import time
@@ -109,7 +110,7 @@ app = FastAPI(
         "API ML pour estimer le prix d'un bien immobilier au Maroc "
         "avec intervalle de confiance à 95%.\n\n"
         "**Authentification** : passer le header `X-API-Key` avec votre clé.\n\n"
-        "**Rate Limit** : 60 requêtes/minute par IP."
+        f"**Rate Limit** : {RATE_LIMIT_PER_MINUTE} requêtes/minute par clé API."
     ),
     version="3.0.0",
     docs_url="/docs",
@@ -212,16 +213,16 @@ async def require_api_key(
     return api_key
 
 
-async def check_rate_limit(request: Request) -> None:
-    """Vérifie le rate limit par IP."""
-    client_ip = request.client.host if request.client else "unknown"
-    allowed, remaining = _rate_limiter.is_allowed(client_ip)
+async def check_rate_limit(api_key: str = Depends(require_api_key)) -> None:
+    """Applique un quota par clé API sans conserver la clé en clair."""
+    key_id = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+    allowed, remaining = _rate_limiter.is_allowed(key_id)
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={
                 "error": "rate_limit_exceeded",
-                "message": f"Trop de requêtes. Max {RATE_LIMIT_PER_MINUTE}/min par IP.",
+                "message": f"Trop de requêtes. Max {RATE_LIMIT_PER_MINUTE}/min par clé API.",
                 "retry_after_s": 60,
             },
             headers={"Retry-After": "60"},
