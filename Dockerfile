@@ -37,8 +37,6 @@ COPY --from=builder /install /usr/local
 # Source code
 COPY src/        ./src/
 COPY config/     ./config/
-COPY tests/      ./tests/
-COPY conftest.py ./
 
 # Directories + non-root user
 RUN mkdir -p models logs reports docs/plots mlruns \
