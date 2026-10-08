@@ -416,10 +416,13 @@ class FeatureStore:
 
         df = pd.DataFrame(records)
 
-        # Remettre les types numériques
+        # Remettre les types numériques sans modifier les colonnes texte
         for col in df.columns:
             if col != "entity_id":
-                df[col] = pd.to_numeric(df[col], errors="ignore")
+                try:
+                    df[col] = pd.to_numeric(df[col])
+                except (TypeError, ValueError):
+                    pass
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
         logger.info(
