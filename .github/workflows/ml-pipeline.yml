@@ -1,37 +1,25 @@
+# Continuous integration runs automatically on master pushes and pull requests.
+# Publishing to Docker Hub and deploying to Render are manual because they
+# require repository secrets that are not part of the codebase.
 
-# ml-pipeline.yml v3: CI/CD complet
-#
-# Jobs:
-#   1. test      to Tests unitaires + couverture
-#   2. lint      to Vérification style (ruff)
-#   3. build     to Build Docker image + push vers Docker Hub
-#   4. deploy    to Deploy vers Render (sur push master uniquement)
-#
-# Secrets GitHub à configurer (Settings to Secrets to Actions):
-#   DOCKERHUB_USERNAME  to ton username Docker Hub
-#   DOCKERHUB_TOKEN     to Access Token Docker Hub
-#   RENDER_API_KEY      to API Key de Render.com
-#   RENDER_SERVICE_ID   to ID du service dans Render (srv-xxxx)
-#   PROD_API_KEY        to La clé API de ton app en production
-
-
-name: ML Pipeline CI/CD v3
+name: ML Pipeline CI with optional CD
 
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
-
-env:
-  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/avito-ml-api
-
-
-# Job 1: Tests
+  workflow_dispatch:
+    inputs:
+      run_cd:
+        description: "Publish the Docker image and trigger the Render deployment"
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   test:
-    name: 🧪 Tests & Couverture
+    name: Tests and Coverage
     runs-on: ubuntu-latest
 
     services:
@@ -57,12 +45,12 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Installer les dépendances
+      - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: 🧪 Lancer les tests
+      - name: Run tests
         env:
           DB_HOST: localhost
           DB_PORT: 5433
@@ -78,35 +66,55 @@ jobs:
             --cov-fail-under=75 \
             -x
 
-      - name: Upload coverage (Codecov)
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           file: coverage.xml
           fail_ci_if_error: false
 
-
-# Job 2: Lint
-
   lint:
-    name: 🔍 Linting (ruff)
+    name: Lint
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install ruff
-      - run: ruff check src/ tests/ --ignore E501,E402
 
+      - name: Install Ruff
+        run: pip install ruff
 
-# Job 3: Build & Push Docker Image
+      - name: Run Ruff
+        run: ruff check src/ tests/ --ignore E501,E402
 
-  build:
-    name: 🐳 Build & Push Docker
+  docker:
+    name: Docker Build Check
     runs-on: ubuntu-latest
     needs: [test, lint]
-    # فقط على push (مش على pull_request)
-    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API image locally
+        run: docker build --target api -t avito-ml-api:ci .
+
+      - name: Verify image imports
+        run: |
+          docker run --rm avito-ml-api:ci python -c "
+          import fastapi, mlflow, pandas, sklearn
+          print('Docker image imports OK')
+          "
+
+  publish:
+    name: Publish Docker Image
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.event_name == 'workflow_dispatch' && inputs.run_cd
+
+    env:
+      DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/avito-ml-api
 
     steps:
       - uses: actions/checkout@v4
@@ -120,17 +128,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract metadata (tags)
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
-            type=ref,event=branch
             type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=latest
 
-      - name: 🐳 Build & Push
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -142,71 +149,36 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: 📝 Image digest
-        run: echo "Image pushed to ${{ env.DOCKER_IMAGE }}:latest"
-
-
-# Job 4: Deploy vers Render (master branch uniquement)
-
   deploy:
-    name: 🚀 Deploy to Render
+    name: Deploy to Render
     runs-on: ubuntu-latest
-    needs: [build]
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    needs: [publish]
+    if: github.event_name == 'workflow_dispatch' && inputs.run_cd
     environment: production
 
     steps:
-      - name: 🚀 Trigger Render Deploy
+      - name: Trigger Render deploy
         run: |
-          curl -s -X POST \
+          curl --fail --silent --show-error -X POST \
             "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d '{"clearCache": false}' \
-            | jq .
+            -d '{"clearCache": false}'
 
-      - name: ⏳ Attendre que le deploy soit prêt (max 5 min)
-        run: |
-          echo "Attendre 30s pour que le deploy démarre..."
-          sleep 30
-          MAX_TRIES=10
-          for i in $(seq 1 $MAX_TRIES); do
-            STATUS=$(curl -s \
-              "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}" \
-              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-              | jq -r '.serviceDetails.url // empty')
-            if [ -n "$STATUS" ]; then
-              echo "✅ Service URL: $STATUS"
-              break
-            fi
-            echo "⏳ Tentative $i/$MAX_TRIES: attendre 30s..."
-            sleep 30
-          done
+      - name: Wait before smoke tests
+        run: sleep 30
 
-      - name: 🏥 Smoke test: /health
+      - name: Smoke test health endpoint
         env:
-          SERVICE_URL: https://avito-ml-api.onrender.com
+          SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
         run: |
-          echo "Test /health endpoint..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/health")
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "✅ /health to $HTTP_STATUS OK"
-          else
-            echo "❌ /health to $HTTP_STATUS FAILED"
-            exit 1
-          fi
+          test -n "$SERVICE_URL"
+          curl --fail --silent --show-error "$SERVICE_URL/health" > /dev/null
 
-      - name: 🔐 Smoke test: Auth (sans clé)
+      - name: Smoke test authentication
         env:
-          SERVICE_URL: https://avito-ml-api.onrender.com
+          SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
         run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/v1/info")
-          if [ "$HTTP_STATUS" = "401" ]; then
-            echo "✅ Auth fonctionnel to 401 sans clé"
-          else
-            echo "❌ Auth cassé to attendu 401, reçu $HTTP_STATUS"
-            exit 1
-          fi
-
-      - name: ✅ Deploy réussi
-        run: echo "🎉 Deploy production terminé avec succès!"
+          test -n "$SERVICE_URL"
+          HTTP_STATUS=$(curl --silent --output /dev/null --write-out "%{http_code}" "$SERVICE_URL/v1/info")
+          test "$HTTP_STATUS" = "401"
