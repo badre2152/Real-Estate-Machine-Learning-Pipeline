@@ -426,7 +426,7 @@ def run_pipeline(
                 )
                 tracker.log_artifacts_dir(plots_dir, "plots")
 
-        # ÉTAPE 12A : Feature Store — écriture des features calculées
+        # ÉTAPE 12A : Feature Store, écriture des features calculées
         fs_stats = {}
         with monitor.step("12a_feature_store"):
             logger.info("\n" + "=" * 50)
