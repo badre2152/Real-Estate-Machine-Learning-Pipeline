@@ -81,7 +81,7 @@ python src/pipeline.py --no-plots --table ml_schema.feature_store
 | `ecart_prix_ville` | Écart relatif vs médiane de la ville |
 | `ville_rang_prix` | Rang de la ville par prix (1 = plus chère) |
 | `region_prix_median` | Prix médian de la région |
-| `score_luxe` | Score équipements haut de gamme (0–7) |
+| `score_luxe` | Score équipements haut de gamme (0 à 7) |
 | `mois_annonce` | Mois de publication |
 | `trimestre` | Trimestre |
 | `est_weekend` | Annonce publiée le week-end |
@@ -135,11 +135,11 @@ make lint          # Linting ruff
 
 ```
 models/
-├── regression_model.pkl       Meilleur modèle régression
-├── classification_model.pkl   Meilleur modèle classification
-├── preprocessor.pkl           Scaler + Encodeur (inférence future)
-├── results.json               Métriques + durées + options
-└── pipeline_YYYYMMDD.log      Log complet de l'exécution
+regression_model.pkl       Meilleur modèle régression
+classification_model.pkl   Meilleur modèle classification
+preprocessor.pkl           Scaler + Encodeur (inférence future)
+results.json               Métriques + durées + options
+pipeline_YYYYMMDD.log      Log complet de l'exécution
 ```
 
 
