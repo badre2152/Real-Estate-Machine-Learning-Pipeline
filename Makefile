@@ -1,4 +1,4 @@
-# Makefile — ML Pipeline Avito Real Estate
+# Makefile: Avito Real Estate ML Pipeline
 # Usage : make <target>
 
 .PHONY: help install install-dev test test-cov lint run run-full clean
