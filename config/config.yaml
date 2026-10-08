@@ -5,10 +5,10 @@
 
 # Base de données
 database:
-  host: "${DB_HOST}"
-  port: "${DB_PORT}"
-  name: "${DB_NAME}"
-  user: "${DB_USER}"
+  host: "${DB_HOST:localhost}"
+  port: "${DB_PORT:5433}"
+  name: "${DB_NAME:real_estate_db}"
+  user: "${DB_USER:postgres}"
   password: "${DB_PASSWORD}"
   table: "ml_schema.feature_store"
   max_retries: 3
