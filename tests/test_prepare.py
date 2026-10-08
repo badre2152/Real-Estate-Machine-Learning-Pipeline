@@ -19,11 +19,11 @@ from src.prepare import (
 )
 
 
-# ── Fixtures ─────────────────────────────────────────────────────────────────
+# Fixtures
 
 @pytest.fixture
 def raw_df():
-    """DataFrame brut simulant la sortie de extract_obt() — avant toute transformation."""
+    """DataFrame brut simulant la sortie de extract_obt(): avant toute transformation."""
     np.random.seed(42)
     n = 200
     return pd.DataFrame({
@@ -44,7 +44,7 @@ def raw_df():
 
 @pytest.fixture
 def split_raw(raw_df):
-    """Split brut (avant feature engineering) — ordre correct du pipeline."""
+    """Split brut (avant feature engineering): ordre correct du pipeline."""
     df_clean = clean_dataframe(raw_df.copy())
     return split_data(df_clean, test_size=0.2, random_state=42)
 
@@ -60,7 +60,7 @@ def engineered(split_raw):
     return df_train_fe, df_test_fe
 
 
-# ── clean_dataframe ───────────────────────────────────────────────────────────
+# clean_dataframe
 
 class TestCleanDataframe:
 
@@ -91,7 +91,7 @@ class TestCleanDataframe:
         assert len(clean_dataframe(raw_df.copy())) > 0
 
 
-# ── split_data ────────────────────────────────────────────────────────────────
+# split_data
 
 class TestSplitData:
 
@@ -129,7 +129,7 @@ class TestSplitData:
                    "ville_prix_median", "score_luxe"]
         for col in fe_cols:
             assert col not in train.columns, (
-                f"'{col}' présent avant le feature engineering — ordre incorrect !"
+                f"'{col}' présent avant le feature engineering: ordre incorrect !"
             )
 
     def test_reproducible(self, raw_df):
@@ -139,7 +139,7 @@ class TestSplitData:
         pd.testing.assert_frame_equal(t1, t2)
 
 
-# ── detect_column_types ───────────────────────────────────────────────────────
+# detect_column_types
 
 class TestDetectColumnTypes:
 
@@ -165,7 +165,7 @@ class TestDetectColumnTypes:
         assert len(num) > 0
 
 
-# ── build_preprocessor ────────────────────────────────────────────────────────
+# build_preprocessor
 
 class TestBuildPreprocessor:
 
@@ -205,7 +205,7 @@ class TestBuildPreprocessor:
         assert not np.isnan(result_test).any()
 
 
-# ── prepare_data ──────────────────────────────────────────────────────────────
+# prepare_data
 
 class TestPrepareData:
 
@@ -249,19 +249,19 @@ class TestPrepareData:
     def test_preprocessor_fit_on_train_only(self, engineered):
         """
         Vérification clé : le préprocesseur est fitté sur train,
-        puis appliqué sur test — jamais fitté sur test.
+        puis appliqué sur test: jamais fitté sur test.
         """
         df_train, df_test = engineered
         # Introduire une valeur extreme dans le test que le train n'a pas
         df_test_modified = df_test.copy()
         if "surface_m2" in df_test_modified.columns:
             df_test_modified.loc[0, "surface_m2"] = 999_999
-        # Ne doit pas planter — le scaler utilise les stats du train
+        # Ne doit pas planter: le scaler utilise les stats du train
         X_tr, X_te, *_ = prepare_data(df_train, df_test_modified, save_preprocessor=False)
         assert X_te.isna().sum().sum() == 0
 
 
-# ── Test d'intégration : ordre complet du pipeline ────────────────────────────
+# Test d'intégration : ordre complet du pipeline
 
 class TestPipelineOrder:
 
