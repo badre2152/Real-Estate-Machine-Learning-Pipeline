@@ -11,7 +11,7 @@ Le fichier `dvc.yaml` définit cinq étapes : `extract`, `validate`, `featurize`
 | `extract` | Extraction PostgreSQL vers `data/raw/obt.parquet` | `src/extract.py` accepte désormais `--output` et enregistre le fichier Parquet avec `pyarrow` |
 | `validate` | Validation des données via `src/validate_dvc.py` et rapport JSON | Enregistre le rapport même si les contrôles obligatoires échouent, puis retourne un code d'échec |
 | `featurize` | `src/featurize_dvc.py` prépare les jeux train et test et enregistre les statistiques géographiques | Sorties : `train_fe.parquet`, `test_fe.parquet`, `geo_stats.pkl` |
-| `train` | Exécution de `src/pipeline.py` | Le pipeline lit également PostgreSQL directement |
+| `train` | Entraînement avec `python src/pipeline.py --input-parquet data/raw/obt.parquet` | Réutilise l'extraction Parquet, mais recalcule le feature engineering et n'utilise pas directement les sorties `featurize` |
 | `evaluate` | Lecture de `models/results.json` | Dépend des artefacts de training |
 
 Les commandes d'extraction et de validation sont maintenant alignées sur les scripts Python. La phase de feature engineering dispose maintenant d'une commande dédiée. Le workflow DVC complet n'a pas encore été exécuté.
