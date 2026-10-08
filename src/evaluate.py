@@ -16,7 +16,7 @@ from logger_setup import get_logger
 import os
 
 import matplotlib
-matplotlib.use("Agg")  # Backend non-interactif — compatible CI/CD
+matplotlib.use("Agg")  # Backend non-interactif: compatible CI/CD
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -26,7 +26,7 @@ from sklearn.preprocessing import label_binarize
 
 logger = get_logger(__name__)
 
-# Lire depuis config.yaml — fallback sur "docs/plots"
+# Lire depuis config.yaml: fallback sur "docs/plots"
 try:
     from config_loader import cfg as _cfg
     PLOTS_DIR = str(_cfg.paths.plots_dir)
@@ -35,7 +35,7 @@ except Exception:
 
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
-# ── Style global sombre ───────────────────────────────────────────────────────
+# Style global sombre
 plt.rcParams.update({
     "figure.facecolor": "#0f1117",
     "axes.facecolor"  : "#1a1d2e",
@@ -60,9 +60,9 @@ def _save(path: str) -> None:
     logger.info(f"   📊 → {path}")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # RÉGRESSION
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def plot_prediction_vs_actual(y_test, y_pred, title="Régression : Prédit vs Réel"):
     """Scatter plot des valeurs prédites vs réelles. Bonne ligne = diagonale."""
@@ -167,9 +167,9 @@ def plot_learning_curve(model, X_train, y_train, scoring="r2", title="Courbe d'A
     _save(f"{PLOTS_DIR}/learning_curve.png")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # CLASSIFICATION
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def plot_confusion_matrix(y_test_enc, y_pred, class_names):
     """Matrice de confusion pour la classification."""
@@ -214,14 +214,14 @@ def plot_shap_summary(model, X_test, feature_names, max_display=15):
         plt.title("SHAP Feature Importance", fontsize=14, fontweight="bold")
         _save(f"{PLOTS_DIR}/shap_summary.png")
     except ImportError:
-        logger.info("   ℹ️  shap non installé — ignoré (pip install shap)")
+        logger.info("   ℹ️  shap non installé: ignoré (pip install shap)")
     except Exception as exc:
         logger.warning(f"   ⚠️  SHAP échoué : {exc}")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # RUNNER COMPLET
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def run_full_evaluation(
     reg_model, clf_model, X_test,
@@ -238,7 +238,7 @@ def run_full_evaluation(
     plot_prediction_vs_actual(np.array(y_reg_test), y_reg_pred)
     plot_residuals(np.array(y_reg_test), y_reg_pred)
     plot_error_by_price_range(np.array(y_reg_test), y_reg_pred)
-    plot_feature_importance(reg_model, feature_names, title="Feature Importance — Régression")
+    plot_feature_importance(reg_model, feature_names, title="Feature Importance: Régression")
     plot_learning_curve(reg_model, X_test, np.array(y_reg_test))
     plot_shap_summary(reg_model, X_test, feature_names)
 
@@ -252,6 +252,6 @@ def run_full_evaluation(
         y_pred_clf = clf_model.predict(X_test)
         plot_confusion_matrix(y_clf_enc, y_pred_clf, label_encoder.classes_)
         plot_roc_curves(clf_model, X_test, y_clf_enc, len(ORDERED_CLASSES), ORDERED_CLASSES)
-        plot_feature_importance(clf_model, feature_names, title="Feature Importance — Classification")
+        plot_feature_importance(clf_model, feature_names, title="Feature Importance: Classification")
 
     logger.info(f"\n✅ Tous les graphiques sauvegardés → {PLOTS_DIR}/")
