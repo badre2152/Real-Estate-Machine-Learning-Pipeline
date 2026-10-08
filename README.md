@@ -126,7 +126,7 @@ Le proxy Nginx limite les requêtes par adresse IP. FastAPI applique une limite 
 Pour un déploiement avec `ENVIRONMENT=production`, remplacer `API_KEYS=change_me_api_key` par une clé forte et définir `CORS_ORIGINS` avec les origines HTTPS autorisées, séparées par des virgules. La valeur `*` est refusée en production. Ne pas versionner le fichier `.env`. Pour Docker Compose, définir également une valeur non vide pour `DB_PASSWORD` dans `.env`; le démarrage est désormais refusé si cette variable manque.
 
 ## Déploiement
-**Render Blueprint : attention.** Le fichier `render.yaml` contient une proposition de service PostgreSQL privé avec un disque persistant et `plan: free`. Cette combinaison n'est pas considérée comme validée pour un déploiement Render. Vérifier les types de service, le format des images Docker, les propriétés `fromService` et les plans actuellement pris en charge avant de créer le Blueprint. Ne pas activer un plan payant sans décision explicite. La configuration Docker Compose locale est indépendante de ce Blueprint.
+**Render Blueprint :** `render.yaml` déclare uniquement l'API web. Une instance PostgreSQL existante est requise ; configurer `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` et `DB_PASSWORD` dans le dashboard Render, ainsi que `API_KEYS` et `CORS_ORIGINS`. Le Blueprint ne crée plus de base de données ni de disque persistant. Vérifier l'offre Render et les paramètres de déploiement actuellement disponibles avant de déployer. Aucun plan payant n'est activé par ce changement. La configuration Docker Compose locale est indépendante.
 
 
 Aucun workflow GitHub Actions de CI ou CD n'est configuré dans ce dépôt. Le build Docker et tout déploiement éventuel doivent être lancés et vérifiés manuellement.
