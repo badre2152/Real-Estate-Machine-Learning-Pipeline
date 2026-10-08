@@ -2,7 +2,7 @@
 logger_setup.py
 ---------------
 Logging professionnel avec rotation journalière, niveaux configurables,
-et format structuré — remplace tous les print() du projet.
+et format structuré: remplace tous les print() du projet.
 
 Usage :
     from logger_setup import get_logger
@@ -27,8 +27,8 @@ def get_logger(
 ) -> logging.Logger:
     """
     Retourne un logger configuré avec :
-      - Handler console (stdout) — toujours actif
-      - Handler fichier avec rotation journalière — si log_dir fourni
+      - Handler console (stdout): toujours actif
+      - Handler fichier avec rotation journalière: si log_dir fourni
 
     Les paramètres sont lus depuis config.yaml si non spécifiés.
 
@@ -54,7 +54,7 @@ def get_logger(
     except Exception:
         _level = level or "INFO"
         _log_dir = log_dir or "logs"
-        _fmt = fmt or "%(asctime)s [%(levelname)s] %(name)s — %(message)s"
+        _fmt = fmt or "%(asctime)s [%(levelname)s] %(name)s | %(message)s"
         _datefmt = datefmt or "%Y-%m-%d %H:%M:%S"
         _backup_count = backup_count
 
@@ -69,13 +69,13 @@ def get_logger(
 
     formatter = logging.Formatter(fmt=_fmt, datefmt=_datefmt)
 
-    # ── Handler console ─────────────────────────────────────────────────────
+    # Handler console
     console = logging.StreamHandler(sys.stdout)
     console.setLevel(numeric_level)
     console.setFormatter(formatter)
     logger.addHandler(console)
 
-    # ── Handler fichier avec rotation ────────────────────────────────────────
+    # Handler fichier avec rotation
     if _log_dir:
         log_path = Path(_log_dir)
         log_path.mkdir(parents=True, exist_ok=True)
