@@ -1,13 +1,13 @@
 """
-api.py  (v3 — FastAPI Production-Ready)
+api.py  (v3: FastAPI Production-Ready)
 ----------------------------------------
 API de prédiction FastAPI pour le pipeline ML Avito Real Estate.
 
 Améliorations v3 :
   ✅ Authentication par API Key (header X-API-Key)
-  ✅ Rate Limiting (60 req/min par IP — in-memory)
+  ✅ Rate Limiting (60 req/min par IP: in-memory)
   ✅ /health endpoint complet (liveness probe)
-  ✅ /ready endpoint (readiness probe — modèles chargés ?)
+  ✅ /ready endpoint (readiness probe: modèles chargés ?)
   ✅ Gestion des erreurs structurée avec request_id
   ✅ Request ID unique par requête (tracing)
   ✅ Compression GZip automatique
@@ -15,12 +15,12 @@ Améliorations v3 :
   ✅ Backward compatibility avec anciens endpoints
 
 Endpoints :
-  GET  /health           — liveness probe (sans auth)
-  GET  /ready            — readiness probe (sans auth)
-  GET  /v1/info          — infos modèle chargé
-  POST /v1/predict       — prédiction prix + intervalle de confiance
-  POST /v1/predict/batch — prédictions en lot (max 100)
-  GET  /v1/metrics       — métriques de monitoring
+  GET  /health          : liveness probe (sans auth)
+  GET  /ready           : readiness probe (sans auth)
+  GET  /v1/info         : infos modèle chargé
+  POST /v1/predict      : prédiction prix + intervalle de confiance
+  POST /v1/predict/batch: prédictions en lot (max 100)
+  GET  /v1/metrics      : métriques de monitoring
 
 Lancer :
     uvicorn api:app --host 0.0.0.0 --port 8000 --reload
@@ -50,11 +50,11 @@ from prediction_intervals import PredictionIntervalBuilder
 
 logger = get_logger(__name__)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Configuration
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
-_API_KEYS_RAW = os.getenv("API_KEYS", "dev-key-change-me")
+_API_KEYS_RAW = os.getenv("API_KEYS", "")
 VALID_API_KEYS: set = {k.strip() for k in _API_KEYS_RAW.split(",") if k.strip()}
 RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
 
@@ -68,9 +68,9 @@ if _DEFAULT_KEY in VALID_API_KEYS and os.getenv("ENVIRONMENT", "dev") == "produc
         stacklevel=1,
     )
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Rate Limiter (sliding window in-memory)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class _InMemoryRateLimiter:
     """
@@ -98,12 +98,12 @@ class _InMemoryRateLimiter:
 
 _rate_limiter = _InMemoryRateLimiter(max_calls=RATE_LIMIT_PER_MINUTE)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # App FastAPI
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 app = FastAPI(
-    title="Avito Real Estate — API de Prédiction",
+    title="Avito Real Estate: API de Prédiction",
     description=(
         "API ML pour estimer le prix d'un bien immobilier au Maroc "
         "avec intervalle de confiance à 95%.\n\n"
@@ -123,9 +123,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # State des modèles
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 _MODELS_DIR = Path(os.getenv("MODELS_DIR", "models"))
 _state: dict = {
@@ -148,7 +148,7 @@ _state: dict = {
 async def load_models():
     """Charge les modèles depuis le dossier models/ au démarrage."""
     _state["uptime_start"] = time.time()
-    logger.info("🚀 Démarrage API v3 — chargement des modèles ...")
+    logger.info("🚀 Démarrage API v3: chargement des modèles ...")
 
     files = {
         "reg_model"    : ["best_regression_model.pkl", "regression_model.pkl"],
@@ -178,9 +178,9 @@ async def load_models():
     logger.info("✅ API v3 prête")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Sécurité — API Key + Rate Limit
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Sécurité: API Key + Rate Limit
+# 
 
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
@@ -227,9 +227,9 @@ async def check_rate_limit(request: Request) -> None:
         )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Schémas Pydantic
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class PropertyInput(BaseModel):
     surface_m2: float = Field(..., gt=0, le=10_000)
@@ -289,9 +289,9 @@ class BatchResponse(BaseModel):
     total_latency_ms: float
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Middleware — Request ID + logging
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Middleware: Request ID + logging
+# 
 
 @app.middleware("http")
 async def request_middleware(request: Request, call_next):
@@ -312,14 +312,14 @@ async def request_middleware(request: Request, call_next):
     return response
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Endpoints publics (sans auth)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 @app.get("/health", tags=["Ops"], summary="Liveness probe")
 async def health():
     """
-    Liveness probe — répond 200 si le processus est en vie.
+    Liveness probe: répond 200 si le processus est en vie.
     Pas d'authentification requise.
     Utilisé par Docker HEALTHCHECK et Kubernetes.
     """
@@ -335,7 +335,7 @@ async def health():
 @app.get("/ready", tags=["Ops"], summary="Readiness probe")
 async def ready():
     """
-    Readiness probe — répond 200 si les modèles sont prêts, 503 sinon.
+    Readiness probe: répond 200 si les modèles sont prêts, 503 sinon.
     Pas d'authentification requise.
     """
     models_status = {
@@ -357,9 +357,9 @@ async def ready():
     return response_data
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Endpoints v1 (authentification requise)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 _auth_deps = [Depends(require_api_key), Depends(check_rate_limit)]
 
@@ -448,7 +448,7 @@ async def predict(data: PropertyInput, request: Request):
             upper_95       = upper,
             interval_width = upper - lower,
             price_category = category,
-            formatted      = f"{pred:,.0f} MAD [{lower:,.0f} – {upper:,.0f}]",
+            formatted      = f"{pred:,.0f} MAD [{lower:,.0f} à {upper:,.0f}]",
             latency_ms     = round(latency_ms, 2),
             timestamp      = datetime.now().isoformat(),
         )
@@ -490,9 +490,9 @@ async def predict_batch(data: BatchInput, request: Request):
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Backward compatibility — anciens endpoints sans /v1
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Backward compatibility: anciens endpoints sans /v1
+# 
 
 @app.get("/", tags=["Ops"], include_in_schema=False)
 async def root():
@@ -502,7 +502,7 @@ async def root():
         "version"     : "2.0.0",
         "models_loaded": models_loaded,
         "timestamp"   : datetime.now().isoformat(),
-        "message"     : "Avito ML API — voir /docs ou /health",
+        "message"     : "Avito ML API: voir /docs ou /health",
     }
 
 @app.get("/info", include_in_schema=False, dependencies=_auth_deps)
@@ -522,9 +522,9 @@ async def predict_batch_compat(data: BatchInput, request: Request):
     return await predict_batch(data, request)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Helpers
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def _build_input_df(data: PropertyInput) -> pd.DataFrame:
     """
@@ -542,7 +542,7 @@ def _build_input_df(data: PropertyInput) -> pd.DataFrame:
                             if nb_salles_bain and nb_chambres else 0.0)
     prix_par_m2 = 0.0  # inconnu à la prédiction
 
-    # Stats géo — chargées depuis le Feature Store si disponible
+    # Stats géo: chargées depuis le Feature Store si disponible
     geo_stats = _get_geo_stats_for_ville(data.ville)
 
     row = {
@@ -611,9 +611,9 @@ def _get_geo_stats_for_ville(ville: str) -> dict:
         return {}
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints Registry (v3 — nouveaux)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Endpoints Registry (v3: nouveaux)
+# 
 
 @app.get(
     "/v1/registry",
@@ -643,7 +643,7 @@ async def registry_status():
                 "production": clf_registry.get_production_info(),
                 "all_versions": clf_registry.get_latest_versions(),
             },
-            "mlflow_ui": "http://localhost:5000",
+            "mlflow_ui": os.getenv("MLFLOW_UI_URL", "http://localhost:5000"),
         }
     except Exception as exc:
         raise HTTPException(500, detail={"error": "registry_error", "message": str(exc)})
@@ -701,9 +701,9 @@ async def registry_promote(
         raise HTTPException(500, detail={"error": str(exc)})
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints Drift Detection (v3 — nouveaux)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Endpoints Drift Detection (v3: nouveaux)
+# 
 
 @app.get(
     "/v1/drift/latest",
@@ -844,9 +844,9 @@ async def drift_detect(data: DriftDetectRequest, request: Request):
         raise HTTPException(500, detail={"error": "drift_detection_failed", "message": str(exc)})
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints Feature Store (v3 — nouveaux)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Endpoints Feature Store (v3: nouveaux)
+# 
 
 def _get_feature_store():
     """Charge le Feature Store depuis le dossier models."""
@@ -957,9 +957,9 @@ async def feature_group_stats(group: str):
         raise HTTPException(500, detail={"error": str(exc)})
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoint Retraining Webhook (v3 — nouveau)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Endpoint Retraining Webhook (v3: nouveau)
+# 
 
 class RetrainRequest(BaseModel):
     reason: str = Field("manual", description="Raison du retraining (drift / manual / scheduled)")
@@ -1019,7 +1019,7 @@ async def trigger_retrain(data: RetrainRequest, request: Request):
             "triggered"          : False,
             "reason"             : data.reason,
             "drift_recommendation": drift_recommendation,
-            "message"            : "Aucun drift détecté — retraining non nécessaire. Utiliser force=True pour forcer.",
+            "message"            : "Aucun drift détecté: retraining non nécessaire. Utiliser force=True pour forcer.",
         }
 
     # En production : lancer le pipeline en background
@@ -1027,7 +1027,7 @@ async def trigger_retrain(data: RetrainRequest, request: Request):
     job_id = f"retrain_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{req_id}"
 
     logger.warning(
-        f"🔴 RETRAINING DÉCLENCHÉ — job={job_id} | "
+        f"🔴 RETRAINING DÉCLENCHÉ: job={job_id} | "
         f"reason={data.reason} | drift={drift_recommendation}"
     )
 
