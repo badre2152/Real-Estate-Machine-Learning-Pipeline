@@ -161,7 +161,7 @@ def evaluate_regression(
     Si use_log_target=True, inverse-transforme les prédictions avant les métriques.
 
     Args:
-        baseline_results : dict retourné par run_regression_baselines() —
+        baseline_results : dict retourné par run_regression_baselines(),
                            si fourni, vérifie que le modèle bat les baselines.
     """
     y_pred_raw = model.predict(X_test)
