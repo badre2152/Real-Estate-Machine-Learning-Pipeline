@@ -70,12 +70,10 @@ class TestReady:
         assert r.status_code in [200, 503]  # dépend si les modèles sont chargés
 
     def test_ready_503_when_no_model(self):
-        original = _state["reg_model"]
-        _state["reg_model"] = None
-        r = client.get("/ready")
-        assert r.status_code == 503
-        assert r.json()["ready"] is False
-        _state["reg_model"] = original
+        with patch.dict(_state, {"reg_model": None}):
+            r = client.get("/ready")
+            assert r.status_code == 503
+            assert r.json()["ready"] is False
 
     def test_ready_structure(self):
         r = client.get("/ready")
