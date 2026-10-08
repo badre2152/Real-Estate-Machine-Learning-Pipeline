@@ -15,15 +15,15 @@ Usage :
     X_res, y_res = handler.fit_resample(X_train, y_train)
 """
 
-# ── stdlib ────────────────────────────────────────────────────────────────────
+# stdlib
 from collections import Counter
 from typing import Optional, Tuple
 
-# ── third-party ───────────────────────────────────────────────────────────────
+# third-party
 import numpy as np
 import pandas as pd
 
-# ── local ─────────────────────────────────────────────────────────────────────
+# local
 from logger_setup import get_logger
 
 logger = get_logger(__name__)
@@ -34,7 +34,7 @@ try:
     SMOTE_AVAILABLE = True
 except ImportError:
     SMOTE_AVAILABLE = False
-    logger.warning("⚠️  imbalanced-learn non installé — SMOTE désactivé (pip install imbalanced-learn)")
+    logger.warning("⚠️  imbalanced-learn non installé: SMOTE désactivé (pip install imbalanced-learn)")
 
 
 def _class_distribution(y) -> dict:
@@ -116,7 +116,7 @@ class SmoteHandler:
         self._before_dist        = None
         self._after_dist         = None
 
-    # ── Application SMOTE ─────────────────────────────────────────────────────
+    # Application SMOTE
 
     def fit_resample(
         self, X_train, y_train, force: bool = False
@@ -130,10 +130,10 @@ class SmoteHandler:
             force:   Forcer SMOTE même si pas de déséquilibre détecté.
 
         Returns:
-            (X_resampled, y_resampled) — mêmes types que l'entrée.
+            (X_resampled, y_resampled): mêmes types que l'entrée.
         """
         logger.info("\n" + "=" * 50)
-        logger.info("⚖️  SMOTE — Gestion du déséquilibre des classes")
+        logger.info("⚖️  SMOTE: Gestion du déséquilibre des classes")
         logger.info("=" * 50)
 
         self._before_dist = _class_distribution(y_train)
@@ -143,12 +143,12 @@ class SmoteHandler:
         logger.info(f"   Ratio déséquilibre : {ratio:.3f} (seuil : {self.imbalance_threshold})")
 
         if not is_imbalanced and not force:
-            logger.info("   ℹ️  Déséquilibre non significatif — SMOTE non appliqué")
+            logger.info("   ℹ️  Déséquilibre non significatif: SMOTE non appliqué")
             self._applied = False
             return X_train, y_train
 
         if not SMOTE_AVAILABLE:
-            logger.warning("   ⚠️  SMOTE non disponible — données inchangées")
+            logger.warning("   ⚠️  SMOTE non disponible: données inchangées")
             self._applied = False
             return X_train, y_train
 
@@ -169,7 +169,7 @@ class SmoteHandler:
             return X_res, y_res
 
         except Exception as exc:
-            logger.warning(f"   ⚠️  SMOTE échoué : {exc} — données originales conservées")
+            logger.warning(f"   ⚠️  SMOTE échoué : {exc}: données originales conservées")
             self._applied = False
             return X_train, y_train
 
@@ -180,7 +180,7 @@ class SmoteHandler:
 
         if self.categorical_features:
             logger.info(
-                f"   SMOTENC activé — {len(self.categorical_features)} features catégorielles"
+                f"   SMOTENC activé: {len(self.categorical_features)} features catégorielles"
             )
             return SMOTENC(
                 categorical_features=self.categorical_features,
@@ -198,7 +198,7 @@ class SmoteHandler:
         """Nombre d'échantillons dans la classe la plus petite (pour ajuster k)."""
         return min(info["n"] for info in self._before_dist.values()) if self._before_dist else 5
 
-    # ── Logging ───────────────────────────────────────────────────────────────
+    # Logging
 
     def _log_distribution(self, label: str, dist: dict) -> None:
         logger.info(f"   {label} :")
@@ -206,7 +206,7 @@ class SmoteHandler:
             bar = "█" * int(info["pct"] / 5)
             logger.info(f"     {str(cls):<15} {info['n']:>6,}  ({info['pct']:5.1f}%)  {bar}")
 
-    # ── Rapport ───────────────────────────────────────────────────────────────
+    # Rapport
 
     def get_report(self) -> dict:
         """Retourne un rapport dictionnaire pour MLflow / rapport HTML."""
@@ -223,9 +223,9 @@ class SmoteHandler:
         return self._applied
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Helper standalone pour les pipelines qui n'utilisent pas la classe
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def apply_smote_if_needed(
     X_train, y_train,
