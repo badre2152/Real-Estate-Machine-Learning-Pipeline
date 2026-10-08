@@ -227,7 +227,8 @@ def extract_sample(n: int = 1000) -> pd.DataFrame:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract real estate data from PostgreSQL")
     parser.add_argument("--output", type=Path, help="Save extracted data as a Parquet file")
-    parser.add_argument("--table", default="ml_schema.feature_store", choices=sorted(ALLOWED_TABLES))
+    from config_loader import cfg
+    parser.add_argument("--table", default=cfg.database.table, choices=sorted(ALLOWED_TABLES))
     args = parser.parse_args()
 
     df = extract_obt(table=args.table)
