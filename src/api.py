@@ -966,7 +966,8 @@ async def feature_group_stats(group: str):
             "history": stats,
         }
     except Exception as exc:
-        raise HTTPException(500, detail={"error": str(exc)})
+        logger.exception("Feature store statistics unavailable")
+        raise HTTPException(500, detail={"error": "feature_store_error"})
 
 
 # 
