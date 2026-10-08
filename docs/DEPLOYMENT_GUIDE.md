@@ -1,122 +1,55 @@
-# 🚀 دليل الـ Deployment — Avito ML API v3
+# Deployment Guide
 
-## خيارات الـ Deploy
+This repository is a portfolio project with a FastAPI service and a separate machine learning training pipeline.
 
-| الخيار | السعر | الصعوبة | مناسب لـ |
-|---|---|---|---|
-| **Render.com** | مجاني / 7$/شهر | ⭐ سهل | المشاريع الشخصية والـ demos |
-| **Docker local** | مجاني | ⭐⭐ | التطوير والـ testing |
-| **VPS (DigitalOcean/Hetzner)** | 5$/شهر | ⭐⭐⭐ | Production حقيقي |
+## Local setup
 
----
-
-## 1. Deploy على Render.com (الأسهل)
-
-### خطوات:
-1. عمل push للـ code على GitHub
-2. روح لـ https://render.com → New → **Blueprint**
-3. ربط الـ repo — Render يقرأ `render.yaml` تلقائياً
-4. في Dashboard، أضف المتغيرات السرية:
-   - `API_KEYS` ← ضع مفتاحك هنا (مثال: `prod-key-abc123`)
-5. Deploy!
-
-### URL ديالك:
-```
-https://avito-ml-api.onrender.com
-```
-
-### Test بعد الـ deploy:
-```bash
-# Health check
-curl https://avito-ml-api.onrender.com/health
-
-# Predict
-curl -X POST https://avito-ml-api.onrender.com/v1/predict \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: prod-key-abc123" \
-  -d '{"surface_m2": 120, "ville": "Casablanca", "type_bien": "appartement"}'
-```
-
----
-
-## 2. Deploy بـ Docker (محلي أو VPS)
+Clone the repository, create a local environment file and configure real credentials.
 
 ```bash
-# Clone الـ repo
-git clone https://github.com/your-user/avito-ml .
-
-# إنشاء ملف الـ environment
+git clone https://github.com/badre2152/Real-Estate-Machine-Learning-Pipeline.git
+cd Real-Estate-Machine-Learning-Pipeline
 cp .env.example .env
-# غيّر API_KEYS و DB_PASSWORD في .env
-
-# بناء وتشغيل
-make docker-build
-make docker-run
-
-# تحقق من الـ health
-make docker-health
-
-# تشغيل pipeline التدريب
-make docker-train
+docker compose up -d
 ```
 
----
+Set `DB_PASSWORD` and `API_KEYS` in `.env` before starting Docker Compose. The development example values must be replaced for a real deployment.
 
-## 3. CI/CD — GitHub Actions
+Local services:
 
-### Secrets اللي تحتاج تضيفها في GitHub:
-```
-Settings → Secrets and variables → Actions → New repository secret
-```
+| Service | Local address |
+| --- | --- |
+| FastAPI | http://localhost:8000 |
+| FastAPI health | http://localhost:8000/health |
+| MLflow | http://localhost:5000 |
+| PostgreSQL | localhost:5433 |
 
-| Secret | كيفاش تجيبه |
-|---|---|
-| `DOCKERHUB_USERNAME` | Username ديالك في Docker Hub |
-| `DOCKERHUB_TOKEN` | Docker Hub → Account Settings → Security → New Token |
-| `RENDER_API_KEY` | Render → Account → API Keys |
-| `RENDER_SERVICE_ID` | URL الـ service في Render: `srv-xxxxxxxxxxxx` |
+Database, API and MLflow ports are bound to localhost on the host machine. Docker containers use the internal service names and ports.
 
-### كيفاش يشتغل:
-```
-push → main
-  ├── test    (pytest + coverage)
-  ├── lint    (ruff)
-  ├── build   (docker build + push to Docker Hub)
-  └── deploy  (trigger Render deploy + smoke tests)
-```
-
----
-
-## 4. متغيرات البيئة
-
-```env
-# .env — نسخ من هنا للـ production
-API_KEYS=prod-key-change-me          # غيّر هذا!
-RATE_LIMIT_PER_MINUTE=60
-CORS_ORIGINS=https://your-frontend.com
-
-DB_HOST=localhost
-DB_PORT=5433
-DB_NAME=real_estate_db
-DB_USER=postgres
-DB_PASSWORD=strong-password-here    # غيّر هذا!
-
-MODELS_DIR=models
-LOG_LEVEL=INFO
-```
-
----
-
-## 5. Nginx (HTTPS في Production)
+Run training separately:
 
 ```bash
-# تشغيل مع Nginx
-docker compose --profile nginx up -d
-
-# ضع شهادات SSL في nginx/certs/
-# - nginx/certs/fullchain.pem
-# - nginx/certs/privkey.pem
-
-# مع Let's Encrypt (مجاني):
-certbot certonly --standalone -d your-domain.com
+docker compose --profile train up pipeline
 ```
+
+## Render
+
+The `render.yaml` Blueprint defines only the FastAPI web service. It does not provision PostgreSQL. An existing PostgreSQL instance and its connection details are required.
+
+Configure `API_KEYS`, `CORS_ORIGINS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` and `DB_PASSWORD` in the Render dashboard. Production configuration rejects missing or placeholder API keys and wildcard CORS origins.
+
+Review Render's currently supported plan, resource limits and deployment configuration before attempting deployment. The Blueprint has not been deployed or validated against Render in this cleanup.
+
+Model files are generated separately and are not copied into the Docker image. A deployed prediction service must be provided with compatible trained model files in `MODELS_DIR`; otherwise prediction endpoints may not be ready.
+
+## Optional Nginx HTTPS proxy
+
+```bash
+docker compose --profile nginx up -d
+```
+
+Before enabling Nginx, place valid TLS certificates at `nginx/certs/fullchain.pem` and `nginx/certs/privkey.pem`. Without them, the supplied Nginx configuration cannot start.
+
+## Verification and deployment status
+
+No GitHub Actions CI or CD workflow is configured. Build, deployment and runtime verification are manual. This documentation describes the intended configuration and does not claim that an external deployment is live.
