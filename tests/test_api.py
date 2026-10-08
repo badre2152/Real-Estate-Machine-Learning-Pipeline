@@ -4,11 +4,11 @@ test_api.py
 Tests unitaires et d'intégration pour l'API FastAPI.
 
 Couvre :
-  - GET  /         — health check
-  - GET  /info     — model info
-  - GET  /metrics  — monitoring metrics
-  - POST /predict  — prédiction unitaire (valides + invalides)
-  - POST /predict/batch — prédictions en lot
+  - GET  /        : health check
+  - GET  /info    : model info
+  - GET  /metrics : monitoring metrics
+  - POST /predict : prédiction unitaire (valides + invalides)
+  - POST /predict/batch: prédictions en lot
   - Validation Pydantic (types, bornes, champs obligatoires)
   - Comportement avec modèles non chargés (mode dégradé)
   - Middleware de logging (status codes)
@@ -22,7 +22,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-# ── Import conditionnel FastAPI ────────────────────────────────────────────────
+# Import conditionnel FastAPI
 try:
     from fastapi.testclient import TestClient
     FASTAPI_AVAILABLE = True
@@ -35,9 +35,9 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Fixtures
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 @pytest.fixture(scope="module")
 def client():
@@ -74,12 +74,12 @@ def client():
         "pi_builder"   : pi_mock,
         "reg_metrics"  : {"R2": 0.82, "MAE": 45000.0, "RMSE": 72000.0},
         "clf_metrics"  : {"F1": 0.74, "Accuracy": 0.76},
-        "loaded_at"    : "2025-01-01T00:00:00",
+        "loaded_at"    : "2026-01-01T00:00:00",
     }
 
     # Patch pickle.load pour éviter le chargement des fichiers réels au démarrage
     with patch("api.pickle.load", side_effect=lambda f: MagicMock()):
-        with TestClient(app, headers={"X-API-Key": "dev-key-change-me"}) as c:
+        with TestClient(app, headers={"X-API-Key": "test-key-ci"}) as c:
             # Injecter les vrais mocks après le démarrage
             _state.update(mocks)
             yield c
@@ -99,9 +99,9 @@ def valid_property():
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — Health Check
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: Health Check
+# 
 
 class TestHealthCheck:
     def test_root_returns_200(self, client):
@@ -126,9 +126,9 @@ class TestHealthCheck:
         assert "timestamp" in data
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — /info
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: /info
+# 
 
 class TestModelInfo:
     def test_info_returns_200(self, client):
@@ -154,9 +154,9 @@ class TestModelInfo:
         assert data["loaded_at"] == "2025-01-01T00:00:00"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — /metrics
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: /metrics
+# 
 
 class TestMetrics:
     def test_metrics_returns_200(self, client):
@@ -176,9 +176,9 @@ class TestMetrics:
         assert data["ml_reg_r2"] == pytest.approx(0.82)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — POST /predict (cas valides)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: POST /predict (cas valides)
+# 
 
 class TestPredictValid:
     def test_predict_returns_200(self, client, valid_property):
@@ -243,9 +243,9 @@ class TestPredictValid:
         assert client.post("/predict", json=payload).status_code == 200
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — POST /predict (Pydantic validation — cas invalides)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: POST /predict (Pydantic validation: cas invalides)
+# 
 
 class TestPredictInvalid:
     def test_missing_surface_returns_422(self, client):
@@ -291,9 +291,9 @@ class TestPredictInvalid:
         assert resp.status_code == 422
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — POST /predict/batch
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: POST /predict/batch
+# 
 
 class TestPredictBatch:
     def test_batch_returns_200(self, client, valid_property):
@@ -332,16 +332,16 @@ class TestPredictBatch:
         assert "upper_95" in pred
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — Mode dégradé (modèles non chargés)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: Mode dégradé (modèles non chargés)
+# 
 
 class TestDegradedMode:
     def test_predict_without_model_returns_503(self, valid_property):
         """Sans modèle chargé, /predict doit retourner 503."""
         from api import app, _state
         with patch("api.pickle.load", side_effect=lambda f: MagicMock()):
-            with TestClient(app, headers={"X-API-Key": "dev-key-change-me"}) as c:
+            with TestClient(app, headers={"X-API-Key": "test-key-ci"}) as c:
                 _state["reg_model"] = None
                 resp = c.post("/predict", json=valid_property)
         assert resp.status_code == 503
@@ -350,7 +350,7 @@ class TestDegradedMode:
         """GET /info doit toujours répondre, même sans modèle."""
         from api import app, _state
         with patch("api.pickle.load", side_effect=lambda f: MagicMock()):
-            with TestClient(app, headers={"X-API-Key": "dev-key-change-me"}) as c:
+            with TestClient(app, headers={"X-API-Key": "test-key-ci"}) as c:
                 _state["reg_model"] = None
                 resp = c.get("/info")
         assert resp.status_code == 200
@@ -360,16 +360,16 @@ class TestDegradedMode:
         """GET / doit toujours fonctionner."""
         from api import app, _state
         with patch("api.pickle.load", side_effect=lambda f: MagicMock()):
-            with TestClient(app, headers={"X-API-Key": "dev-key-change-me"}) as c:
+            with TestClient(app, headers={"X-API-Key": "test-key-ci"}) as c:
                 _state["reg_model"] = None
                 resp = c.get("/")
         assert resp.status_code == 200
         assert resp.json()["models_loaded"] is False
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — Schémas Pydantic (unitaires, sans serveur)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: Schémas Pydantic (unitaires, sans serveur)
+# 
 
 class TestPydanticSchemas:
     def test_property_input_valid(self):
