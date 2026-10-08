@@ -141,17 +141,18 @@ Les ports PostgreSQL (5433), FastAPI (8000) et MLflow (5000) sont liés à 127.0
 
 ---
 
-## Fichiers exportés
+## Modèles et fichiers générés
 
-```
-models/
-regression_model.pkl       Meilleur modèle régression
-classification_model.pkl   Meilleur modèle classification
-preprocessor.pkl           Scaler + Encodeur (inférence future)
-results.json               Métriques + durées + options
-pipeline_YYYYMMDD.log      Log complet de l'exécution
-```
+Le pipeline génère des artefacts de modèles dans `models/`, notamment `best_regression_model.pkl`, `best_classification_model.pkl` et `preprocessor.pkl`. Ces fichiers ne sont pas inclus dans les images Docker par défaut. Pour servir des prédictions, fournir des modèles compatibles dans `MODELS_DIR`.
 
+Les fichiers de `reports/` actuellement versionnés sont des exemples historiques. Certains contrôles du rapport de validation ont échoué ; ils ne démontrent pas une validation complète des données.
+
+## Documentation
+
+- [Guide de déploiement](docs/DEPLOYMENT_GUIDE.md)
+- [Guide DVC](docs/DVC_GUIDE.md)
+- [Guide MLflow Registry](docs/MLFLOW_REGISTRY_GUIDE.md)
+- [Contribution](CONTRIBUTING.md)
 
 ## Auteur
 
