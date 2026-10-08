@@ -88,6 +88,7 @@ stages:
       - data/raw/obt.parquet
       - data/processed/train_fe.parquet
       - data/processed/test_fe.parquet
+      - reports/dvc/validation_report.json
     params:
       - config/config.yaml:
           - pipeline.optimize
@@ -104,8 +105,6 @@ stages:
           - prediction_intervals.confidence_level
     outs:
       - models/best_regression_model.pkl:
-          cache: true
-      - models/best_classification_model.pkl:
           cache: true
       - models/preprocessor.pkl:
           cache: true
