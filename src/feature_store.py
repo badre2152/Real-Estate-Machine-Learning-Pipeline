@@ -484,7 +484,10 @@ class FeatureStore:
         df = pd.DataFrame(records)
         for col in df.columns:
             if col != "entity_id":
-                df[col] = pd.to_numeric(df[col], errors="ignore")
+                try:
+                    df[col] = pd.to_numeric(df[col])
+                except (TypeError, ValueError):
+                    pass
 
         logger.info(
             f"   🏪 read_as_of('{group}', {timestamp[:10]}) → {len(df)} entités"
