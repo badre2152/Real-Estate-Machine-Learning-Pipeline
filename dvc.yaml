@@ -1,5 +1,5 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# dvc.yaml — Pipeline DVC pour le versioning des données et modèles
+# 
+# dvc.yaml: Pipeline DVC pour le versioning des données et modèles
 #
 # Chaque stage définit :
 #   cmd      : commande à exécuter
@@ -17,11 +17,11 @@
 #
 # Comparer deux versions :
 #   dvc metrics diff HEAD~1
-# ═══════════════════════════════════════════════════════════════════════════════
+# 
 
 stages:
 
-  # ── Stage 1 : Extraction ───────────────────────────────────────────────────
+  # Stage 1 : Extraction
   extract:
     cmd: python src/extract.py --output data/raw/obt.parquet
     deps:
@@ -36,7 +36,7 @@ stages:
           cache: true
           persist: false
 
-  # ── Stage 2 : Validation ───────────────────────────────────────────────────
+  # Stage 2 : Validation
   validate:
     cmd: python -c "
       import pandas as pd
@@ -60,7 +60,7 @@ stages:
       - reports/validation_report.json:
           cache: false
 
-  # ── Stage 3 : Feature Engineering ─────────────────────────────────────────
+  # Stage 3 : Feature Engineering
   featurize:
     cmd: python -c "
       import pandas as pd, pickle
@@ -94,7 +94,7 @@ stages:
       - data/processed/geo_stats.pkl:
           cache: true
 
-  # ── Stage 4 : Entraînement complet ─────────────────────────────────────────
+  # Stage 4 : Entraînement complet
   train:
     cmd: python src/pipeline.py
     deps:
@@ -141,7 +141,7 @@ stages:
       - docs/plots:
           cache: false
 
-  # ── Stage 5 : Évaluation & Rapport ─────────────────────────────────────────
+  # Stage 5 : Évaluation & Rapport
   evaluate:
     cmd: python -c "
       import json
