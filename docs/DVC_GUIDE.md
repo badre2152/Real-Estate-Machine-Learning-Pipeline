@@ -9,12 +9,12 @@ Le fichier `dvc.yaml` définit cinq étapes : `extract`, `validate`, `featurize`
 | Étape | Rôle déclaré | Réserve |
 | --- | --- | --- |
 | `extract` | Extraction PostgreSQL vers `data/raw/obt.parquet` | `src/extract.py` accepte désormais `--output` et enregistre le fichier Parquet avec `pyarrow` |
-| `validate` | Validation des données et rapport JSON | Dépend de la sortie de l'extraction |
+| `validate` | Validation des données via `src/validate_dvc.py` et rapport JSON | Enregistre le rapport même si les contrôles obligatoires échouent, puis retourne un code d'échec |
 | `featurize` | Préparation des données et features | Dépend des fichiers Parquet et des signatures de fonctions |
 | `train` | Exécution de `src/pipeline.py` | Le pipeline lit également PostgreSQL directement |
 | `evaluate` | Lecture de `models/results.json` | Dépend des artefacts de training |
 
-La commande d'extraction est maintenant alignée sur le script Python. Les autres étapes DVC n'ont pas encore été vérifiées de bout en bout.
+Les commandes d'extraction et de validation sont maintenant alignées sur les scripts Python. Les autres étapes DVC n'ont pas encore été vérifiées de bout en bout.
 
 ## Commandes de consultation
 
