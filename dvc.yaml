@@ -75,7 +75,7 @@ stages:
 
   # Stage 4 : Entraînement complet
   train:
-    cmd: python src/pipeline.py
+    cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet
     deps:
       - src/pipeline.py
       - src/regression.py
