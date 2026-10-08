@@ -169,7 +169,7 @@ class PredictionIntervalBuilder:
             lower = np.quantile(all_preds, self.alpha / 2, axis=1)
             upper = np.quantile(all_preds, 1 - self.alpha / 2, axis=1)
 
-        # Sanity checks — prix immobilier toujours positif
+        # Sanity checks, prix immobilier toujours positif
         # lower < 0 possible si les résidus sont très négatifs → clip à 0
         lower = np.maximum(lower, 0.0)
         # Garantir lower <= prediction <= upper (interval ne doit pas être inversé)
@@ -183,7 +183,7 @@ class PredictionIntervalBuilder:
         if n_degenerate > 0:
             logger.warning(
                 f"   ⚠️  {n_degenerate} intervalles dégénérés (lower >= upper) "
-                f"— vérifier le calibrage du modèle."
+                f"Vérifier le calibrage du modèle."
             )
 
         df = pd.DataFrame({
