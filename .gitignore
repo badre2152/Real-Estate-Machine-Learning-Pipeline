@@ -59,3 +59,7 @@ models/*.pickle
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Generated reference datasets and report pages
+feature_store/*.pkl
+reports/*.html
