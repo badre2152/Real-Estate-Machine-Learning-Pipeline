@@ -96,6 +96,8 @@ def run_pipeline(
     generate_plots: bool  = None,
     table: str            = None,
     input_parquet: str    = None,
+    train_features: str   = None,
+    test_features: str    = None,
     test_size: float      = None,
     random_state: int     = None,
 ) -> dict:
@@ -103,6 +105,9 @@ def run_pipeline(
     Lance le pipeline ML complet v2.
     Les paramètres None sont lus depuis config/config.yaml.
     """
+    if bool(train_features) != bool(test_features):
+        raise ValueError('Specify both train_features and test_features, or neither')
+
     # Résoudre les paramètres (CLI > config)
     optimize        = optimize        if optimize        is not None else cfg.pipeline.optimize
     use_log_target  = use_log_target  if use_log_target  is not None else cfg.pipeline.use_log_target
@@ -199,24 +204,34 @@ def run_pipeline(
             logger.info("\n" + "=" * 50)
             logger.info("🧹 ÉTAPE 3: Nettoyage")
             logger.info("=" * 50)
-            df = clean_dataframe(df)
+            if not train_features:
+                df = clean_dataframe(df)
 
         # ÉTAPE 4 : Split
         with monitor.step("4_split"):
             logger.info("\n" + "=" * 50)
             logger.info("✂️  ÉTAPE 4: Split train/test")
             logger.info("=" * 50)
-            df_train, df_test = split_data(df, test_size=test_size, random_state=random_state)
+            if train_features:
+                df_train = pd.read_parquet(train_features)
+                df_test = pd.read_parquet(test_features)
+                if df_train.empty or df_test.empty:
+                    raise ValueError('Prepared feature datasets must not be empty')
+            else:
+                df_train, df_test = split_data(df, test_size=test_size, random_state=random_state)
 
         # ÉTAPE 5 : Feature Engineering
         with monitor.step("5_feature_engineering"):
             logger.info("\n" + "=" * 50)
             logger.info("⚙️  ÉTAPE 5: Feature Engineering")
             logger.info("=" * 50)
-            df_train, geo_stats = engineer_features_train(df_train)
-            df_test             = engineer_features_test(df_test, geo_stats)
-            if "categorie_prix" in df_train.columns and "categorie_prix" not in df_test.columns:
-                df_test = add_classification_target(df_test)
+            if not train_features:
+                df_train, geo_stats = engineer_features_train(df_train)
+                df_test = engineer_features_test(df_test, geo_stats)
+                if "categorie_prix" in df_train.columns and "categorie_prix" not in df_test.columns:
+                    df_test = add_classification_target(df_test)
+            else:
+                logger.info('Using prepared DVC features without recomputing feature engineering')
 
         # ÉTAPE 6 : Encoding + Scaling
         with monitor.step("6_encoding_scaling"):
@@ -633,6 +648,8 @@ def _parse_args():
     p.add_argument("--no-plots",   action="store_true")
     p.add_argument("--table",      default=None, help="Table OBT (défaut : config.yaml)")
     p.add_argument("--input-parquet", default=None, help="Read extracted OBT from Parquet instead of PostgreSQL")
+    p.add_argument("--train-features", default=None, help="Prepared training features Parquet")
+    p.add_argument("--test-features", default=None, help="Prepared test features Parquet")
     p.add_argument("--test-size",  type=float, default=None)
     p.add_argument("--seed",       type=int,   default=None)
     return p.parse_args()
@@ -648,6 +665,8 @@ if __name__ == "__main__":
         generate_plots  = not args.no_plots,
         table           = args.table,
         input_parquet   = args.input_parquet,
+        train_features  = args.train_features,
+        test_features   = args.test_features,
         test_size       = args.test_size,
         random_state    = args.seed,
     )
