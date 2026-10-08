@@ -90,8 +90,7 @@ def get_logger(
         logger.addHandler(file_handler)
 
     # Empêcher la propagation vers le root logger (évite les doublons)
-    # Note: propagate reste True pour permettre à pytest caplog de capturer les logs
-    # logger.propagate = False
+    logger.propagate = False
 
     return logger
 
