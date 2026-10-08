@@ -63,3 +63,6 @@ models/*.pickle
 # Generated reference datasets and report pages
 feature_store/*.pkl
 reports/*.html
+
+# DVC validation output generated locally
+reports/dvc/
