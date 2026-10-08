@@ -241,12 +241,18 @@ class PropertyInput(BaseModel):
     @field_validator("ville")
     @classmethod
     def normalize_ville(cls, v: str) -> str:
-        return v.strip().title()
+        cleaned = v.strip()
+        if not cleaned:
+            raise ValueError("ville must not be blank")
+        return cleaned.title()
 
     @field_validator("type_bien")
     @classmethod
     def normalize_type(cls, v: str) -> str:
-        return v.strip().lower()
+        cleaned = v.strip()
+        if not cleaned:
+            raise ValueError("type_bien must not be blank")
+        return cleaned.lower()
 
     model_config = {
         "json_schema_extra": {
