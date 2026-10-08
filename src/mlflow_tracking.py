@@ -32,7 +32,7 @@ try:
     MLFLOW_AVAILABLE = True
 except ImportError:
     MLFLOW_AVAILABLE = False
-    logger.warning("⚠️  mlflow non installé — tracking désactivé (pip install mlflow)")
+    logger.warning("⚠️  mlflow non installé: tracking désactivé (pip install mlflow)")
 
 
 class MLflowTracker:
@@ -62,7 +62,7 @@ class MLflowTracker:
         self._run = None
         self._active = False
 
-    # ── Context manager ───────────────────────────────────────────────────────
+    # Context manager
 
     def __enter__(self):
         self.start()
@@ -72,7 +72,7 @@ class MLflowTracker:
         self.end(success=(exc_type is None))
         return False  # ne supprime pas les exceptions
 
-    # ── Cycle de vie du run ───────────────────────────────────────────────────
+    # Cycle de vie du run
 
     def start(self) -> None:
         if not MLFLOW_AVAILABLE:
@@ -85,7 +85,7 @@ class MLflowTracker:
                 tags=self._tags,
             )
             self._active = True
-            logger.info(f"🔬 MLflow run démarré — ID : {self._run.info.run_id}")
+            logger.info(f"🔬 MLflow run démarré: ID : {self._run.info.run_id}")
         except Exception as exc:
             logger.warning(f"⚠️  MLflow start échoué : {exc}")
 
@@ -100,14 +100,14 @@ class MLflowTracker:
         except Exception as exc:
             logger.warning(f"⚠️  MLflow end échoué : {exc}")
 
-    # ── Logging ───────────────────────────────────────────────────────────────
+    # Logging
 
     def log_params(self, params: dict[str, Any]) -> None:
         """Enregistre les paramètres du pipeline (hyperparamètres, options)."""
         if not MLFLOW_AVAILABLE or not self._active:
             return
         try:
-            # MLflow limite les params à 500 chars — tronquer si nécessaire
+            # MLflow limite les params à 500 chars: tronquer si nécessaire
             safe = {k: str(v)[:500] for k, v in params.items()}
             mlflow.log_params(safe)
             logger.debug(f"   MLflow params : {list(safe.keys())}")
@@ -170,7 +170,7 @@ class MLflowTracker:
         except Exception as exc:
             logger.warning(f"⚠️  mlflow.set_tag échoué : {exc}")
 
-    # ── Helpers pour le pipeline ──────────────────────────────────────────────
+    # Helpers pour le pipeline
 
     def log_pipeline_params(self, options: dict, data_info: dict) -> None:
         """Raccourci pour logger tous les paramètres pipeline en une fois."""
