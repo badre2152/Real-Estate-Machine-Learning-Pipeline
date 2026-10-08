@@ -1,5 +1,5 @@
 """
-api.py  (v3: FastAPI Production-Ready)
+api.py  (v3: FastAPI service)
 ----------------------------------------
 API de prédiction FastAPI pour le pipeline ML Avito Real Estate.
 
