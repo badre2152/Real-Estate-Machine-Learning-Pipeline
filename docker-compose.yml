@@ -45,6 +45,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mlflow:
+        condition: service_started
     environment:
       # Database
       DB_HOST:     db
@@ -88,7 +90,8 @@ services:
         --host 0.0.0.0
         --port 5000
         --backend-store-uri sqlite:////mlflow/mlflow.db
-        --default-artifact-root /mlflow/artifacts
+        --serve-artifacts
+        --artifacts-destination /mlflow/artifacts
     volumes:
       - mlflow_data:/mlflow
     ports:
@@ -106,6 +109,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mlflow:
+        condition: service_started
     environment:
       DB_HOST:     db
       DB_PORT:     5432
@@ -119,7 +124,6 @@ services:
       - ./logs:/app/logs
       - ./reports:/app/reports
       - ./docs/plots:/app/docs/plots
-      - mlflow_data:/app/mlruns
     networks:
       - avito_net
     profiles:
