@@ -11,10 +11,10 @@ Améliorations v2 :
   - Logging structuré
 """
 
-# ── stdlib ────────────────────────────────────────────────────────────────────
+# stdlib
 import pickle
 
-# ── third-party ───────────────────────────────────────────────────────────────
+# third-party
 import numpy as np
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
@@ -27,7 +27,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 
-# ── local ─────────────────────────────────────────────────────────────────────
+# local
 from logger_setup import get_logger
 
 try:
@@ -54,7 +54,7 @@ def _try_xgboost():
 
 def get_classification_models() -> dict:
     """Retourne les modèles candidats."""
-    # n_jobs=1 sur les estimateurs — cross_val_score gère le parallélisme outer
+    # n_jobs=1 sur les estimateurs: cross_val_score gère le parallélisme outer
     models = {
         "LogisticRegression": LogisticRegression(max_iter=1000, random_state=_RS),
         "RandomForest"      : RandomForestClassifier(n_estimators=100, random_state=_RS, n_jobs=1),
@@ -102,7 +102,7 @@ def check_class_balance(y_enc, label_encoder) -> float:
         logger.info(f"     {label_encoder.classes_[idx]:<10s} : {cnt:>5d} ({pct:.1f}%)")
     if ratio < 0.5:
         logger.warning(
-            f"   ⚠️  Déséquilibre détecté (ratio={ratio:.2f}) — envisager SMOTE ou class_weight"
+            f"   ⚠️  Déséquilibre détecté (ratio={ratio:.2f}): envisager SMOTE ou class_weight"
         )
     return ratio
 
@@ -122,7 +122,7 @@ def train_classification(
         (best_model, best_name, label_encoder)
     """
     logger.info("\n" + "=" * 50)
-    logger.info("🧠 MODÈLE DE CLASSIFICATION — Catégorie de Prix")
+    logger.info("🧠 MODÈLE DE CLASSIFICATION: Catégorie de Prix")
     logger.info("=" * 50)
 
     y_enc, _, le = encode_target(y_train, y_train)
@@ -145,7 +145,7 @@ def train_classification(
     best_model = models[best_name]
     logger.info(f"\n🏆 Meilleur modèle : {best_name} (F1={results[best_name]:.4f})")
 
-    # Fit final — XGBoost avec early stopping sur un validation set interne
+    # Fit final: XGBoost avec early stopping sur un validation set interne
     if best_name == "XGBoost":
         try:
             # Réserver 15% du train comme validation set pour early stopping
@@ -154,7 +154,7 @@ def train_classification(
                 X_train, y_enc, test_size=0.15, random_state=_RS, stratify=y_enc
             )
             best_model.set_params(
-                n_estimators    = 500,      # max estimators — early stopping va couper
+                n_estimators    = 500,      # max estimators: early stopping va couper
                 early_stopping_rounds = 20, # arrêt si pas d'amélioration sur 20 rounds
             )
             best_model.fit(
@@ -225,9 +225,9 @@ def evaluate_classification(model, X_test, y_test, label_encoder):
     elif f1 >= 0.70:
         logger.info("🟡 Bon modèle")
     elif f1 >= 0.55:
-        logger.info("🟠 Modèle moyen — revoir features ou SMOTE")
+        logger.info("🟠 Modèle moyen: revoir features ou SMOTE")
     else:
-        logger.info("🔴 Modèle faible — déséquilibre ou features insuffisantes")
+        logger.info("🔴 Modèle faible: déséquilibre ou features insuffisantes")
 
     return {
         "Accuracy": accuracy, "Precision": precision,
