@@ -349,8 +349,8 @@ class TestDegradedMode:
         from api import app, _state
         with patch("api.pickle.load", side_effect=lambda f: MagicMock()):
             with TestClient(app, headers={"X-API-Key": "test-key-ci"}) as c:
-                _state["reg_model"] = None
-                resp = c.post("/predict", json=valid_property)
+                with patch.dict(_state, {"reg_model": None}):
+                    resp = c.post("/predict", json=valid_property)
         assert resp.status_code == 503
 
     def test_info_works_without_models(self):
@@ -358,8 +358,8 @@ class TestDegradedMode:
         from api import app, _state
         with patch("api.pickle.load", side_effect=lambda f: MagicMock()):
             with TestClient(app, headers={"X-API-Key": "test-key-ci"}) as c:
-                _state["reg_model"] = None
-                resp = c.get("/info")
+                with patch.dict(_state, {"reg_model": None}):
+                    resp = c.get("/info")
         assert resp.status_code == 200
         assert resp.json()["regression_model"] is None
 
@@ -368,8 +368,8 @@ class TestDegradedMode:
         from api import app, _state
         with patch("api.pickle.load", side_effect=lambda f: MagicMock()):
             with TestClient(app, headers={"X-API-Key": "test-key-ci"}) as c:
-                _state["reg_model"] = None
-                resp = c.get("/")
+                with patch.dict(_state, {"reg_model": None}):
+                    resp = c.get("/")
         assert resp.status_code == 200
         assert resp.json()["models_loaded"] is False
 
