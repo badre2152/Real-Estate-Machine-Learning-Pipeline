@@ -12,7 +12,7 @@ Le fichier `dvc.yaml` définit cinq étapes : `extract`, `validate`, `featurize`
 | `validate` | Validation des données via `src/validate_dvc.py` et rapport JSON | Enregistre le rapport même si les contrôles obligatoires échouent, puis retourne un code d'échec |
 | `featurize` | `src/featurize_dvc.py` prépare les jeux train et test et enregistre les statistiques géographiques | Sorties : `train_fe.parquet`, `test_fe.parquet`, `geo_stats.pkl` |
 | `train` | Entraînement à partir des fichiers Parquet brut et préparés | Réutilise `train_fe.parquet` et `test_fe.parquet` sans refaire les transformations |
-| `evaluate` | Lecture de `models/results.json` | Dépend des artefacts de training |
+| `evaluate` | `src/evaluate_dvc.py` affiche les métriques présentes dans `models/results.json` | Dépend du rapport produit par `train`, sans redéclarer le même fichier comme métrique DVC |
 
 Les commandes d'extraction et de validation sont maintenant alignées sur les scripts Python. La phase de feature engineering dispose maintenant d'une commande dédiée. Le workflow DVC complet n'a pas encore été exécuté.
 
@@ -43,3 +43,7 @@ Les métriques citées dans les anciens exemples de cette documentation étaient
 ## Réutilisation des features
 
 Le stage `train` transmet `--input-parquet data/raw/obt.parquet`, `--train-features data/processed/train_fe.parquet` et `--test-features data/processed/test_fe.parquet` à `src/pipeline.py`. Le pipeline valide toujours le dataset brut, puis charge les features préparées au lieu de refaire le split et le feature engineering. `geo_stats.pkl` reste une sortie de la phase `featurize`, non chargée directement dans ce mode. Le workflow complet n'a pas été exécuté.
+
+## Métriques DVC
+
+Le fichier `models/results.json` est déclaré une seule fois dans `dvc.yaml`, sous `train.metrics`. `evaluate` le référence seulement comme dépendance et affiche les valeurs réellement présentes. Les champs de régression `R2` et `MAE` sont requis, tandis que `F1` et `Accuracy` sont lus seulement si un résultat de classification existe. Aucune valeur zéro fictive n'est affichée pour une métrique absente. Les commandes n'ont pas été exécutées dans cette revue.
