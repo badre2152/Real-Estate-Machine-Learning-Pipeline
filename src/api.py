@@ -280,7 +280,7 @@ class PredictionResponse(BaseModel):
 
 
 class BatchInput(BaseModel):
-    properties: list[PropertyInput] = Field(..., max_length=100)
+    properties: list[PropertyInput] = Field(..., min_length=1, max_length=100)
 
 
 class BatchResponse(BaseModel):
