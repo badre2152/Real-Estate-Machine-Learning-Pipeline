@@ -75,7 +75,7 @@ stages:
 
   # Stage 4 : Entraînement complet
   train:
-    cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet
+    cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet --train-features data/processed/train_fe.parquet --test-features data/processed/test_fe.parquet
     deps:
       - src/pipeline.py
       - src/regression.py
@@ -86,6 +86,8 @@ stages:
       - src/shap_explainer.py
       - src/report_generator.py
       - data/raw/obt.parquet
+      - data/processed/train_fe.parquet
+      - data/processed/test_fe.parquet
     params:
       - config/config.yaml:
           - pipeline.optimize
