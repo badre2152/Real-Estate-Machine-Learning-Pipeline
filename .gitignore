@@ -2,10 +2,6 @@
 .env
 __pycache__/
 *.pyc
-.pytest_cache/
-.coverage
-coverage.xml
-docs/coverage/
 
 # Modèles entraînés (trop lourds pour git)
 models/*.pkl
