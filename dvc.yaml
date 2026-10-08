@@ -38,7 +38,7 @@ stages:
 
   # Stage 2 : Validation
   validate:
-    cmd: python src/validate_dvc.py --input data/raw/obt.parquet --output-dir reports
+    cmd: python src/validate_dvc.py --input data/raw/obt.parquet --output-dir reports/dvc
     deps:
       - data/raw/obt.parquet
       - src/data_validation.py
@@ -50,7 +50,7 @@ stages:
           - validation.price_max
           - validation.max_missing_pct
     outs:
-      - reports/validation_report.json:
+      - reports/dvc/validation_report.json:
           cache: false
 
   # Stage 3 : Feature Engineering
@@ -109,17 +109,10 @@ stages:
           cache: true
       - models/preprocessor.pkl:
           cache: true
-      - models/pi_builder.pkl:
-          cache: true
       - models/feature_names.pkl:
-          cache: true
-      - models/label_encoder.pkl:
           cache: true
     metrics:
       - models/results.json:
-          cache: false
-    plots:
-      - docs/plots:
           cache: false
 
   # Stage 5 : Évaluation & Rapport
