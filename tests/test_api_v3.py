@@ -33,9 +33,9 @@ VALID_KEY = list(VALID_API_KEYS)[0]
 HEADERS_AUTH = {"X-API-Key": VALID_KEY}
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Tests /health (pas d'auth)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class TestHealth:
     def test_health_returns_200(self):
@@ -60,9 +60,9 @@ class TestHealth:
         assert "timestamp" in r.json()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Tests /ready (pas d'auth)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class TestReady:
     def test_ready_no_auth_required(self):
@@ -85,9 +85,9 @@ class TestReady:
         assert "regression_model" in data["models_loaded"]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Tests Authentication
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class TestAuthentication:
     def test_no_api_key_returns_401(self):
@@ -115,9 +115,9 @@ class TestAuthentication:
         assert r.status_code == 401
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Tests Rate Limiting
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class TestRateLimit:
     def test_rate_limiter_allows_normal_traffic(self):
@@ -148,9 +148,9 @@ class TestRateLimit:
         assert allowed2 is True
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Tests Request ID
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class TestRequestId:
     def test_health_response_has_request_id_header(self):
@@ -169,9 +169,9 @@ class TestRequestId:
         assert "x-response-time-ms" in r.headers
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Tests /v1/metrics
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class TestMetrics:
     def test_metrics_requires_auth(self):
@@ -188,9 +188,9 @@ class TestMetrics:
         assert "rate_limit_per_min" in data
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Tests Backward Compatibility
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class TestBackwardCompatibility:
     def test_root_endpoint_still_works(self):
