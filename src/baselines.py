@@ -24,9 +24,9 @@ from logger_setup import get_logger
 logger = get_logger(__name__)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # RÉGRESSION BASELINES
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def run_regression_baselines(
     X_train, y_train, X_test, y_test
@@ -112,9 +112,9 @@ def compare_vs_regression_baseline(
         )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # CLASSIFICATION BASELINES
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def run_classification_baselines(
     X_train, y_train, X_test, y_test
@@ -183,9 +183,9 @@ def compare_vs_classification_baseline(
         )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # RAPPORT BASELINES (DataFrame récapitulatif)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def build_baseline_report(
     model_reg_metrics: dict,
