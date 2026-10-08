@@ -75,6 +75,9 @@ def load_config(path: Path = _CONFIG_PATH) -> _AttrDict:
     with open(path, encoding="utf-8") as f:
         raw = yaml.safe_load(f)
 
+    if not isinstance(raw, dict):
+        raise ValueError(f"Configuration invalide dans {path}: objet YAML attendu")
+
     resolved = _walk_resolve(raw)
     logger.debug(f"Config chargée depuis {path}")
     return _AttrDict(resolved)
