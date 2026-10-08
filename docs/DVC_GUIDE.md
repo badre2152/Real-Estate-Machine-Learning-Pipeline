@@ -8,13 +8,13 @@ Le fichier `dvc.yaml` définit cinq étapes : `extract`, `validate`, `featurize`
 
 | Étape | Rôle déclaré | Réserve |
 | --- | --- | --- |
-| `extract` | Extraction PostgreSQL vers `data/raw/obt.parquet` | La commande demande `--output`, mais `src/extract.py` ne prend actuellement pas cet argument en charge |
+| `extract` | Extraction PostgreSQL vers `data/raw/obt.parquet` | `src/extract.py` accepte désormais `--output` et enregistre le fichier Parquet avec `pyarrow` |
 | `validate` | Validation des données et rapport JSON | Dépend de la sortie de l'extraction |
 | `featurize` | Préparation des données et features | Dépend des fichiers Parquet et des signatures de fonctions |
 | `train` | Exécution de `src/pipeline.py` | Le pipeline lit également PostgreSQL directement |
 | `evaluate` | Lecture de `models/results.json` | Dépend des artefacts de training |
 
-Ne pas présenter `dvc repro` comme un processus validé tant que la configuration et les commandes n'ont pas été alignées sur le code.
+La commande d'extraction est maintenant alignée sur le script Python. Les autres étapes DVC n'ont pas encore été vérifiées de bout en bout.
 
 ## Commandes de consultation
 
@@ -34,7 +34,7 @@ Ces commandes décrivent le workflow prévu et nécessitent un environnement DVC
 dvc repro
 ```
 
-Attention : cette commande est **susceptible d'échouer** à l'étape `extract` en raison de `--output`. Corriger le workflow avant de l'utiliser.
+L'étape `extract` accepte maintenant `--output`, mais son exécution exige un PostgreSQL accessible et une installation de `pyarrow`. Les autres étapes peuvent présenter des incompatibilités et n'ont pas été exécutées.
 
 Le dépôt contient déjà `.dvc/config`, donc ne pas lancer `dvc init` une seconde fois sans besoin précis. Aucun stockage distant DVC opérationnel n'est configuré dans la version examinée. `dvc push` et `dvc pull` nécessitent d'abord un remote valide.
 
