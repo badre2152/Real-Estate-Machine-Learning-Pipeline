@@ -43,3 +43,19 @@ mlflow.db
 mlflow.db-shm
 mlflow.db-wal
 mlruns/
+
+# Additional local environments and runtime files
+.env.*
+!.env.example
+.venv/
+venv/
+logs/
+data/
+reports/*.json
+models/*.joblib
+models/*.pickle
+*.sqlite
+*.sqlite3
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
