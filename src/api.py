@@ -468,7 +468,7 @@ async def predict(data: PropertyInput, request: Request):
         logger.error(f"[{req_id}] Erreur : {exc}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail={"error": "prediction_failed", "message": str(exc), "request_id": req_id},
+            detail={"error": "prediction_failed", "message": "Erreur interne de prédiction.", "request_id": req_id},
         )
 
 
@@ -654,7 +654,8 @@ async def registry_status():
             "mlflow_ui": os.getenv("MLFLOW_UI_URL"),
         }
     except Exception as exc:
-        raise HTTPException(500, detail={"error": "registry_error", "message": str(exc)})
+        logger.exception("Registry status unavailable")
+        raise HTTPException(500, detail={"error": "registry_error"})
 
 
 @app.post(
@@ -706,7 +707,8 @@ async def registry_promote(
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(500, detail={"error": str(exc)})
+        logger.exception("Registry promotion failed")
+        raise HTTPException(500, detail={"error": "registry_promotion_failed"})
 
 
 # 
@@ -849,7 +851,7 @@ async def drift_detect(data: DriftDetectRequest, request: Request):
         raise
     except Exception as exc:
         logger.error(f"[{req_id}] Drift detect error: {exc}", exc_info=True)
-        raise HTTPException(500, detail={"error": "drift_detection_failed", "message": str(exc)})
+        raise HTTPException(500, detail={"error": "drift_detection_failed"})
 
 
 # 
@@ -900,7 +902,8 @@ async def feature_groups():
             "freshness": freshness,
         }
     except Exception as exc:
-        raise HTTPException(500, detail={"error": "feature_store_error", "message": str(exc)})
+        logger.exception("Feature store group listing failed")
+        raise HTTPException(500, detail={"error": "feature_store_error"})
 
 
 @app.get(
@@ -943,7 +946,8 @@ async def read_features(
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(500, detail={"error": str(exc)})
+        logger.exception("Feature store operation failed")
+        raise HTTPException(500, detail={"error": "feature_store_error"})
 
 
 @app.get(
