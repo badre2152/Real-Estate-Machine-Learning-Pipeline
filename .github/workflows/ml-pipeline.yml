@@ -5,7 +5,7 @@
 #   1. test      → Tests unitaires + couverture
 #   2. lint      → Vérification style (ruff)
 #   3. build     → Build Docker image + push vers Docker Hub
-#   4. deploy    → Deploy vers Render (sur push main uniquement)
+#   4. deploy    → Deploy vers Render (sur push master uniquement)
 #
 # Secrets GitHub à configurer (Settings → Secrets → Actions):
 #   DOCKERHUB_USERNAME  → ton username Docker Hub
@@ -19,9 +19,9 @@ name: ML Pipeline CI/CD v3
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/avito-ml-api
@@ -128,7 +128,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
 
       - name: 🐳 Build & Push
         uses: docker/build-push-action@v5
@@ -146,13 +146,13 @@ jobs:
         run: echo "Image pushed → ${{ env.DOCKER_IMAGE }}:latest"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Job 4 — Deploy vers Render (main branch uniquement)
+# Job 4 — Deploy vers Render (master branch uniquement)
 # ─────────────────────────────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy → Render
     runs-on: ubuntu-latest
     needs: [build]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     environment: production
 
     steps:
