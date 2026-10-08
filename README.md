@@ -123,6 +123,10 @@ Métriques : Accuracy, Precision, Recall, F1-Score, ROC-AUC
 
 Aucun workflow GitHub Actions de CI ou CD n'est configuré dans ce dépôt. Le build Docker et tout déploiement éventuel doivent être lancés et vérifiés manuellement.
 
+Le proxy Nginx est optionnel et se lance avec `docker compose --profile nginx up -d`. Il attend que l'API soit healthy avant de démarrer. Pour activer HTTPS, fournir les certificats `nginx/certs/fullchain.pem` et `nginx/certs/privkey.pem` avant de lancer ce profil. Sans ces fichiers, Nginx ne peut pas démarrer avec la configuration SSL actuelle.
+
+Attention : le service API publie aussi directement le port 8000. Pour imposer le passage par Nginx dans un déploiement public, restreindre cet accès direct au réseau local ou privé.
+
 ---
 
 ## Fichiers exportés
