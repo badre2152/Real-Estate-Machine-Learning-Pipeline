@@ -60,7 +60,7 @@ def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
         except OperationalError as exc:
             if engine is not None:
                 engine.dispose()
-            logger.warning(f"⚠️  Tentative {attempt}/{max_retries} échouée : {exc}")
+            logger.warning("PostgreSQL connection attempt %s/%s failed (%s)", attempt, max_retries, type(exc).__name__)
             if attempt < max_retries:
                 time.sleep(retry_delay)
             else:
