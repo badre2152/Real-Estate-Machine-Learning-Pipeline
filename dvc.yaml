@@ -26,6 +26,7 @@ stages:
     cmd: python src/extract.py --output data/raw/obt.parquet
     deps:
       - src/extract.py
+      - src/config_loader.py
     params:
       - config/config.yaml:
           - database.table
@@ -43,11 +44,14 @@ stages:
       - data/raw/obt.parquet
       - src/data_validation.py
       - src/validate_dvc.py
+      - src/config_loader.py
     params:
       - config/config.yaml:
           - validation.required_columns
           - validation.price_min
           - validation.price_max
+          - validation.surface_min
+          - validation.surface_max
           - validation.max_missing_pct
     outs:
       - reports/dvc/validation_report.json:
@@ -61,6 +65,7 @@ stages:
       - src/featurize_dvc.py
       - src/features.py
       - src/prepare.py
+      - src/config_loader.py
     params:
       - config/config.yaml:
           - pipeline.test_size
@@ -85,6 +90,7 @@ stages:
       - src/prediction_intervals.py
       - src/shap_explainer.py
       - src/report_generator.py
+      - src/config_loader.py
       - data/raw/obt.parquet
       - data/processed/train_fe.parquet
       - data/processed/test_fe.parquet
@@ -95,6 +101,7 @@ stages:
           - pipeline.use_log_target
           - pipeline.use_smote
           - pipeline.use_calibration
+          - pipeline.generate_plots
           - pipeline.test_size
           - pipeline.random_state
           - regression.cv_folds
