@@ -25,7 +25,7 @@ from src.features import (
 )
 
 
-# ── Fixtures ─────────────────────────────────────────────────────────────────
+# Fixtures
 
 @pytest.fixture
 def base_df():
@@ -57,7 +57,7 @@ def test_df(base_df):
     return base_df.iloc[120:].copy().reset_index(drop=True)
 
 
-# ── add_log_price ─────────────────────────────────────────────────────────────
+# add_log_price
 
 class TestAddLogPrice:
 
@@ -79,7 +79,7 @@ class TestAddLogPrice:
         assert "log_prix" not in result.columns
 
 
-# ── add_price_per_m2 ──────────────────────────────────────────────────────────
+# add_price_per_m2
 
 class TestAddPricePerM2:
 
@@ -99,7 +99,7 @@ class TestAddPricePerM2:
         assert not result["prix_par_m2"].isin([np.inf, -np.inf]).any()
 
 
-# ── add_surface_rooms_interaction ─────────────────────────────────────────────
+# add_surface_rooms_interaction
 
 class TestAddSurfaceRoomsInteraction:
 
@@ -123,7 +123,7 @@ class TestAddSurfaceRoomsInteraction:
         assert df["surface_x_chambres"].isna().sum() == 0
 
 
-# ── add_luxury_score ──────────────────────────────────────────────────────────
+# add_luxury_score
 
 class TestAddLuxuryScore:
 
@@ -142,7 +142,7 @@ class TestAddLuxuryScore:
         assert "score_luxe" not in result.columns
 
 
-# ── add_temporal_features ─────────────────────────────────────────────────────
+# add_temporal_features
 
 class TestAddTemporalFeatures:
 
@@ -169,7 +169,7 @@ class TestAddTemporalFeatures:
         assert "mois_annonce" not in result.columns
 
 
-# ── add_classification_target ─────────────────────────────────────────────────
+# add_classification_target
 
 class TestAddClassificationTarget:
 
@@ -200,7 +200,7 @@ class TestAddClassificationTarget:
         assert df["categorie_prix"].isna().sum() == 0
 
 
-# ── Geographic features — NO DATA LEAKAGE ────────────────────────────────────
+# Geographic features — NO DATA LEAKAGE
 
 class TestGeographicFeatures:
 
@@ -247,7 +247,7 @@ class TestGeographicFeatures:
         assert result["ville_prix_median"].isna().sum() == 0
 
 
-# ── engineer_features_train / test ───────────────────────────────────────────
+# engineer_features_train / test
 
 class TestEngineerFeaturesPipeline:
 
