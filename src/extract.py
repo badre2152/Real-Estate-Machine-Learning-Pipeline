@@ -11,8 +11,10 @@ Améliorations v2 :
   - Logging structuré (remplace les print)
 """
 
+import argparse
 import os
 import time
+from pathlib import Path
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL
@@ -223,9 +225,15 @@ def extract_sample(n: int = 1000) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    from logger_setup import get_logger as _get_logger
-    _log = _get_logger(__name__)
-    df = extract_obt()
-    _log.info(f"\n{df.head().to_string()}")
-    _log.info(f"\nDtypes :\n{df.dtypes.to_string()}")
-    _log.info(f"\nShape : {df.shape}")
+    parser = argparse.ArgumentParser(description="Extract real estate data from PostgreSQL")
+    parser.add_argument("--output", type=Path, help="Save extracted data as a Parquet file")
+    parser.add_argument("--table", default="ml_schema.feature_store", choices=sorted(ALLOWED_TABLES))
+    args = parser.parse_args()
+
+    df = extract_obt(table=args.table)
+    if args.output is not None:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        df.to_parquet(args.output, index=False)
+        logger.info("Extraction saved to %s (%s rows)", args.output, len(df))
+    else:
+        logger.info("Extraction complete: %s rows and %s columns", *df.shape)
