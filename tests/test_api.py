@@ -276,6 +276,14 @@ class TestPredictInvalid:
         payload = {"surface_m2": 100, "ville": "", "type_bien": "appartement"}
         assert client.post("/predict", json=payload).status_code == 422
 
+    def test_whitespace_ville_returns_422(self, client):
+        payload = {"surface_m2": 100, "ville": "   ", "type_bien": "appartement"}
+        assert client.post("/predict", json=payload).status_code == 422
+
+    def test_whitespace_type_bien_returns_422(self, client):
+        payload = {"surface_m2": 100, "ville": "Rabat", "type_bien": "   "}
+        assert client.post("/predict", json=payload).status_code == 422
+
     def test_too_many_rooms_returns_422(self, client):
         payload = {
             "surface_m2" : 100,
