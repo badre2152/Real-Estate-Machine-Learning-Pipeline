@@ -1,5 +1,5 @@
 """
-pipeline.py  (v2 — intégration complète)
+pipeline.py  (v2: intégration complète)
 -----------------------------------------
 Orchestrateur principal du pipeline ML immobilier Avito.
 
@@ -28,14 +28,14 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-# ── Config & Logging (avant tout le reste) ────────────────────────────────────
+# Config & Logging (avant tout le reste)
 from config_loader import cfg
 from logger_setup import get_logger, configure_root_logger
 
 configure_root_logger()
 logger = get_logger(__name__)
 
-# ── Modules pipeline existants ────────────────────────────────────────────────
+# Modules pipeline existants
 from classification import (
     evaluate_classification,
     get_feature_importance as clf_importance,
@@ -54,7 +54,7 @@ from regression import (
     train_regression,
 )
 
-# ── Nouveaux modules v2 ───────────────────────────────────────────────────────
+# Nouveaux modules v2
 from baselines import (
     run_regression_baselines,
     run_classification_baselines,
@@ -73,9 +73,9 @@ from shap_explainer import SHAPExplainer
 from smote_handler import SmoteHandler
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Helper sauvegarde — noms compatibles avec api.py
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Helper sauvegarde: noms compatibles avec api.py
+# 
 
 def _save_artifact(obj, path: str) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -84,9 +84,9 @@ def _save_artifact(obj, path: str) -> None:
     logger.info(f"   💾 Sauvegardé → {path}")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Pipeline principal
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def run_pipeline(
     optimize: bool        = None,
@@ -102,7 +102,7 @@ def run_pipeline(
     Lance le pipeline ML complet v2.
     Les paramètres None sont lus depuis config/config.yaml.
     """
-    # ── Résoudre les paramètres (CLI > config) ────────────────────────────────
+    # Résoudre les paramètres (CLI > config)
     optimize        = optimize        if optimize        is not None else cfg.pipeline.optimize
     use_log_target  = use_log_target  if use_log_target  is not None else cfg.pipeline.use_log_target
     use_smote       = use_smote       if use_smote       is not None else cfg.pipeline.use_smote
@@ -122,11 +122,11 @@ def run_pipeline(
 
     logger.info("")
     logger.info("🚀 " + "=" * 47)
-    logger.info("   AVITO REAL ESTATE — ML PIPELINE v2")
+    logger.info("   AVITO REAL ESTATE: ML PIPELINE v2")
     logger.info(f"   Options : optimize={optimize} | log_target={use_log_target} | smote={use_smote}")
     logger.info("=" * 50)
 
-    # ── Initialisation outils transversaux ────────────────────────────────────
+    # Initialisation outils transversaux
     monitor = PipelineMonitor(output_dir=reports_dir)
     tracker = MLflowTracker(run_name="pipeline_v2")
     tracker.start()
@@ -153,7 +153,7 @@ def run_pipeline(
     report_path         = ""
     monitoring_path     = ""
     pi_cover            = {}
-    # ── Résultats des nouvelles étapes v3 (valeurs par défaut sûres) ─────────
+    # Résultats des nouvelles étapes v3 (valeurs par défaut sûres)
     reg_registry_result = {"version": None, "promoted": False, "reason": "not_run"}
     clf_registry_result = {"version": None, "promoted": False, "reason": "not_run"}
     drift_report        = None
@@ -161,24 +161,24 @@ def run_pipeline(
 
     try:
 
-        # ── ÉTAPE 1 : Extraction OBT ─────────────────────────────────────────
+        # ÉTAPE 1 : Extraction OBT
         with monitor.step("1_extraction"):
             logger.info("\n" + "=" * 50)
-            logger.info("📥 ÉTAPE 1 — Extraction OBT")
+            logger.info("📥 ÉTAPE 1: Extraction OBT")
             logger.info("=" * 50)
             df = extract_obt(table=table)
 
         if df.empty:
-            logger.error("❌ DataFrame vide — vérifier la base de données.")
+            logger.error("❌ DataFrame vide: vérifier la base de données.")
             tracker.end(success=False)
             return {}
 
         tracker.log_params({"data.raw_rows": len(df), "data.raw_cols": len(df.columns)})
 
-        # ── ÉTAPE 2 : Validation des données ─────────────────────────────────
+        # ÉTAPE 2 : Validation des données
         with monitor.step("2_validation"):
             logger.info("\n" + "=" * 50)
-            logger.info("🛡️  ÉTAPE 2 — Validation des données")
+            logger.info("🛡️  ÉTAPE 2: Validation des données")
             logger.info("=" * 50)
             validator         = DataValidator()
             validation_report = validator.validate(df, stage="input")
@@ -191,36 +191,36 @@ def run_pipeline(
             })
 
         if not validation_report.passed:
-            logger.warning("⚠️  Validation échouée — vérifier les données avant de continuer.")
+            logger.warning("⚠️  Validation échouée: vérifier les données avant de continuer.")
 
-        # ── ÉTAPE 3 : Nettoyage ───────────────────────────────────────────────
+        # ÉTAPE 3 : Nettoyage
         with monitor.step("3_cleaning"):
             logger.info("\n" + "=" * 50)
-            logger.info("🧹 ÉTAPE 3 — Nettoyage")
+            logger.info("🧹 ÉTAPE 3: Nettoyage")
             logger.info("=" * 50)
             df = clean_dataframe(df)
 
-        # ── ÉTAPE 4 : Split ───────────────────────────────────────────────────
+        # ÉTAPE 4 : Split
         with monitor.step("4_split"):
             logger.info("\n" + "=" * 50)
-            logger.info("✂️  ÉTAPE 4 — Split train/test")
+            logger.info("✂️  ÉTAPE 4: Split train/test")
             logger.info("=" * 50)
             df_train, df_test = split_data(df, test_size=test_size, random_state=random_state)
 
-        # ── ÉTAPE 5 : Feature Engineering ────────────────────────────────────
+        # ÉTAPE 5 : Feature Engineering
         with monitor.step("5_feature_engineering"):
             logger.info("\n" + "=" * 50)
-            logger.info("⚙️  ÉTAPE 5 — Feature Engineering")
+            logger.info("⚙️  ÉTAPE 5: Feature Engineering")
             logger.info("=" * 50)
             df_train, geo_stats = engineer_features_train(df_train)
             df_test             = engineer_features_test(df_test, geo_stats)
             if "categorie_prix" in df_train.columns and "categorie_prix" not in df_test.columns:
                 df_test = add_classification_target(df_test)
 
-        # ── ÉTAPE 6 : Encoding + Scaling ─────────────────────────────────────
+        # ÉTAPE 6 : Encoding + Scaling
         with monitor.step("6_encoding_scaling"):
             logger.info("\n" + "=" * 50)
-            logger.info("🔧 ÉTAPE 6 — Encoding + Scaling")
+            logger.info("🔧 ÉTAPE 6: Encoding + Scaling")
             logger.info("=" * 50)
             (X_train, X_test,
              y_reg_train, y_reg_test,
@@ -232,13 +232,13 @@ def run_pipeline(
                 save_preprocessor=True,
             )
 
-        # Sauvegarder feature_names — critique pour SHAP et l'API
+        # Sauvegarder feature_names: critique pour SHAP et l'API
         # preprocessor.pkl est déjà sauvegardé par prepare_data(),
         # mais on le resauvegarde ici aussi pour garantir la cohérence API
         import os as _os
         _preproc_src = f"{models_dir}/preprocessor.pkl"
         if not _os.path.exists(_preproc_src):
-            logger.warning("   ⚠️  preprocessor.pkl absent — il sera créé par prepare_data()")
+            logger.warning("   ⚠️  preprocessor.pkl absent: il sera créé par prepare_data()")
         _save_artifact(feature_names, f"{models_dir}/feature_names.pkl")
         tracker.log_params({
             "data.n_train"   : len(X_train),
@@ -246,10 +246,10 @@ def run_pipeline(
             "data.n_features": len(feature_names),
         })
 
-        # ── ÉTAPE 7 : Baselines ───────────────────────────────────────────────
+        # ÉTAPE 7 : Baselines
         with monitor.step("7_baselines"):
             logger.info("\n" + "=" * 50)
-            logger.info("📏 ÉTAPE 7 — Baseline Models")
+            logger.info("📏 ÉTAPE 7: Baseline Models")
             logger.info("=" * 50)
             baseline_reg = run_regression_baselines(X_train, y_reg_train, X_test, y_reg_test)
 
@@ -260,12 +260,12 @@ def run_pipeline(
 
             tracker.log_baseline_results(baseline_reg, baseline_clf or None)
 
-        # ── ÉTAPE 8 : SMOTE ───────────────────────────────────────────────────
+        # ÉTAPE 8 : SMOTE
         X_train_clf = X_train_clf_raw.copy()
         if y_clf_train is not None:
             with monitor.step("8_smote"):
                 logger.info("\n" + "=" * 50)
-                logger.info("⚖️  ÉTAPE 8 — SMOTE")
+                logger.info("⚖️  ÉTAPE 8: SMOTE")
                 logger.info("=" * 50)
                 smote_handler = SmoteHandler(random_state=random_state)
                 X_train_clf, y_clf_train = smote_handler.fit_resample(
@@ -278,10 +278,10 @@ def run_pipeline(
                     "smote.strategy" : smote_report["sampling_strategy"],
                 })
 
-        # ── ÉTAPE 9A : Régression ─────────────────────────────────────────────
+        # ÉTAPE 9A : Régression
         with monitor.step("9a_regression_train"):
             logger.info("\n" + "=" * 50)
-            logger.info("📈 ÉTAPE 9A — Entraînement Régression")
+            logger.info("📈 ÉTAPE 9A: Entraînement Régression")
             logger.info("=" * 50)
             import numpy as np
             reg_model, reg_name, _ = train_regression(
@@ -299,13 +299,13 @@ def run_pipeline(
 
         tracker.log_regression_results(reg_metrics, reg_name)
 
-        # Sauvegardes régression — DEUX noms pour compatibilité API
+        # Sauvegardes régression: DEUX noms pour compatibilité API
         _save_reg(reg_model, f"{models_dir}/regression_model.pkl")
         _save_artifact(reg_model,   f"{models_dir}/best_regression_model.pkl")
         _save_artifact(reg_metrics, f"{models_dir}/regression_metrics.pkl")
         tracker.log_model(reg_model, "regression_model")
 
-        # ── Registry : enregistrer + promouvoir si meilleur ──────────────────
+        # Registry : enregistrer + promouvoir si meilleur
         reg_registry_result = {"version": None, "promoted": False, "reason": "skipped"}
         if tracker.run_id:
             reg_registry_result = auto_register_and_promote(
@@ -322,13 +322,13 @@ def run_pipeline(
                 f"{'🚀 promu Production' if reg_registry_result['promoted'] else '🟡 Staging'}"
             )
 
-        # ── ÉTAPE 9B : Classification ─────────────────────────────────────────
+        # ÉTAPE 9B : Classification
         clf_model = clf_name = label_enc = None
 
         if y_clf_train is not None:
             with monitor.step("9b_classification_train"):
                 logger.info("\n" + "=" * 50)
-                logger.info("🧠 ÉTAPE 9B — Entraînement Classification")
+                logger.info("🧠 ÉTAPE 9B: Entraînement Classification")
                 logger.info("=" * 50)
                 clf_model, clf_name, label_enc = train_classification(
                     X_train_clf, y_clf_train, use_calibration=use_calibration
@@ -345,14 +345,14 @@ def run_pipeline(
 
             tracker.log_classification_results(clf_metrics, clf_name)
 
-            # Sauvegardes classification — DEUX noms pour compatibilité API
+            # Sauvegardes classification: DEUX noms pour compatibilité API
             _save_clf(clf_model, label_enc, f"{models_dir}/classification_model.pkl")
             _save_artifact(clf_model,   f"{models_dir}/best_classification_model.pkl")
             _save_artifact(label_enc,   f"{models_dir}/label_encoder.pkl")
             _save_artifact(clf_metrics, f"{models_dir}/classification_metrics.pkl")
             tracker.log_model(clf_model, "classification_model")
 
-            # ── Registry : enregistrer + promouvoir si meilleur ──────────────
+            # Registry : enregistrer + promouvoir si meilleur
             clf_registry_result = {"version": None, "promoted": False, "reason": "skipped"}
             if tracker.run_id:
                 clf_registry_result = auto_register_and_promote(
@@ -369,12 +369,12 @@ def run_pipeline(
                     f"{'🚀 promu Production' if clf_registry_result['promoted'] else '🟡 Staging'}"
                 )
         else:
-            logger.warning("⚠️  Classification ignorée — cible non disponible dans l'OBT")
+            logger.warning("⚠️  Classification ignorée: cible non disponible dans l'OBT")
 
-        # ── ÉTAPE 10 : Prediction Intervals ───────────────────────────────────
+        # ÉTAPE 10 : Prediction Intervals
         with monitor.step("10_prediction_intervals"):
             logger.info("\n" + "=" * 50)
-            logger.info("📐 ÉTAPE 10 — Intervalles de Prédiction (95% CI)")
+            logger.info("📐 ÉTAPE 10: Intervalles de Prédiction (95% CI)")
             logger.info("=" * 50)
             pi_builder = PredictionIntervalBuilder(
                 method           = cfg.prediction_intervals.method,
@@ -391,13 +391,13 @@ def run_pipeline(
             })
             pi_examples = pi_df.head(10).to_dict(orient="records")
 
-            # Sauvegarde pi_builder — critique pour l'API
+            # Sauvegarde pi_builder: critique pour l'API
             _save_artifact(pi_builder, f"{models_dir}/pi_builder.pkl")
 
-        # ── ÉTAPE 11 : SHAP ───────────────────────────────────────────────────
+        # ÉTAPE 11 : SHAP
         with monitor.step("11_shap"):
             logger.info("\n" + "=" * 50)
-            logger.info("🔍 ÉTAPE 11 — SHAP Interprétabilité")
+            logger.info("🔍 ÉTAPE 11: SHAP Interprétabilité")
             logger.info("=" * 50)
             shap_exp = SHAPExplainer(
                 model        = reg_model,
@@ -414,11 +414,11 @@ def run_pipeline(
                 if path and str(path).endswith(".png"):
                     tracker.log_artifact(path, "shap_plots")
 
-        # ── ÉTAPE 12 : Visualisations ─────────────────────────────────────────
+        # ÉTAPE 12 : Visualisations
         if generate_plots:
             with monitor.step("12_plots"):
                 logger.info("\n" + "=" * 50)
-                logger.info("📊 ÉTAPE 12 — Visualisations")
+                logger.info("📊 ÉTAPE 12: Visualisations")
                 logger.info("=" * 50)
                 run_full_evaluation(
                     reg_model, clf_model, X_test,
@@ -426,11 +426,11 @@ def run_pipeline(
                 )
                 tracker.log_artifacts_dir(plots_dir, "plots")
 
-        # ── ÉTAPE 12A : Feature Store — écriture des features calculées ─────────
+        # ÉTAPE 12A : Feature Store — écriture des features calculées
         fs_stats = {}
         with monitor.step("12a_feature_store"):
             logger.info("\n" + "=" * 50)
-            logger.info("🏪 ÉTAPE 12A — Feature Store (écriture features)")
+            logger.info("🏪 ÉTAPE 12A: Feature Store (écriture features)")
             logger.info("=" * 50)
             try:
                 # Reconstituer X_train en DataFrame avec les noms de features
@@ -460,12 +460,12 @@ def run_pipeline(
             except Exception as fs_exc:
                 logger.warning(f"   ⚠️  Feature Store ignoré : {fs_exc}")
 
-        # ── ÉTAPE 12B : Drift Detection ──────────────────────────────────────
+        # ÉTAPE 12B : Drift Detection
         drift_report = None
         drift_report_path = None
         with monitor.step("12b_drift_detection"):
             logger.info("\n" + "=" * 50)
-            logger.info("🔍 ÉTAPE 12B — Drift Detection (Train vs Test)")
+            logger.info("🔍 ÉTAPE 12B: Drift Detection (Train vs Test)")
             logger.info("=" * 50)
             try:
                 # Initialiser le détecteur avec X_train comme référence
@@ -508,10 +508,10 @@ def run_pipeline(
             except Exception as drift_exc:
                 logger.warning(f"   ⚠️  Drift Detection ignorée : {drift_exc}")
 
-        # ── ÉTAPE 13 : Rapport HTML + Monitoring ──────────────────────────────
+        # ÉTAPE 13 : Rapport HTML + Monitoring
         with monitor.step("13_report"):
             logger.info("\n" + "=" * 50)
-            logger.info("📄 ÉTAPE 13 — Rapport HTML")
+            logger.info("📄 ÉTAPE 13: Rapport HTML")
             logger.info("=" * 50)
 
             tracker.log_metrics(monitor.get_step_durations())
@@ -533,7 +533,7 @@ def run_pipeline(
             tracker.log_artifact(report_path,    "reports")
             tracker.log_artifact(monitoring_path, "reports")
 
-        # ── RÉSUMÉ FINAL ──────────────────────────────────────────────────────
+        # RÉSUMÉ FINAL
         monitor.print_summary()
         tracker.end(success=True)
 
@@ -609,13 +609,13 @@ def run_pipeline(
         raise
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # CLI
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def _parse_args():
     p = argparse.ArgumentParser(
-        description="Pipeline ML v2 — Prix Immobilier Avito Maroc",
+        description="Pipeline ML v2: Prix Immobilier Avito Maroc",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Exemples :\n"
