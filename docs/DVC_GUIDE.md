@@ -53,3 +53,9 @@ Le fichier `models/results.json` est déclaré une seule fois dans `dvc.yaml`, s
 La validation DVC écrit son rapport dans `reports/dvc/validation_report.json` pour éviter un conflit avec le rapport `reports/validation_report.json` généré séparément par le pipeline d'entraînement. `train` dépend explicitement du rapport DVC, des fichiers train et test préparés et du Parquet brut. DVC ne déclare comme sorties de modèles que `best_regression_model.pkl`, `preprocessor.pkl` et `feature_names.pkl` ; les fichiers de classification ou de prédiction d'intervalles peuvent être absents suivant la configuration. Le répertoire `docs/plots/` n'est pas déclaré comme sortie DVC, car il contient déjà un CSV suivi par Git. Ces fichiers restent des artefacts produits par le pipeline, sans gestion DVC spécifique.
 
 Cette correction porte sur la cohérence des dépendances et des chemins, et ne valide pas l'exécution complète. Les autres dépendances du pipeline peuvent encore nécessiter des adaptations.
+
+## Paramètres et variables externes
+
+Le script d'extraction utilise maintenant `database.table` depuis `config/config.yaml`. Les stages suivent également les modifications de `src/config_loader.py` et des réglages de validation pertinents.
+
+DVC suit les valeurs littérales du fichier YAML. Les variables d'environnement sont résolues séparément par Python à l'exécution. Une modification de `.env` seule ne déclenche donc pas automatiquement une nouvelle exécution DVC. Le workflow complet n'a pas été exécuté.
