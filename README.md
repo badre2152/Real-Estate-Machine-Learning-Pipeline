@@ -123,7 +123,7 @@ Métriques : Accuracy, Precision, Recall, F1-Score, ROC-AUC
 
 Le proxy Nginx limite les requêtes par adresse IP. FastAPI applique une limite supplémentaire par clé API authentifiée. Le compteur FastAPI est conservé en mémoire par processus : avec plusieurs workers, il ne constitue pas un quota global partagé. Une limite centralisée nécessiterait un stockage commun tel que Redis.
 
-Pour un déploiement avec `ENVIRONMENT=production`, remplacer `API_KEYS=change_me_api_key` par une clé forte et définir `CORS_ORIGINS` avec les origines HTTPS autorisées, séparées par des virgules. La valeur `*` est refusée en production. Ne pas versionner le fichier `.env`.
+Pour un déploiement avec `ENVIRONMENT=production`, remplacer `API_KEYS=change_me_api_key` par une clé forte et définir `CORS_ORIGINS` avec les origines HTTPS autorisées, séparées par des virgules. La valeur `*` est refusée en production. Ne pas versionner le fichier `.env`. Pour Docker Compose, définir également une valeur non vide pour `DB_PASSWORD` dans `.env`; le démarrage est désormais refusé si cette variable manque.
 
 ## Déploiement
 
