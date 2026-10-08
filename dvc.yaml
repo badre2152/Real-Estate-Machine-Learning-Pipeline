@@ -55,24 +55,10 @@ stages:
 
   # Stage 3 : Feature Engineering
   featurize:
-    cmd: python -c "
-      import pandas as pd, pickle
-      from sklearn.model_selection import train_test_split
-      from src.prepare import clean_dataframe
-      from src.features import engineer_features_train, engineer_features_test, add_classification_target
-      df = pd.read_parquet('data/raw/obt.parquet')
-      df = clean_dataframe(df)
-      df_train, df_test = train_test_split(df, test_size=0.2, random_state=42)
-      df_train, geo_stats = engineer_features_train(df_train)
-      df_test = engineer_features_test(df_test, geo_stats)
-      df_test = add_classification_target(df_test)
-      df_train.to_parquet('data/processed/train_fe.parquet', index=False)
-      df_test.to_parquet('data/processed/test_fe.parquet', index=False)
-      with open('data/processed/geo_stats.pkl','wb') as f: pickle.dump(geo_stats, f)
-      print(f'Train : {len(df_train):,} | Test : {len(df_test):,}')
-      "
+    cmd: python src/featurize_dvc.py
     deps:
       - data/raw/obt.parquet
+      - src/featurize_dvc.py
       - src/features.py
       - src/prepare.py
     params:
