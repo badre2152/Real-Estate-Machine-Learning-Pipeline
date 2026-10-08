@@ -465,7 +465,7 @@ async def predict(data: PropertyInput, request: Request):
         raise
     except Exception as exc:
         _state["errors"] += 1
-        logger.error(f"[{req_id}] Erreur : {exc}", exc_info=True)
+        logger.error("[%s] Prediction failed (%s)", req_id, type(exc).__name__)
         raise HTTPException(
             status_code=500,
             detail={"error": "prediction_failed", "message": "Erreur interne de prédiction.", "request_id": req_id},
@@ -615,7 +615,7 @@ def _get_geo_stats_for_ville(ville: str) -> dict:
         return stats
 
     except Exception as e:
-        logger.warning(f"⚠️  Geo stats non disponibles pour '{ville}': {e}")
+        logger.warning("Geo stats unavailable (%s)", type(e).__name__)
         return {}
 
 
@@ -850,7 +850,7 @@ async def drift_detect(data: DriftDetectRequest, request: Request):
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"[{req_id}] Drift detect error: {exc}", exc_info=True)
+        logger.error("[%s] Drift detection failed (%s)", req_id, type(exc).__name__)
         raise HTTPException(500, detail={"error": "drift_detection_failed"})
 
 
@@ -1041,7 +1041,7 @@ async def trigger_retrain(data: RetrainRequest, request: Request):
 
     logger.warning(
         f"🔴 RETRAINING DÉCLENCHÉ: job={job_id} | "
-        f"reason={data.reason} | drift={drift_recommendation}"
+        f"drift={drift_recommendation}"
     )
 
     return {
