@@ -10,11 +10,11 @@ Le split est donc la PREMIÈRE transformation après l'extraction.
 Le feature engineering est fait APRÈS le split pour éviter la fuite de données.
 """
 
-# ── stdlib ────────────────────────────────────────────────────────────────────
+# stdlib
 import os
 import pickle
 
-# ── third-party ───────────────────────────────────────────────────────────────
+# third-party
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-# ── local ─────────────────────────────────────────────────────────────────────
+# local
 from logger_setup import get_logger
 
 try:
@@ -76,7 +76,7 @@ def split_data(
     Toute transformation ultérieure doit être fittée sur train uniquement.
 
     Returns:
-        df_train, df_test — DataFrames bruts (non transformés)
+        df_train, df_test: DataFrames bruts (non transformés)
     """
     df_train, df_test = train_test_split(df, test_size=(test_size or _TS), random_state=(random_state or _RS))
     logger.info(f"   ✅ Split : {len(df_train):,} train | {len(df_test):,} test")
@@ -144,7 +144,7 @@ def apply_smote(X_train: pd.DataFrame, y_train, random_state: int = 42):
         logger.info(f"   ✅ SMOTE : {len(X_train):,} → {len(X_res):,} échantillons")
         return X_res, y_res
     except ImportError:
-        logger.warning("   ⚠️  imbalanced-learn non installé — SMOTE ignoré")
+        logger.warning("   ⚠️  imbalanced-learn non installé: SMOTE ignoré")
         return X_train, y_train
 
 
@@ -172,7 +172,7 @@ def prepare_data(
         feature_names
     """
     logger.info("\n" + "=" * 50)
-    logger.info("🔧 PRÉPARATION — Encoding + Scaling")
+    logger.info("🔧 PRÉPARATION: Encoding + Scaling")
     logger.info("=" * 50)
 
     # Extraire les targets AVANT de construire X
