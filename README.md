@@ -33,7 +33,7 @@ models/*.pkl + models/results.json
 # 1. Cloner & installer
 git clone https://github.com/badre2152/Real-Estate-Machine-Learning-Pipeline.git
 cd Real-Estate-Machine-Learning-Pipeline
-make install-dev
+make install
 
 # 2. Configurer
 cp .env.example .env
@@ -42,7 +42,7 @@ cp .env.example .env
 # 3. Lancer
 make run             # Pipeline standard
 make run-full        # Toutes options activées
-make run-ci          # Mode CI (sans plots)
+make run-no-plots    # Exécution sans visualisations
 ```
 
 ### Options CLI directes
@@ -62,7 +62,7 @@ python src/pipeline.py --no-plots --table ml_schema.feature_store
 | `--log-target` | Régression sur log₁(prix), distribution plus gaussienne |
 | `--smote` | SMOTE automatique si déséquilibre de classes |
 | `--calibrate` | Calibration isotonique des probabilités |
-| `--no-plots` | Désactiver les visualisations (CI/CD) |
+| `--no-plots` | Désactiver les visualisations |
 | `--table` | Table OBT à extraire |
 
 ---
@@ -118,16 +118,6 @@ Métriques : Accuracy, Precision, Recall, F1-Score, ROC-AUC
 | `roc_curves.png` | Courbes ROC multiclasse |
 
 ---
-
-## Tests
-
-```bash
-make test          # Tests rapides
-make test-cov      # Tests + couverture HTML
-make lint          # Linting ruff
-```
-
-Les commandes de test, couverture et lint sont exécutées localement. Aucun seuil de couverture n'est imposé par GitHub Actions.
 
 ## Déploiement
 
