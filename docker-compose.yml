@@ -105,6 +105,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: pipeline
+      args:
+        REQUIREMENTS_FILE: requirements.txt
     container_name: avito_pipeline
     depends_on:
       db:
