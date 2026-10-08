@@ -12,11 +12,11 @@ Améliorations v2 :
   - Logging structuré
 """
 
-# ── stdlib ────────────────────────────────────────────────────────────────────
+# stdlib
 import pickle
 from typing import Optional
 
-# ── third-party ───────────────────────────────────────────────────────────────
+# third-party
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -24,7 +24,7 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score, RandomizedSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# ── local ─────────────────────────────────────────────────────────────────────
+# local
 from logger_setup import get_logger
 
 try:
@@ -43,13 +43,13 @@ def _try_xgboost():
         from xgboost import XGBRegressor
         return XGBRegressor
     except ImportError:
-        logger.warning("   ⚠️  xgboost non installé — ignoré (pip install xgboost)")
+        logger.warning("   ⚠️  xgboost non installé: ignoré (pip install xgboost)")
         return None
 
 
 def get_regression_models() -> dict:
     """Retourne le dictionnaire des modèles candidats."""
-    # n_jobs=1 sur les estimateurs — cross_val_score utilise n_jobs=-1 pour
+    # n_jobs=1 sur les estimateurs: cross_val_score utilise n_jobs=-1 pour
     # paralléliser les folds. Si l'estimateur ET cross_val_score sont tous les
     # deux n_jobs=-1, on obtient un CPU oversubscription (N_folds × N_cores²).
     models = {
@@ -78,7 +78,7 @@ def train_regression(
         (best_model, best_name, use_log_target)
     """
     logger.info("\n" + "=" * 50)
-    logger.info("📈 MODÈLE DE RÉGRESSION — Prédiction du Prix")
+    logger.info("📈 MODÈLE DE RÉGRESSION: Prédiction du Prix")
     logger.info("=" * 50)
 
     y = np.log1p(y_train) if use_log_target else y_train
@@ -136,7 +136,7 @@ def optimize_model(model, X_train, y_train, n_iter: int = None):
     }
     param_dist = grids.get(model_name)
     if not param_dist:
-        logger.warning(f"   ⚠️  Pas de grille pour {model_name} — optimisation ignorée")
+        logger.warning(f"   ⚠️  Pas de grille pour {model_name}: optimisation ignorée")
         return model
 
     search = RandomizedSearchCV(
@@ -173,7 +173,7 @@ def evaluate_regression(
     rmse = np.sqrt(mse)
     r2   = r2_score(y_true, y_pred)
 
-    # MAPE standard — exclure les valeurs nulles (division par zéro)
+    # MAPE standard: exclure les valeurs nulles (division par zéro)
     nonzero_mask = np.abs(y_true) > np.finfo(float).eps
     mape = (
         np.mean(np.abs((y_true[nonzero_mask] - y_pred[nonzero_mask])
@@ -191,13 +191,13 @@ def evaluate_regression(
     if r2 >= 0.85:
         logger.info("   🟢 Excellent modèle !")
     elif r2 >= 0.70:
-        logger.info("   🟡 Bon modèle — peut être amélioré")
+        logger.info("   🟡 Bon modèle: peut être amélioré")
     elif r2 >= 0.50:
-        logger.info("   🟠 Modèle moyen — revoir les features")
+        logger.info("   🟠 Modèle moyen: revoir les features")
     else:
-        logger.info("   🔴 Modèle faible — approfondir l'analyse")
+        logger.info("   🔴 Modèle faible: approfondir l'analyse")
 
-    # ── Vérification : le modèle doit battre les baselines ───────────────────
+    # Vérification : le modèle doit battre les baselines
     if baseline_results:
         best_baseline_r2 = max(
             v.get("R2", -999) for v in baseline_results.values()
@@ -205,7 +205,7 @@ def evaluate_regression(
         if r2 <= best_baseline_r2:
             logger.warning(
                 f"\n   ⚠️  ALERTE BASELINE : R²={r2:.4f} ≤ meilleure baseline "
-                f"R²={best_baseline_r2:.4f} — le modèle ML n'apporte pas de valeur ajoutée !"
+                f"R²={best_baseline_r2:.4f}: le modèle ML n'apporte pas de valeur ajoutée !"
                 f"\n   → Vérifier : features, target leakage, données insuffisantes."
             )
         else:
