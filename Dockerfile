@@ -58,7 +58,7 @@ EXPOSE 8000
 
 # ✅ FIXED: يستعمل /health بدل /: مناسب للـ API v3
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -fsS "http://localhost:${PORT:-8000}/health" || exit 1
 
 # workers=1 في dev، زيد حسب الـ CPU في production
 CMD ["uvicorn", "src.api:app", \
