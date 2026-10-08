@@ -200,7 +200,7 @@ class TestAddClassificationTarget:
         assert df["categorie_prix"].isna().sum() == 0
 
 
-# Geographic features — NO DATA LEAKAGE
+# Geographic features: NO DATA LEAKAGE
 
 class TestGeographicFeatures:
 
