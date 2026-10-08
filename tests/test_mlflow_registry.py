@@ -1,16 +1,16 @@
 """
 test_mlflow_registry.py
 -----------------------
-Tests pour MLflowRegistry — mocking complet de MLflow.
+Tests pour MLflowRegistry: mocking complet de MLflow.
 """
 
 import pytest
 from unittest.mock import MagicMock, patch, PropertyMock
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Fixtures & Mocks
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def _make_version(version="1", stage="None", run_id="abc123def456", description="test"):
     """Crée un mock de ModelVersion."""
@@ -45,9 +45,9 @@ def mock_mlflow():
         yield mock_mlf, mock_client
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — register()
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: register()
+# 
 
 class TestRegister:
 
@@ -97,9 +97,9 @@ class TestRegister:
         assert "registered_at" in str(tag_call)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — promote_to_staging / promote_to_production
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: promote_to_staging / promote_to_production
+# 
 
 class TestPromotions:
 
@@ -155,9 +155,9 @@ class TestPromotions:
         assert call_args.kwargs["stage"] == Stage.ARCHIVED
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — is_better_than_production()
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: is_better_than_production()
+# 
 
 class TestComparison:
 
@@ -220,9 +220,9 @@ class TestComparison:
         assert result is True
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — auto_register_and_promote()
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: auto_register_and_promote()
+# 
 
 class TestAutoRegisterAndPromote:
 
@@ -278,9 +278,9 @@ class TestAutoRegisterAndPromote:
             assert "unavailable" in result["reason"]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tests — get_latest_versions()
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Tests: get_latest_versions()
+# 
 
 class TestGetVersions:
 
