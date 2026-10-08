@@ -129,6 +129,16 @@ make lint          # Linting ruff
 
 **Seuil CI configuré : couverture minimale de 75%.** Cette valeur est un seuil de validation, pas une affirmation de couverture actuelle.
 
+## CI et déploiement
+
+Le workflow GitHub Actions sépare maintenant la validation du code et le déploiement :
+
+* la CI automatique sur `master` et les pull requests exécute les tests, Ruff et un build Docker local
+* la publication vers Docker Hub et le déploiement Render sont optionnels et se lancent manuellement avec `workflow_dispatch`
+* le CD nécessite les secrets GitHub `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `RENDER_API_KEY`, `RENDER_SERVICE_ID` et `RENDER_SERVICE_URL`
+
+Le dépôt permet donc de vérifier la CI sans dépendre de secrets externes. La présence du workflow de CD ne constitue pas, à elle seule, une preuve qu'un déploiement production est actuellement configuré ou actif.
+
 ---
 
 ## Fichiers exportés
