@@ -26,7 +26,7 @@ def df_with_nulls(minimal_df):
     return df
 
 
-# ── get_db_engine ─────────────────────────────────────────────────────────────
+# get_db_engine
 
 class TestGetDbEngine:
 
@@ -72,7 +72,7 @@ class TestGetDbEngine:
             assert mock_create.call_count == 2
 
 
-# ── validate_schema ───────────────────────────────────────────────────────────
+# validate_schema
 
 class TestValidateSchema:
 
@@ -100,7 +100,7 @@ class TestValidateSchema:
             validate_schema(df)
 
 
-# ── extract_obt ───────────────────────────────────────────────────────────────
+# extract_obt
 
 class TestExtractObt:
 
@@ -156,6 +156,6 @@ class TestExtractObt:
             ml_cols = ["log_prix", "prix_par_m2", "categorie_prix"]
             for col in ml_cols:
                 assert col not in df.columns, (
-                    f"'{col}' ne doit pas être créé par extract_obt — "
+                    f"'{col}' ne doit pas être créé par extract_obt: "
                     f"les transformations ML se font après extraction."
                 )
