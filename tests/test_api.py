@@ -151,7 +151,7 @@ class TestModelInfo:
 
     def test_info_has_loaded_at(self, client):
         data = client.get("/info").json()
-        assert data["loaded_at"] == "2025-01-01T00:00:00"
+        assert data["loaded_at"] == "2026-01-01T00:00:00"
 
 
 # 
