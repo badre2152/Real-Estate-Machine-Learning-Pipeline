@@ -4,8 +4,8 @@ data_validation.py
 Validation des données à l'entrée du pipeline.
 
 Deux modes disponibles :
-  1. Validation personnalisée (toujours actif) — tests rapides sans dépendance
-  2. Great Expectations (optionnel) — si ge installé, génère un rapport HTML riche
+  1. Validation personnalisée (toujours actif): tests rapides sans dépendance
+  2. Great Expectations (optionnel): si ge installé, génère un rapport HTML riche
 
 Les validations couvrent :
   - Colonnes obligatoires présentes
@@ -35,12 +35,12 @@ try:
     GE_AVAILABLE = True
 except ImportError:
     GE_AVAILABLE = False
-    logger.debug("great_expectations non installé — validation personnalisée uniquement")
+    logger.debug("great_expectations non installé: validation personnalisée uniquement")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Structures de résultat
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 @dataclass
 class ValidationResult:
@@ -100,9 +100,9 @@ class ValidationReport:
         }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Validateur principal
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class DataValidator:
     """
@@ -136,7 +136,7 @@ class DataValidator:
             self.surface_max      = surface_max
             self.max_missing_pct  = max_missing_pct
 
-    # ── Tests individuels ─────────────────────────────────────────────────────
+    # Tests individuels
 
     def _check_required_columns(self, df: pd.DataFrame) -> ValidationResult:
         # 1. Vérifier la présence des colonnes
@@ -182,7 +182,7 @@ class DataValidator:
             return ValidationResult(
                 name="non_empty",
                 passed=False,
-                message="DataFrame vide — aucune ligne à traiter",
+                message="DataFrame vide: aucune ligne à traiter",
                 severity="error",
             )
         return ValidationResult(
@@ -193,7 +193,7 @@ class DataValidator:
 
     def _check_price_range(self, df: pd.DataFrame) -> ValidationResult:
         if "prix" not in df.columns:
-            return ValidationResult("price_range", True, "Colonne prix absente — skip", "info")
+            return ValidationResult("price_range", True, "Colonne prix absente: skip", "info")
         col = df["prix"].dropna()
         out_of_range = ((col < self.price_min) | (col > self.price_max)).sum()
         pct = out_of_range / len(col) * 100 if len(col) > 0 else 0
@@ -211,7 +211,7 @@ class DataValidator:
 
     def _check_surface_range(self, df: pd.DataFrame) -> ValidationResult:
         if "surface_m2" not in df.columns:
-            return ValidationResult("surface_range", True, "Colonne surface_m2 absente — skip", "info")
+            return ValidationResult("surface_range", True, "Colonne surface_m2 absente: skip", "info")
         col = df["surface_m2"].dropna()
         out_of_range = ((col < self.surface_min) | (col > self.surface_max)).sum()
         pct = out_of_range / len(col) * 100 if len(col) > 0 else 0
@@ -284,7 +284,7 @@ class DataValidator:
             ))
         return results
 
-    # ── Validation complète ───────────────────────────────────────────────────
+    # Validation complète
 
     def validate(self, df: pd.DataFrame, stage: str = "input") -> ValidationReport:
         """
@@ -298,7 +298,7 @@ class DataValidator:
             ValidationReport
         """
         logger.info(f"\n{'='*50}")
-        logger.info(f"🛡️  VALIDATION DONNÉES — stade : {stage}")
+        logger.info(f"🛡️  VALIDATION DONNÉES: stade : {stage}")
         logger.info(f"{'='*50}")
 
         all_results: list[ValidationResult] = []
@@ -333,10 +333,10 @@ class DataValidator:
         logger.info(f"\n   {report.summary()}")
 
         if not report.passed:
-            logger.error("   ❌ Validation ÉCHOUÉE — vérifier les données avant de continuer")
+            logger.error("   ❌ Validation ÉCHOUÉE: vérifier les données avant de continuer")
         return report
 
-    # ── Export JSON ───────────────────────────────────────────────────────────
+    # Export JSON
 
     def save_report(self, report: ValidationReport, output_dir: str = "reports") -> str:
         """Sauvegarde le rapport de validation en JSON."""
@@ -355,9 +355,9 @@ class DataValidator:
         return path
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Great Expectations (optionnel)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def run_great_expectations(df: pd.DataFrame, output_dir: str = "reports/ge") -> Optional[dict]:
     """
@@ -368,7 +368,7 @@ def run_great_expectations(df: pd.DataFrame, output_dir: str = "reports/ge") -> 
         dict résultats GE ou None si GE non disponible.
     """
     if not GE_AVAILABLE:
-        logger.debug("Great Expectations non disponible — skip")
+        logger.debug("Great Expectations non disponible: skip")
         return None
 
     os.makedirs(output_dir, exist_ok=True)
