@@ -1,9 +1,9 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# Dockerfile v3 — ML Pipeline Avito Real Estate
-# Multi-stage build : builder + runtime
-# ═══════════════════════════════════════════════════════════════════════════════
 
-# ── Stage 1 : Builder ─────────────────────────────────────────────────────────
+# Dockerfile v3: Avito Real Estate ML Pipeline
+# Multi-stage build : builder + runtime
+
+
+# Stage 1 : Builder
 FROM python:3.11-slim AS builder
 
 WORKDIR /build
@@ -17,12 +17,12 @@ COPY requirements.txt ./
 RUN pip install --upgrade pip \
     && pip install --prefix=/install --no-cache-dir -r requirements.txt
 
-# ── Stage 2 : Runtime ─────────────────────────────────────────────────────────
+# Stage 2 : Runtime
 FROM python:3.11-slim AS runtime
 
 LABEL maintainer="ML Pipeline" \
       version="3.0" \
-      description="Avito Real Estate — ML Pipeline v3"
+      description="Avito Real Estate: ML Pipeline v3"
 
 WORKDIR /app
 
@@ -53,12 +53,12 @@ ENV PYTHONPATH=/app/src \
     LOG_LEVEL=INFO \
     MODELS_DIR=/app/models
 
-# ── Stage API ─────────────────────────────────────────────────────────────────
+# Stage API
 FROM runtime AS api
 
 EXPOSE 8000
 
-# ✅ FIXED: يستعمل /health بدل / — مناسب للـ API v3
+# ✅ FIXED: يستعمل /health بدل /: مناسب للـ API v3
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
@@ -70,7 +70,7 @@ CMD ["uvicorn", "src.api:app", \
      "--access-log", \
      "--log-level", "info"]
 
-# ── Stage Pipeline (training) ──────────────────────────────────────────────────
+# Stage Pipeline (training)
 FROM runtime AS pipeline
 
 CMD ["python", "src/pipeline.py"]
