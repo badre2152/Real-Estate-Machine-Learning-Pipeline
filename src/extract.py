@@ -15,6 +15,7 @@ import os
 import time
 import pandas as pd
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import URL
 from sqlalchemy.exc import OperationalError
 from dotenv import load_dotenv
 
@@ -39,7 +40,14 @@ def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
     user     = os.getenv("DB_USER", "postgres")
     password = os.getenv("DB_PASSWORD", "")
 
-    url = f"postgresql://{user}:{password}@{host}:{port}/{name}"
+    url = URL.create(
+        drivername="postgresql+psycopg2",
+        username=user,
+        password=password,
+        host=host,
+        port=int(port),
+        database=name,
+    )
 
     for attempt in range(1, max_retries + 1):
         try:
