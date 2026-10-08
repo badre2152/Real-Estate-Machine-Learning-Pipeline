@@ -1,7 +1,7 @@
 """
 test_feature_store.py
 ---------------------
-Tests pour FeatureStore — SQLite backend, read/write, cache, assemblage.
+Tests pour FeatureStore: SQLite backend, read/write, cache, assemblage.
 """
 
 import json
@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 @pytest.fixture
 def tmp_store(tmp_path):
@@ -48,7 +48,7 @@ def geo_df():
     })
 
 
-# ── Tests write() ─────────────────────────────────────────────────────────────
+# Tests write()
 
 class TestWrite:
     def test_write_returns_stats(self, tmp_store, sample_df):
@@ -103,7 +103,7 @@ class TestWrite:
         assert stats[0]["n_rows"] == 100
 
 
-# ── Tests read() ─────────────────────────────────────────────────────────────
+# Tests read()
 
 class TestRead:
     def test_read_returns_dataframe(self, tmp_store, sample_df):
@@ -138,12 +138,12 @@ class TestRead:
         assert len(df) == 100
 
 
-# ── Tests cache ───────────────────────────────────────────────────────────────
+# Tests cache
 
 class TestCache:
     def test_cache_hit_on_second_read(self, tmp_store, sample_df):
         tmp_store.write(sample_df, group="g1", entity_key="id")
-        tmp_store.read("g1")                    # premier appel — miss
+        tmp_store.read("g1")                    # premier appel: miss
         assert len(tmp_store._memory_cache) > 0  # mis en cache
 
     def test_cache_invalidated_after_write(self, tmp_store, sample_df):
@@ -156,7 +156,7 @@ class TestCache:
         assert cache_after <= cache_before
 
 
-# ── Tests read_as_of() ────────────────────────────────────────────────────────
+# Tests read_as_of()
 
 class TestReadAsOf:
     def test_read_as_of_past_returns_empty(self, tmp_store, sample_df):
@@ -175,7 +175,7 @@ class TestReadAsOf:
         assert len(df) == 100
 
 
-# ── Tests get_training_dataset() ─────────────────────────────────────────────
+# Tests get_training_dataset()
 
 class TestGetTrainingDataset:
     def test_assembles_multiple_groups(self, tmp_store, sample_df, geo_df):
@@ -197,7 +197,7 @@ class TestGetTrainingDataset:
         assert dataset.empty
 
 
-# ── Tests pipeline_write_features() ──────────────────────────────────────────
+# Tests pipeline_write_features()
 
 class TestPipelineWriteFeatures:
     def test_writes_multiple_groups(self, tmp_path):
@@ -228,7 +228,7 @@ class TestPipelineWriteFeatures:
         assert ref_path.exists()
 
 
-# ── Tests list_groups() et get_feature_freshness() ───────────────────────────
+# Tests list_groups() et get_feature_freshness()
 
 class TestMetadata:
     def test_list_groups_empty_initially(self, tmp_store):
