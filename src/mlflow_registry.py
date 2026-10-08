@@ -1,7 +1,7 @@
 """
 mlflow_registry.py
 ------------------
-MLflow Model Registry — إدارة lifecycle ديال الـ models.
+MLflow Model Registry: إدارة lifecycle ديال الـ models.
 
 الفرق بين Tracking والـ Registry:
   - Tracking : يسجّل كل run (metrics, params, artifacts)
@@ -25,7 +25,7 @@ Usage:
         registry.promote_to_staging(version)
         registry.promote_to_production(version)
 
-    # في الـ API — جيب أحسن model من Production
+    # في الـ API: جيب أحسن model من Production
     model = registry.load_production_model()
 """
 
@@ -47,12 +47,12 @@ try:
     MLFLOW_AVAILABLE = True
 except ImportError:
     MLFLOW_AVAILABLE = False
-    logger.warning("⚠️  mlflow non installé — Registry désactivé")
+    logger.warning("⚠️  mlflow non installé: Registry désactivé")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Stages constants
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class Stage:
     NONE       = "None"
@@ -61,9 +61,9 @@ class Stage:
     ARCHIVED   = "Archived"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # MLflowRegistry
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class MLflowRegistry:
     """
@@ -90,9 +90,9 @@ class MLflowRegistry:
         if MLFLOW_AVAILABLE:
             mlflow.set_tracking_uri(self._uri)
             self._client = MlflowClient(tracking_uri=self._uri)
-            logger.info(f"📋 MLflow Registry prêt — modèle : '{model_name}'")
+            logger.info(f"📋 MLflow Registry prêt: modèle : '{model_name}'")
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    # Helpers
 
     def _no_mlflow(self, method: str) -> bool:
         if not MLFLOW_AVAILABLE or self._client is None:
@@ -100,7 +100,7 @@ class MLflowRegistry:
             return True
         return False
 
-    # ── Enregistrement ────────────────────────────────────────────────────────
+    # Enregistrement
 
     def register(
         self,
@@ -119,7 +119,7 @@ class MLflowRegistry:
 
         Returns
         -------
-        version : str — numéro de version (ex: "3"), ou None si échec
+        version : str: numéro de version (ex: "3"), ou None si échec
         """
         if self._no_mlflow("register"):
             return None
@@ -157,7 +157,7 @@ class MLflowRegistry:
             logger.warning(f"⚠️  Registry.register échoué : {exc}")
             return None
 
-    # ── Transitions de stage ──────────────────────────────────────────────────
+    # Transitions de stage
 
     def _transition(self, version: str, stage: str, archive_existing: bool = True) -> bool:
         """Transition générique vers un stage."""
@@ -213,7 +213,7 @@ class MLflowRegistry:
         logger.warning(f"   ⚠️  Rollback : '{self.model_name}' v{version} retiré de Production")
         return self.archive(version)
 
-    # ── Comparaison de performance ────────────────────────────────────────────
+    # Comparaison de performance
 
     def get_production_metric(self, metric_key: str) -> Optional[float]:
         """
@@ -278,7 +278,7 @@ class MLflowRegistry:
             prod_value = self.get_production_metric(metric_key)
 
             if prod_value is None:
-                logger.info(f"   ✅ Premier déploiement — pas de production à battre")
+                logger.info(f"   ✅ Premier déploiement: pas de production à battre")
                 return True
 
             # Comparaison
@@ -296,7 +296,7 @@ class MLflowRegistry:
             logger.warning(f"⚠️  is_better_than_production échoué : {exc}")
             return False
 
-    # ── Chargement des modèles ────────────────────────────────────────────────
+    # Chargement des modèles
 
     def load_production_model(self) -> Optional[Any]:
         """
@@ -344,7 +344,7 @@ class MLflowRegistry:
             logger.warning(f"⚠️  load_version({version}) échoué : {exc}")
             return None
 
-    # ── Informations et historique ────────────────────────────────────────────
+    # Informations et historique
 
     def get_latest_versions(self, stages: Optional[list[str]] = None) -> list[dict]:
         """
@@ -404,9 +404,9 @@ class MLflowRegistry:
         logger.info(f"{'='*55}\n")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# auto_register_and_promote — Fonction de haut niveau pour le pipeline
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# auto_register_and_promote: Fonction de haut niveau pour le pipeline
+# 
 
 def auto_register_and_promote(
     run_id: str,
