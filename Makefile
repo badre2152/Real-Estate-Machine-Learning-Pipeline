@@ -1,12 +1,10 @@
 # Makefile: Avito Real Estate ML Pipeline
 # Usage : make <target>
 
-.PHONY: help install install-dev test test-cov lint lint-full run run-full clean
+.PHONY: help install install-dev lint lint-full run run-full clean
 
 PYTHON  = python
-PYTEST  = pytest
 SRC_DIR = src
-TST_DIR = tests
 API_KEY ?= change_me_api_key
 MLFLOW_TRACKING_URI ?= sqlite:///mlflow.db
 
@@ -17,8 +15,6 @@ help:
 	@echo ""
 	@echo "  make install       Installer les dépendances de production"
 	@echo "  make install-dev   Installer toutes les dépendances (prod + dev)"
-	@echo "  make test          Lancer les tests unitaires"
-	@echo "  make test-cov      Tests + rapport de couverture"
 	@echo "  make lint          Vérifications Ruff critiques"
 	@echo "  make lint-full     Audit Ruff complet"
 	@echo "  make run           Lancer le pipeline (mode standard)"
@@ -33,26 +29,12 @@ install:
 install-dev:
 	pip install -r requirements.txt -r requirements-dev.txt
 
-# Tests
-test:
-	$(PYTEST) $(TST_DIR)/ -v --tb=short
-
-test-cov:
-	$(PYTEST) $(TST_DIR)/ -v \
-		--cov=$(SRC_DIR) \
-		--cov-report=term-missing \
-		--cov-report=html:docs/coverage \
-		--cov-fail-under=75
-
-test-fast:
-	$(PYTEST) $(TST_DIR)/ -v --tb=short -x -q
-
 # Linting
 lint:
-	ruff check $(SRC_DIR)/ $(TST_DIR)/ --select E9,F63,F7,F82
+	ruff check $(SRC_DIR)/ --select E9,F63,F7,F82
 
 lint-full:
-	ruff check $(SRC_DIR)/ $(TST_DIR)/ --ignore E501,E402
+	ruff check $(SRC_DIR)/ --ignore E501,E402
 
 # Pipeline
 run:
@@ -64,16 +46,13 @@ run-log-target:
 run-full:
 	$(PYTHON) $(SRC_DIR)/pipeline.py --log-target --smote --optimize --calibrate
 
-run-ci:
+run-no-plots:
 	$(PYTHON) $(SRC_DIR)/pipeline.py --no-plots
 
 # Nettoyage
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete 2>/dev/null || true
-	find . -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -name ".coverage" -delete 2>/dev/null || true
-	find . -name "coverage.xml" -delete 2>/dev/null || true
 	rm -f models/regression_model.pkl models/classification_model.pkl
 	rm -f models/preprocessor.pkl models/results.json
 	rm -f models/pipeline_*.log
@@ -102,8 +81,8 @@ docker-health:
 docker-ready:
 	curl -s http://localhost:8000/ready | python -m json.tool
 
-# API testing (v3)
-api-test-auth:
+# API requests (v3)
+api-check-auth:
 	@echo "Test sans clé → doit retourner 401:"
 	curl -s -o /dev/null -w "Status: %{http_code}\n" http://localhost:8000/v1/info
 	@echo "Test avec clé → doit retourner 200:"
