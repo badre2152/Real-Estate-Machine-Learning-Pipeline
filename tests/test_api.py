@@ -328,9 +328,8 @@ class TestPredictBatch:
     def test_batch_empty_list_returns_422(self, client):
         """Une liste vide doit être rejetée par Pydantic (min_length=1)."""
         payload = {"properties": []}
-        # FastAPI/Pydantic rejette la liste vide si min_length > 0
         resp = client.post("/predict/batch", json=payload)
-        assert resp.status_code in (200, 422)   # selon config Pydantic
+        assert resp.status_code == 422
 
     def test_batch_predictions_have_intervals(self, client, valid_property):
         payload = {"properties": [valid_property]}
