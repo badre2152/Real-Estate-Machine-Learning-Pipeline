@@ -1,12 +1,12 @@
 """
 feature_store.py
 ----------------
-Feature Store للـ ML Pipeline — Avito Real Estate v3.
+Feature Store للـ ML Pipeline: Avito Real Estate v3.
 
 واش هو الـ Feature Store؟
   بدل ما كل pipeline يعيد حساب نفس الـ features من الصفر،
   الـ Feature Store يحسبهم مرة واحدة، يخزّنهم، وكل مرة
-  pipeline أو API يحتاجهم يجيبهم مباشرة — سريع ومتّسق.
+  pipeline أو API يحتاجهم يجيبهم مباشرة: سريع ومتّسق.
 
 المشكلة اللي يحلّها:
   ❌ قبل : pipeline → OBT → compute features → train
@@ -18,7 +18,7 @@ Feature Store للـ ML Pipeline — Avito Real Estate v3.
             → نفس الـ features دائماً، مرة واحدة
 
 Architecture :
-  ┌─────────────────────────────────────────────────────┐
+  ┌=====================================================┐
   │  FeatureStore                                        │
   │                                                      │
   │  Backend: SQLite (local) ou PostgreSQL (production) │
@@ -28,7 +28,7 @@ Architecture :
   │    feature_definitions → تعريف كل feature           │
   │    feature_values     → القيم المحسوبة              │
   │    feature_stats      → إحصائيات للـ monitoring     │
-  └─────────────────────────────────────────────────────│
+  └=====================================================│
 
 Feature Groups (منظّمة حسب النوع):
   - property_base      : features الأساسية (surface, nb_chambres...)
@@ -41,10 +41,10 @@ Usage:
 
     fs = FeatureStore()
 
-    # Pipeline — كتابة features بعد training
+    # Pipeline: كتابة features بعد training
     fs.write(df=X_train_with_metadata, group="property_base", version="v1")
 
-    # API — قراءة features لـ prediction
+    # API: قراءة features لـ prediction
     features = fs.read(entity_ids=["id1", "id2"], group="property_base")
 
     # Point-in-time correct lookup (prevent data leakage)
@@ -73,9 +73,9 @@ from logger_setup import get_logger
 logger = get_logger(__name__)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Configuration
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 def _load_fs_cfg():
     try:
@@ -97,9 +97,9 @@ DEFAULT_FS_VERSION  = _FS_CFG["version"]
 DEFAULT_STALENESS_H = _FS_CFG["staleness"]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # Data classes
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 @dataclass
 class FeatureGroup:
@@ -130,13 +130,13 @@ class FeatureStats:
     n_features  : int
     written_at  : str
     version     : str
-    checksum    : str           # hash du DataFrame — détecter les changements
+    checksum    : str           # hash du DataFrame: détecter les changements
     size_bytes  : int
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # FeatureStore
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
 class FeatureStore:
     """
@@ -167,7 +167,7 @@ class FeatureStore:
         self._init_db()
         logger.info(f"🏪 FeatureStore initialisé → {store_path}")
 
-    # ── Initialisation DB ─────────────────────────────────────────────────────
+    # Initialisation DB
 
     def _init_db(self) -> None:
         """Crée les tables SQLite si elles n'existent pas."""
@@ -227,7 +227,7 @@ class FeatureStore:
         finally:
             conn.close()
 
-    # ── Écriture ──────────────────────────────────────────────────────────────
+    # Écriture
 
     def write(
         self,
@@ -347,7 +347,7 @@ class FeatureStore:
         )
         return stats
 
-    # ── Lecture ───────────────────────────────────────────────────────────────
+    # Lecture
 
     def read(
         self,
@@ -444,7 +444,7 @@ class FeatureStore:
         version: str = "v1",
     ) -> pd.DataFrame:
         """
-        Point-in-time correct lookup — évite le data leakage.
+        Point-in-time correct lookup: évite le data leakage.
 
         Retourne uniquement les features qui étaient disponibles
         AVANT le timestamp donné.
@@ -454,7 +454,7 @@ class FeatureStore:
         Parameters
         ----------
         group     : nom du groupe
-        timestamp : ISO datetime — ne retourner que les features écrites avant
+        timestamp : ISO datetime: ne retourner que les features écrites avant
         version   : version des features
         """
         with self._conn() as conn:
@@ -488,7 +488,7 @@ class FeatureStore:
         )
         return df
 
-    # ── Assemblage du training dataset ───────────────────────────────────────
+    # Assemblage du training dataset
 
     def get_training_dataset(
         self,
@@ -518,7 +518,7 @@ class FeatureStore:
         for group in groups:
             df = self.read_all(group=group, version=version)
             if df.empty:
-                logger.warning(f"   ⚠️  Groupe '{group}' vide — ignoré")
+                logger.warning(f"   ⚠️  Groupe '{group}' vide: ignoré")
                 continue
             dfs.append(df)
 
@@ -538,7 +538,7 @@ class FeatureStore:
         )
         return result
 
-    # ── Métadonnées et statistiques ───────────────────────────────────────────
+    # Métadonnées et statistiques
 
     def list_groups(self) -> list[dict]:
         """Liste tous les feature groups disponibles."""
@@ -599,7 +599,7 @@ class FeatureStore:
             age_h = (now - last).total_seconds() / 3600
             if age_h > 24:
                 logger.warning(
-                    f"   ⚠️  Groupe '{group}' obsolète — "
+                    f"   ⚠️  Groupe '{group}' obsolète: "
                     f"dernière MAJ il y a {age_h:.1f}h"
                 )
 
@@ -633,7 +633,7 @@ class FeatureStore:
 
         logger.info(f"{'='*60}\n")
 
-    # ── Utilitaires ───────────────────────────────────────────────────────────
+    # Utilitaires
 
     @staticmethod
     def _serialize_value(val: Any) -> Any:
@@ -664,9 +664,9 @@ class FeatureStore:
             del self._memory_cache[k]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# pipeline_write_features — Fonction de haut niveau pour le pipeline
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# pipeline_write_features: Fonction de haut niveau pour le pipeline
+# 
 
 def pipeline_write_features(
     df_train: pd.DataFrame,
@@ -720,7 +720,7 @@ def pipeline_write_features(
     for group_name, cols in groups.items():
         cols_available = [c for c in cols if c in df_work.columns]
         if not cols_available:
-            logger.debug(f"   FeatureStore : groupe '{group_name}' vide — ignoré")
+            logger.debug(f"   FeatureStore : groupe '{group_name}' vide: ignoré")
             continue
 
         group_df = df_work[["entity_id"] + cols_available].copy()
