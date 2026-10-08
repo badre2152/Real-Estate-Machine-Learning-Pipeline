@@ -72,7 +72,7 @@ def _baseline_comparison_table(model_metrics: dict, baselines: dict, metric_key:
     if not baselines:
         return ""
     model_val = model_metrics.get(metric_key, 0)
-    rows = f"<tr><td>⭐ Modèle réel</td><td><strong>{model_val:.4f}</strong></td><td>—</td></tr>"
+    rows = f"<tr><td>⭐ Modèle réel</td><td><strong>{model_val:.4f}</strong></td><td>N/A</td></tr>"
     for name, m in baselines.items():
         bv   = m.get(metric_key, 0)
         diff = model_val - bv
@@ -164,7 +164,7 @@ class ReportGenerator:
             title  = cfg.report.title
             author = cfg.report.author
         except Exception:
-            title  = "Rapport ML — Avito Real Estate"
+            title  = "Rapport ML: Avito Real Estate"
             author = "ML Pipeline automatique"
 
         timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
@@ -210,7 +210,7 @@ class ReportGenerator:
         logger.info(f"   📄 Rapport HTML → {path}")
         return path
 
-    # ── Sections ──────────────────────────────────────────────────────────────
+    # Sections
 
     def _section_summary(self, reg: dict, clf: dict) -> str:
         reg  = reg  or {}
@@ -272,7 +272,7 @@ class ReportGenerator:
             info = "SMOTE non appliqué (données équilibrées ou non requis)"
             return f"""
   <div class="section">
-    <h2>⚖️ SMOTE — Équilibrage des classes</h2>
+    <h2>⚖️ SMOTE: Équilibrage des classes</h2>
     <div class="ok-box">{info}</div>
   </div>"""
         before = report.get("before_dist", {})
@@ -287,7 +287,7 @@ class ReportGenerator:
         )
         return f"""
   <div class="section">
-    <h2>⚖️ SMOTE — Équilibrage des classes</h2>
+    <h2>⚖️ SMOTE: Équilibrage des classes</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
       <div><h3>Avant SMOTE</h3>
         <table><thead><tr><th>Classe</th><th>N</th><th>%</th></tr></thead>
@@ -303,9 +303,9 @@ class ReportGenerator:
             return ""
         imgs = ""
         labels = {
-            "summary"  : "Summary Plot — Impact de chaque feature",
-            "bar"      : "Bar Plot — Importance moyenne |SHAP|",
-            "waterfall": "Waterfall — Explication d'une prédiction",
+            "summary"  : "Summary Plot: Impact de chaque feature",
+            "bar"      : "Bar Plot: Importance moyenne |SHAP|",
+            "waterfall": "Waterfall: Explication d'une prédiction",
         }
         for key, label in labels.items():
             path = plots.get(key)
@@ -320,7 +320,7 @@ class ReportGenerator:
             return ""
         return f"""
   <div class="section">
-    <h2>🔍 SHAP — Interprétabilité du modèle</h2>
+    <h2>🔍 SHAP: Interprétabilité du modèle</h2>
     <div class="plots-grid">{imgs}</div>
   </div>"""
 
@@ -338,10 +338,10 @@ class ReportGenerator:
         for a in alerts:
             alert_html += f'<div class="alert-box">🔔 {a["metric"]}={a["value"]:.4f} &lt; seuil={a["threshold"]}</div>'
         if not alerts:
-            alert_html = '<div class="ok-box">✅ Aucune alerte — toutes les métriques dans les seuils</div>'
+            alert_html = '<div class="ok-box">✅ Aucune alerte: toutes les métriques dans les seuils</div>'
         return f"""
   <div class="section">
-    <h2>📈 Monitoring — Exécution du pipeline</h2>
+    <h2>📈 Monitoring: Exécution du pipeline</h2>
     <p style="margin-bottom:0.75rem;color:#6b7280">Durée totale : <strong>{total:.1f}s</strong></p>
     <table><thead><tr><th>Étape</th><th>Durée</th></tr></thead>
     <tbody>{rows}</tbody></table>
