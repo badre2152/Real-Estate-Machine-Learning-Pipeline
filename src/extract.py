@@ -50,6 +50,7 @@ def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
     )
 
     for attempt in range(1, max_retries + 1):
+        engine = None
         try:
             engine = create_engine(url, pool_pre_ping=True)
             with engine.connect() as conn:
@@ -57,6 +58,8 @@ def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
             logger.info(f"✅ Connexion PostgreSQL établie ({host}:{port}/{name})")
             return engine
         except OperationalError as exc:
+            if engine is not None:
+                engine.dispose()
             logger.warning(f"⚠️  Tentative {attempt}/{max_retries} échouée : {exc}")
             if attempt < max_retries:
                 time.sleep(retry_delay)
@@ -162,12 +165,15 @@ def extract_obt(
             "utiliser 'filter_col' + 'filter_val' à la place."
         )
 
-    engine = get_db_engine()
     query, params = _build_safe_query(table, filter_col, filter_val, limit)
+    engine = get_db_engine()
 
     logger.info(f"📥 Extraction depuis {table} ...")
     t0 = time.time()
-    df = pd.read_sql(text(query), engine, params=params)
+    try:
+        df = pd.read_sql(text(query), engine, params=params)
+    finally:
+        engine.dispose()
     elapsed = time.time() - t0
 
     logger.info(
@@ -202,10 +208,12 @@ def extract_sample(n: int = 1000) -> pd.DataFrame:
         raise ValueError(f"n doit être un entier positif, reçu : {n!r}")
 
     engine = get_db_engine()
-    # LIMIT est un entier validé: safe contre injection
-    query = text(f"SELECT * FROM ml_schema.feature_store ORDER BY RANDOM() LIMIT {n}")
+    query = text("SELECT * FROM ml_schema.feature_store ORDER BY RANDOM() LIMIT :limit")
     logger.info(f"📥 Échantillon aléatoire ({n} lignes) ...")
-    df = pd.read_sql(query, engine)
+    try:
+        df = pd.read_sql(query, engine, params={"limit": n})
+    finally:
+        engine.dispose()
 
     # Même validation que extract_obt(): garantit la cohérence train/test
     validate_schema(df)
