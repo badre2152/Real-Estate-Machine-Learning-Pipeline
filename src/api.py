@@ -261,7 +261,8 @@ class PredictionResponse(BaseModel):
     lower_95: float
     upper_95: float
     interval_width: float
-    price_category: Optional[str]
+    property_type: Optional[str]
+    price_category: Optional[str] = None
     confidence_level: float = 0.95
     formatted: str
     model_version: str = "3.0"
@@ -419,7 +420,8 @@ async def predict(data: PropertyInput, request: Request):
             lower_95       = lower,
             upper_95       = upper,
             interval_width = upper - lower,
-            price_category = category,
+            property_type  = category,
+            price_category = None,
             formatted      = f"{pred:,.0f} MAD [{lower:,.0f} à {upper:,.0f}]",
             latency_ms     = round(latency_ms, 2),
             timestamp      = datetime.now().isoformat(),
