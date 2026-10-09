@@ -150,11 +150,6 @@ def apply_geographic_stats(df: pd.DataFrame, geo_stats: dict) -> pd.DataFrame:
         df["ville_prix_median"] = df["ville_prix_median"].fillna(global_median)
         df["ville_prix_mean"]   = df["ville_prix_mean"].fillna(global_median)
 
-        df["ecart_prix_ville"] = (
-            (df[TARGET_REGRESSION] - df["ville_prix_median"])
-            / (df["ville_prix_median"] + 1)
-        )
-
         rank_map = geo_stats.get("city_rank", {})
         df["ville_rang_prix"] = df["ville"].map(rank_map).fillna(rank_map and max(rank_map.values()) + 1 or 999)
         logger.info("   ✅ Stats géo appliquées")
@@ -167,44 +162,9 @@ def apply_geographic_stats(df: pd.DataFrame, geo_stats: dict) -> pd.DataFrame:
     return df
 
 def add_classification_target(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Crée la variable cible pour la classification.
-
-    Selon le contexte : prédire le TYPE DE BIEN (ex: Appartement, Villa, Studio)
-    ou la PRÉSENCE D'UN ÉQUIPEMENT (ex: piscine oui/non).
-
-    Si 'type_bien' existe → utilisé comme cible principale.
-    Sinon → fallback sur 'categorie_prix' (bas/moyen/élevé) dérivé du prix.
-
-    Note : la cible classification ne doit PAS être dérivée directement de 'prix'
-    si 'prix' est aussi la cible de régression: risque de fuite de données.
-    """
-    if "type_bien" in df.columns and TARGET_CLASSIFICATION not in df.columns:
-        df[TARGET_CLASSIFICATION] = df["type_bien"].astype(str)
-        logger.info("   ✅ categorie_prix ← type_bien")
-        return df
-
-    if "piscine" in df.columns and TARGET_CLASSIFICATION not in df.columns:
-        df[TARGET_CLASSIFICATION] = df["piscine"].map({1: "avec_piscine", 0: "sans_piscine"})
-        logger.info("   ✅ categorie_prix ← piscine (binaire)")
-        return df
-
-    if TARGET_REGRESSION in df.columns and TARGET_CLASSIFICATION not in df.columns:
-        p33 = df[TARGET_REGRESSION].quantile(0.33)
-        p66 = df[TARGET_REGRESSION].quantile(0.66)
-        df[TARGET_CLASSIFICATION] = pd.cut(
-            df[TARGET_REGRESSION],
-            bins=[-np.inf, p33, p66, np.inf],
-            labels=["bas", "moyen", "élevé"],
-        )
-        logger.info(
-            f"   ⚠️  categorie_prix ← segments de prix (fallback: bas<{p33:,.0f} | moyen<{p66:,.0f} | élevé)"
-        )
-        logger.warning(
-            "   ⚠️  La cible classification est dérivée du prix de régression. "
-            "Préférer 'type_bien' ou un équipement comme cible."
-        )
-
+    if "type_bien" not in df.columns:
+        return df.drop(columns=[TARGET_CLASSIFICATION], errors="ignore")
+    df[TARGET_CLASSIFICATION] = df["type_bien"].astype("string")
     return df
 
 def apply_stateless_features(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFrame:
