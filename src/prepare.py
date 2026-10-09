@@ -225,10 +225,13 @@ def prepare_data(
 
     # Sauvegarde du préprocesseur
     if save_preprocessor:
-        os.makedirs("models", exist_ok=True)
-        with open("models/preprocessor.pkl", "wb") as f:
+        from config_loader import cfg
+        model_dir = os.getenv("MODELS_DIR") or cfg.paths.models_dir
+        os.makedirs(model_dir, exist_ok=True)
+        preprocessor_path = os.path.join(model_dir, "preprocessor.pkl")
+        with open(preprocessor_path, "wb") as f:
             pickle.dump(preprocessor, f)
-        logger.info("   💾 Préprocesseur → models/preprocessor.pkl")
+        logger.info("   Préprocesseur sauvegardé dans %s", preprocessor_path)
 
     logger.info(f"\n✅ Train : {len(X_train):,} | Test : {len(X_test):,} | Features : {len(feature_names)}")
     return X_train, X_test, y_reg_train, y_reg_test, y_clf_train, y_clf_test, feature_names, X_train_clf
