@@ -1,25 +1,4 @@
-"""
-features.py
------------
-Feature Engineering pour le pipeline ML immobilier.
-
-ORDRE CORRECT selon le contexte :
-  Extraction OBT → Split → Feature Engineering → Scaling/Encoding → Training
-
-DONC : les features qui calculent des statistiques sur le dataset (ex: prix médian
-par ville) DOIVENT être calculées uniquement sur le train set, puis appliquées au
-test set: pour éviter la fuite de données (data leakage).
-
-Les fonctions de ce module sont donc appelées APRÈS le split.
-Les fonctions stateless (log, ratio, interaction) peuvent s'appliquer librement.
-
-Fonctions stateless (safe sur train+test séparément) :
-  - add_log_price, add_price_per_m2, add_surface_rooms_interaction,
-    add_luxury_score, add_temporal_features, add_price_zscore
-
-Fonctions stateful (doivent être fittées sur train, appliquées sur test) :
-  - add_geographic_features → fit_geographic_stats() + apply_geographic_stats()
-"""
+"""Feature engineering for training and inference."""
 
 from logger_setup import get_logger
 import numpy as np
