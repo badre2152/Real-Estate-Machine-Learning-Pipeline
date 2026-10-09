@@ -180,3 +180,7 @@ Pour `/v1/predict/batch`, la liste accepte de 1 à 100 objets. Chaque propriét�
 ## Target leakage protection
 
 The preprocessing stage excludes price-derived inputs and geographic price statistics from model features. The API no longer supplies placeholder values for those inputs. Existing saved models and preprocessors must be retrained together before deployment, as the input schema may differ. No training or runtime verification has been performed for this change.
+
+## Classification target
+
+The classification target is generated from `type_bien` only. Earlier fallbacks based on `piscine` or price bands could expose the label through model inputs or change the meaning of the target. If `type_bien` is absent, no classification target is synthesized. The geographic deviation feature that required the true price is no longer generated. The API field `price_category` currently refers to the classification prediction and may represent property type rather than a price band; its naming should be reviewed before a public API release. Existing training artifacts must be retrained before deployment. These changes have not been run or tested.
