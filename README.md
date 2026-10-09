@@ -232,3 +232,13 @@ Classification target encoding now fits actual property types instead of mapping
 ## Optional classification robustness
 
 Classification is skipped before baseline fitting and oversampling when training data lacks at least two property types with two examples each. Classification evaluation ignores test rows with categories that the training label encoder has not seen, reports the omitted row count, and refuses to report metrics if none remain. These metrics are conditional on the known test categories, not the complete test distribution. The regression model and its endpoints remain independent of this optional classifier. Existing model artifacts must be regenerated after the prior feature schema changes. These changes were reviewed statically but not run through tests, CI, or a training execution.
+
+## Deployment readiness audit
+
+The public repository does not include trained model artifacts. The Docker build intentionally excludes `models/`, and the current Render Blueprint does not mount or download a model artifact bundle. As a result, deploying this Blueprint without provisioning compatible artifacts will leave `/ready` returning HTTP 503. Render now checks `/ready` rather than the liveness-only `/health`. Do not interpret successful image startup as a usable prediction service.
+
+Before deployment, regenerate the regression model, fitted preprocessor, feature names, and prediction interval builder from the same training run. Provide the trusted artifacts to the container's `MODELS_DIR` through a deliberately configured artifact provisioning mechanism. Serialized pickle files must only come from a trusted training environment because loading them can execute code. The repository does not provide an automatic hosted artifact delivery mechanism, and this audit did not introduce one.
+
+Use non-placeholder `API_KEYS` and explicit `CORS_ORIGINS` in production. The in-memory API rate limiter is scoped to one process and is not a replacement for a distributed gateway or shared rate limit store. The Docker API command uses a single worker to avoid per-worker quota inconsistencies. Database credentials belong in environment secrets, not source control.
+
+No tests, CI, model training, image build, or deployment were run for this static audit. Release compatibility and runtime readiness remain unverified.
