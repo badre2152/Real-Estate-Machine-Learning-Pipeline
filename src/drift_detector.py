@@ -208,7 +208,7 @@ class DriftReport:
             "prediction_drift"   : self.prediction_drift.to_dict() if self.prediction_drift else None,
         }
 
-    def save(self, output_dir: str = "reports") -> str:
+    def save(self, output_dir: str = "reports/runtime") -> str:
         """Sauvegarde le rapport en JSON."""
         os.makedirs(output_dir, exist_ok=True)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -289,7 +289,7 @@ class DriftDetector:
         categorical_cols: Optional[list[str]] = None,
         psi_threshold_warning: float = PSI_STABLE,
         psi_threshold_drift: float = PSI_WARNING,
-        output_dir: str = "reports",
+        output_dir: str = "reports/runtime",
     ):
         self.reference     = reference_data.copy()
         self.output_dir    = output_dir
