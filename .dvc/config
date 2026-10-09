@@ -5,18 +5,3 @@
 [cache]
     type = hardlink, symlink, copy
 
-# Remote storage — décommenter et configurer selon votre backend
-# [remote "myremote"]
-#     url = s3://my-bucket/avito-ml-dvc
-# [core]
-#     remote = myremote
-
-# Exemple Google Drive :
-# [remote "gdrive"]
-#     url = gdrive://your-folder-id
-# [core]
-#     remote = gdrive
-
-# Exemple local (dev) :
-# [remote "local"]
-#     url = /mnt/dvc-storage
