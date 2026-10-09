@@ -65,3 +65,7 @@ DVC suit les valeurs littérales du fichier YAML. Les variables d'environnement 
 Comparaison avec les fichiers actuellement suivis dans Git : aucune sortie déclarée dans `dvc.yaml` ne correspond directement à un fichier suivi. Les sorties `data/`, les modèles générés et `reports/dvc/` doivent rester des artefacts locaux ou gérés par DVC, pas des ajouts Git ordinaires.
 
 Attention : les anciens exemples `reports/validation_report.json`, `reports/monitoring_report.json` et `reports/ml_report.html` sont encore suivis dans Git. `src/pipeline.py` peut écrire à ces chemins pendant l'entraînement : les règles `.gitignore` n'empêchent pas la modification d'un fichier déjà suivi. Ne pas présenter une exécution DVC comme propre de toute modification Git tant que ces sorties historiques n'ont pas été séparées des sorties runtime. Les rapports historiques n'ont pas été supprimés.
+
+## Rapports historiques et runtime
+
+La configuration par défaut `paths.reports_dir` pointe désormais vers `reports/runtime/` pour les nouveaux rapports produits par `src/pipeline.py`. Les exemples historiques suivis dans `reports/` restent inchangés pendant les exécutions avec cette configuration. Le stage `validate` de DVC écrit séparément dans `reports/dvc/`. Les deux répertoires de sortie sont ignorés par Git. Une configuration personnalisée des chemins peut modifier ce comportement.
