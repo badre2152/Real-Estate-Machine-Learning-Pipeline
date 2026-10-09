@@ -51,6 +51,12 @@ EXCLUDE_FROM_FEATURES = {
     "type_bien",
 }
 
+SERVING_FEATURES = {
+    "surface_m2", "ville", "quartier", "nb_chambres",
+    "nb_salles_bain", "etage", "age_bien",
+    "surface_x_chambres", "surface_par_chambre", "ratio_chambres_bains",
+}
+
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Nettoyage minimal post-extraction :
@@ -94,7 +100,7 @@ def detect_column_types(df: pd.DataFrame) -> tuple[list, list]:
     Détecte automatiquement les colonnes numériques et catégorielles,
     en excluant les colonnes non-features.
     """
-    feature_cols = [c for c in df.columns if c not in EXCLUDE_FROM_FEATURES]
+    feature_cols = [c for c in df.columns if c in SERVING_FEATURES and c not in EXCLUDE_FROM_FEATURES]
 
     numeric_cols = [
         c for c in feature_cols
