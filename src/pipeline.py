@@ -202,8 +202,10 @@ def run_pipeline(
             if train_features:
                 df_train = pd.read_parquet(train_features)
                 df_test = pd.read_parquet(test_features)
-                if calibration_features:
+                if calibration_features and cfg.prediction_intervals.method == "quantile":
                     calibration_df = pd.read_parquet(calibration_features)
+                    if calibration_df.empty:
+                        raise ValueError("Quantile calibration feature data must not be empty")
                 if df_train.empty or df_test.empty:
                     raise ValueError('Prepared feature datasets must not be empty')
             else:
