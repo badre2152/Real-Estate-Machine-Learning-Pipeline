@@ -5,7 +5,7 @@ Branch: audit-ml-quality-2026-10
 
 ## Scope
 
-Source-level inspection of `README.md`, `requirements.txt`, `src/pipeline.py`, `src/regression.py`, `src/prepare.py`, and `src/features.py`. No training run, dependency installation, test suite execution, or model performance verification has been completed. Changes remain unverified until tests pass.
+Source-level inspection of `README.md`, `requirements.txt`, `src/pipeline.py`, `src/regression.py`, `src/prepare.py`, and `src/features.py`. Focused tests including actual synthetic cross-validation and API preprocessing compatibility passed in GitHub Actions Run #10. Production training, complete project test suite, Docker build and deployment have not been verified. Additional serialized artifact regression test is pending CI.
 
 ## Findings
 
@@ -19,8 +19,8 @@ Source-level inspection of `README.md`, `requirements.txt`, `src/pipeline.py`, `
 
 ## Verification requirements
 
-1. Establish a reproducible test environment and inventory existing tests.
-2. Verify data splitting, feature engineering, training and inference with synthetic datasets.
-3. Test preprocessing inside cross-validation folds.
-4. Verify saved artifacts work with API inference.
-5. Run CI before merge. No merge or production deployment should occur without verification.
+1. The focused CI environment is operational. Inventory and run the broader existing test suite before merge.
+2. Synthetic regression cross-validation and preprocessing checks passed; complete training pipeline and API HTTP endpoint require broader integration tests.
+3. Fold-local preprocessing is covered by targeted tests.
+4. Verify serialized model and preprocessing artifacts with the newly added regression test.
+5. Require a green CI result for the latest commit and final PR review before merge.
