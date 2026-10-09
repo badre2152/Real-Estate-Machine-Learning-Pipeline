@@ -38,7 +38,14 @@ TARGET_CLASSIFICATION = "categorie_prix"
 EXCLUDE_FROM_FEATURES = {
     TARGET_REGRESSION,
     TARGET_CLASSIFICATION,
-    "log_prix",           # dérivé de la target → fuite de données
+    "log_prix",
+    "prix_par_m2",
+    "log_prix_par_m2",
+    "ecart_prix_ville",
+    "ville_prix_mean",
+    "ville_prix_median",
+    "ville_rang_prix",
+    "region_prix_median",
     "id", "url", "titre", "description",
     "date_annonce", "created_at", "date_scraping",  # brutes → remplacées par les dérivées
     "type_bien",          # source de la cible classification
