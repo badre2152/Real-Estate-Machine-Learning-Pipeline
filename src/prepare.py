@@ -233,7 +233,9 @@ def prepare_data(
     X_train_clf = X_train.copy()
     if y_clf_train is not None:
         counts = y_clf_train.value_counts()
-        ratio  = counts.min() / counts.max()
+        if counts.empty:
+            raise ValueError("Classification labels contain no valid values")
+        ratio = counts.min() / counts.max()
         logger.info(f"   Distribution classes : {counts.to_dict()}")
         if ratio < 0.5:
             logger.warning(f"   ⚠️  Déséquilibre (ratio={ratio:.2f})")
