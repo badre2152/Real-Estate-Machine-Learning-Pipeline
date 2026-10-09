@@ -727,7 +727,7 @@ async def drift_latest():
     Les rapports sont générés automatiquement à chaque training pipeline.
     """
     import glob
-    reports_dir = os.getenv("REPORTS_DIR", "reports")
+    reports_dir = os.getenv("REPORTS_DIR", "reports/runtime")
     pattern = os.path.join(reports_dir, "drift_report_*.json")
     files = sorted(glob.glob(pattern), reverse=True)
 
@@ -1015,7 +1015,7 @@ async def trigger_retrain(data: RetrainRequest, request: Request):
     drift_recommendation = "unknown"
     try:
         import glob
-        reports_dir = os.getenv("REPORTS_DIR", "reports")
+        reports_dir = os.getenv("REPORTS_DIR", "reports/runtime")
         files = sorted(glob.glob(os.path.join(reports_dir, "drift_report_*.json")), reverse=True)
         if files:
             with open(files[0]) as f:
