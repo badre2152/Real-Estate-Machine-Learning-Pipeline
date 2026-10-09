@@ -420,15 +420,7 @@ async def predict(data: PropertyInput, request: Request):
             if lower > upper or not (lower <= pred <= upper):
                 raise ValueError("Inconsistent prediction interval")
 
-        category = None
-        if _state["clf_model"] is not None:
-            raw_pred = _state["clf_model"].predict(X)[0]
-            if _state["label_encoder"] is not None:
-                try:
-                    category = str(_state["label_encoder"].inverse_transform([raw_pred])[0])
-                except (ValueError, TypeError, AttributeError) as exc:
-                    logger.warning("Classification decoding failed (%s)", type(exc).__name__)
-                    category = None
+        category = data.type_bien
 
         _state["total_predictions"] += 1
         latency_ms = (time.perf_counter() - t0) * 1000
