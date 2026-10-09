@@ -54,6 +54,48 @@ def get_regression_models() -> dict:
         models["XGBoost"] = XGB(n_estimators=100, random_state=_RS, n_jobs=1, verbosity=0)
     return models
 
+class PriceScaleRegressor:
+    def __init__(self, estimator, log_target=False):
+        self.estimator = estimator
+        self.log_target = log_target
+
+    def get_params(self, deep=True):
+        params = {"estimator": self.estimator, "log_target": self.log_target}
+        if deep and hasattr(self.estimator, "get_params"):
+            params.update({
+                f"estimator__{key}": value
+                for key, value in self.estimator.get_params(deep=True).items()
+            })
+        return params
+
+    def set_params(self, **params):
+        if "estimator" in params:
+            self.estimator = params.pop("estimator")
+        if "log_target" in params:
+            self.log_target = params.pop("log_target")
+        nested = {
+            key[len("estimator__"):]: value
+            for key, value in params.items()
+            if key.startswith("estimator__")
+        }
+        if nested:
+            self.estimator.set_params(**nested)
+        return self
+
+    def fit(self, X, y):
+        from sklearn.base import clone
+        self.estimator_ = clone(self.estimator)
+        target = np.log1p(y) if self.log_target else y
+        self.estimator_.fit(X, target)
+        return self
+
+    def predict(self, X):
+        from sklearn.utils.validation import check_is_fitted
+        check_is_fitted(self, "estimator_")
+        values = self.estimator_.predict(X)
+        return np.expm1(values) if self.log_target else values
+
+
 def train_regression(
     X_train, y_train, use_log_target: bool = False
 ):
