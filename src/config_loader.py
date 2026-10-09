@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 _CONFIG_PATH = Path(__file__).parent.parent / "config" / "config.yaml"
 
-
 class _AttrDict(dict):
     """Dict accessible via attributs : cfg.paths.models_dir"""
 
@@ -37,7 +36,6 @@ class _AttrDict(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
-
 
 def _resolve_env(value: str) -> str:
     """
@@ -58,7 +56,6 @@ def _resolve_env(value: str) -> str:
 
     return re.sub(pattern, _replacer, value)
 
-
 def _walk_resolve(obj: Any) -> Any:
     """Parcourt récursivement le dict et résout les variables d'env."""
     if isinstance(obj, dict):
@@ -68,7 +65,6 @@ def _walk_resolve(obj: Any) -> Any:
     if isinstance(obj, str):
         return _resolve_env(obj)
     return obj
-
 
 def load_config(path: Path = _CONFIG_PATH) -> _AttrDict:
     """
@@ -88,6 +84,4 @@ def load_config(path: Path = _CONFIG_PATH) -> _AttrDict:
     logger.debug(f"Config chargée depuis {path}")
     return _AttrDict(resolved)
 
-
-# Singleton global: importez `cfg` directement
 cfg = load_config()
