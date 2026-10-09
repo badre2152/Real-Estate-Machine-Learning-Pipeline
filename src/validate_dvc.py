@@ -8,9 +8,7 @@ import pandas as pd
 from data_validation import DataValidator
 from logger_setup import get_logger
 
-
 logger = get_logger(__name__)
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate an extracted Parquet dataset")
@@ -29,7 +27,6 @@ def main() -> int:
 
     logger.info("DVC data validation completed")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
