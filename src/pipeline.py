@@ -86,6 +86,7 @@ def run_pipeline(
     input_parquet: str    = None,
     train_features: str   = None,
     test_features: str    = None,
+    calibration_features: str = None,
     test_size: float      = None,
     random_state: int     = None,
 ) -> dict:
@@ -93,6 +94,11 @@ def run_pipeline(
     Lance le pipeline ML complet v2.
     Les paramètres None sont lus depuis config/config.yaml.
     """
+    if calibration_features and not train_features:
+        raise ValueError("Calibration features require prepared train and test features")
+    if train_features and cfg.prediction_intervals.method == "quantile" and not calibration_features:
+        raise ValueError("Quantile DVC training requires independent calibration features")
+
     if bool(train_features) != bool(test_features):
         raise ValueError('Specify both train_features and test_features, or neither')
 
@@ -196,12 +202,15 @@ def run_pipeline(
             if train_features:
                 df_train = pd.read_parquet(train_features)
                 df_test = pd.read_parquet(test_features)
+                if calibration_features:
+                    calibration_df = pd.read_parquet(calibration_features)
                 if df_train.empty or df_test.empty:
                     raise ValueError('Prepared feature datasets must not be empty')
             else:
                 df_train, df_test = split_data(df, test_size=test_size, random_state=random_state)
 
-        calibration_df = None
+        if not train_features:
+            calibration_df = None
         if cfg.prediction_intervals.method == "quantile" and not train_features:
             if len(df_train) < 12:
                 raise ValueError("Not enough rows for calibration")
@@ -225,16 +234,6 @@ def run_pipeline(
                     df_test = add_classification_target(df_test)
             else:
                 logger.info('Using prepared DVC features without recomputing feature engineering')
-
-        if cfg.prediction_intervals.method == "quantile" and train_features:
-            if len(df_train) < 12:
-                raise ValueError("Not enough rows for calibration")
-            from sklearn.model_selection import train_test_split
-            df_train, calibration_df = train_test_split(
-                df_train, test_size=0.2, random_state=random_state
-            )
-            df_train = df_train.reset_index(drop=True)
-            calibration_df = calibration_df.reset_index(drop=True)
 
         with monitor.step("6_encoding_scaling"):
             logger.info("\n" + "=" * 50)
@@ -629,6 +628,7 @@ def _parse_args():
     p.add_argument("--input-parquet", default=None, help="Read extracted OBT from Parquet instead of PostgreSQL")
     p.add_argument("--train-features", default=None, help="Prepared training features Parquet")
     p.add_argument("--test-features", default=None, help="Prepared test features Parquet")
+    p.add_argument("--calibration-features", default=None, help="Independent prepared calibration features Parquet")
     p.add_argument("--test-size",  type=float, default=None)
     p.add_argument("--seed",       type=int,   default=None)
     return p.parse_args()
@@ -645,6 +645,7 @@ if __name__ == "__main__":
         input_parquet   = args.input_parquet,
         train_features  = args.train_features,
         test_features   = args.test_features,
+        calibration_features = args.calibration_features,
         test_size       = args.test_size,
         random_state    = args.seed,
     )
