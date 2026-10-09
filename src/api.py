@@ -54,6 +54,8 @@ logger = get_logger(__name__)
 _API_KEYS_RAW = os.getenv("API_KEYS", "")
 VALID_API_KEYS: set = {k.strip() for k in _API_KEYS_RAW.split(",") if k.strip()}
 RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+if RATE_LIMIT_PER_MINUTE < 1:
+    raise ValueError("RATE_LIMIT_PER_MINUTE must be positive")
 
 _ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").strip().lower()
 _CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",") if origin.strip()]
