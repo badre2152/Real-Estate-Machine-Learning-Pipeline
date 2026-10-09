@@ -43,10 +43,8 @@ def main() -> None:
 
     train.to_parquet(output_dir / "train_fe.parquet", index=False)
     test.to_parquet(output_dir / "test_fe.parquet", index=False)
-    if calibration is not None:
-        calibration.to_parquet(output_dir / "calibration_fe.parquet", index=False)
-    else:
-        (output_dir / "calibration_fe.parquet").unlink(missing_ok=True)
+    calibration_output = calibration if calibration is not None else train.iloc[:0].copy()
+    calibration_output.to_parquet(output_dir / "calibration_fe.parquet", index=False)
     with (output_dir / "geo_stats.pkl").open("wb") as output:
         pickle.dump(geo_stats, output)
     logger.info("DVC features saved: %s train rows, %s test rows", len(train), len(test))
