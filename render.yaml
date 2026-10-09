@@ -13,7 +13,7 @@ services:
 
     envVars:
       - key: API_KEYS
-        sync: false          # Render يطلب منك تكتبها يدوياً (أمان)
+        sync: false
       - key: ENVIRONMENT
         value: production
       - key: RATE_LIMIT_PER_MINUTE
