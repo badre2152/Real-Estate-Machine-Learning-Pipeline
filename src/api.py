@@ -186,6 +186,17 @@ async def load_models():
         logger.warning("Classification model disabled because its label encoder is missing")
         _state["clf_model"] = None
 
+    if _state["preprocessor"] is not None:
+        expected = getattr(_state["preprocessor"], "feature_names_in_", None)
+        if expected is not None:
+            request_columns = set(_build_input_df(PropertyInput(
+                surface_m2=100, ville="Casablanca", type_bien="appartement"
+            )).columns)
+            missing = set(expected) - request_columns
+            if missing:
+                logger.error("Preprocessor expects unavailable input fields: %s", sorted(missing))
+                _state["preprocessor"] = None
+
     _state["loaded_at"] = datetime.now().isoformat()
     if _state["reg_model"] is None or _state["preprocessor"] is None:
         logger.warning("API started without required prediction artifacts")
