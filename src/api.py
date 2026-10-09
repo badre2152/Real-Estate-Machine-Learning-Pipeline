@@ -522,10 +522,6 @@ def _build_input_df(data: PropertyInput) -> pd.DataFrame:
     surface_x_chambres  = surface_m2 * nb_chambres if nb_chambres else 0.0
     surface_par_chambre = surface_m2 / (nb_chambres + 1)
     ratio_chambres_bains = nb_chambres / (nb_salles_bain + 1)
-    prix_par_m2 = 0.0
-
-    geo_stats = _get_geo_stats_for_ville(data.ville)
-
     row = {
         "surface_m2"         : surface_m2,
         "ville"              : data.ville,
@@ -543,47 +539,8 @@ def _build_input_df(data: PropertyInput) -> pd.DataFrame:
         "surface_x_chambres"  : surface_x_chambres,
         "surface_par_chambre" : surface_par_chambre,
         "ratio_chambres_bains": ratio_chambres_bains,
-        "prix_par_m2"         : prix_par_m2,
-        "log_prix_par_m2"     : 0.0,
-        "ville_prix_mean"    : geo_stats.get("ville_prix_mean", 0.0),
-        "ville_prix_median"  : geo_stats.get("ville_prix_median", 0.0),
-        "ville_rang_prix"    : geo_stats.get("ville_rang_prix", 0.0),
-        "ecart_prix_ville"   : geo_stats.get("ecart_prix_ville", 0.0),
     }
     return pd.DataFrame([row])
-
-def _get_geo_stats_for_ville(ville: str) -> dict:
-    """
-    Récupère les statistiques géographiques pour une ville donnée
-    depuis le Feature Store (geographic group).
-    Retourne des valeurs par défaut si non disponible.
-    """
-    try:
-        fs_path = os.path.join(
-            os.getenv("MODELS_DIR", "models"), "..", "feature_store", "store.db"
-        )
-        if not os.path.exists(fs_path):
-            return {}
-
-        from feature_store import FeatureStore
-        fs = FeatureStore(store_path=fs_path)
-        geo_df = fs.read_all(group="geographic", version="v1")
-
-        if geo_df.empty:
-            return {}
-
-        geo_cols = [c for c in geo_df.columns if c.startswith("ville_prix")
-                    or c in ("ville_rang_prix", "ecart_prix_ville")]
-
-        if not geo_cols:
-            return {}
-
-        stats = {col: float(geo_df[col].mean()) for col in geo_cols if col in geo_df.columns}
-        return stats
-
-    except Exception as e:
-        logger.warning("Geo stats unavailable (%s)", type(e).__name__)
-        return {}
 
 @app.get(
     "/v1/registry",
