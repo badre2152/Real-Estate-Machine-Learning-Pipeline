@@ -5,13 +5,13 @@ Branch: audit-ml-quality-2026-10
 
 ## Scope
 
-Source-level inspection of `README.md`, `requirements.txt`, `src/pipeline.py`, `src/regression.py`, `src/prepare.py`, and `src/features.py`. No training run, dependency installation, test suite execution, or model performance verification has been completed.
+Source-level inspection of `README.md`, `requirements.txt`, `src/pipeline.py`, `src/regression.py`, `src/prepare.py`, and `src/features.py`. No training run, dependency installation, test suite execution, or model performance verification has been completed. Changes remain unverified until tests pass.
 
 ## Findings
 
 | Severity | Location | Evidence | Recommendation |
 | --- | --- | --- | --- |
-| Medium | `src/regression.py`, `train_regression` | Candidate models are selected through cross-validation after one shared preparation step; verify all learned preprocessing is inside each CV fold rather than fitted on the full training set before CV. | Confirmed: `prepare_data()` fits transformations before `cross_val_score()` in `train_regression()`. Model selection now receives a fold-local sklearn preprocessing pipeline from unfitted training features. A regression test was added but has not yet run in CI. The optional hyperparameter optimization still operates on already transformed features and requires separate leakage review. Hold-out evaluation remains separate. |
+| Medium | `src/regression.py`, `train_regression` | Candidate models are selected through cross-validation after one shared preparation step; verify all learned preprocessing is inside each CV fold rather than fitted on the full training set before CV. | Confirmed: `prepare_data()` fits transformations before `cross_val_score()` in `train_regression()`. Model selection now receives a fold-local sklearn preprocessing pipeline from unfitted training features. A regression test was added but has not yet run in CI. Hyperparameter optimization now searches using unfitted fold-local preprocessing, then refits the selected estimator on the existing final training matrix for API compatibility. Regression tests were added; they have not been executed. Hold-out evaluation remains separate. |
 | Medium | `src/prepare.py`, `prepare_data` | Classification imbalance logic computes `counts.min() / counts.max()` without an explicit guard for an empty label distribution. | Reject entirely missing labels and explicitly handle single-class labels with focused tests. Missing-label validation fixed on branch; test added but not run. |
 | Medium | `requirements.txt` | Broad minimum-only package constraints across scikit-learn, pandas, Great Expectations, and MLflow do not guarantee that a fresh install reproduces the same environment. | Produce a tested lock or constraints file after a successful environment build. |
 | Low | `src/pipeline.py`, `src/regression.py`, `src/prepare.py`, `src/features.py` | Long historical changelog docstrings, decorative log symbols and instructional comments obscure runtime behavior. | Remove nonessential narration in small behavior-preserving commits. |
