@@ -265,7 +265,14 @@ def run_pipeline(
             y_clf_train.astype("string").str.strip().str.lower().value_counts()
             if y_clf_train is not None else pd.Series(dtype="int64")
         )
+        classification_eval_mask = None
         classification_enabled = len(classification_counts) >= 2 and classification_counts.min() >= 2
+        if classification_enabled:
+            normalized_test_labels = y_clf_test.astype("string").str.strip().str.lower()
+            classification_eval_mask = normalized_test_labels.isin(classification_counts.index).fillna(False).to_numpy(dtype=bool)
+            if not classification_eval_mask.any():
+                logger.warning("Classification skipped: no known property types in evaluation data")
+                classification_enabled = False
         if not classification_enabled:
             y_clf_train = None
             y_clf_test = None
@@ -278,7 +285,10 @@ def run_pipeline(
 
             if y_clf_train is not None:
                 baseline_clf = run_classification_baselines(
-                    X_train_clf_raw, y_clf_train, X_test, y_clf_test
+                    X_train_clf_raw,
+                    y_clf_train,
+                    X_test.iloc[classification_eval_mask],
+                    y_clf_test.iloc[classification_eval_mask],
                 )
 
             tracker.log_baseline_results(baseline_reg, baseline_clf or None)
