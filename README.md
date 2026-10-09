@@ -81,6 +81,16 @@ Configure the environment variables in `.env` before running. For an existing Pa
 
 The pipeline writes outputs to configured model and report directories, including `models/results.json`. To inspect empirical results, use artifacts generated from your own data and training run. DVC orchestration is described in [the DVC guide](docs/DVC_GUIDE.md) but has not been executed during this audit.
 
+## Historical reports and evidence
+
+The repository contains an older [HTML model report](reports/ml_report.html), [data validation report](reports/validation_report.json), [monitoring snapshot](reports/monitoring_report.json), and [SHAP importance CSV](docs/plots/reg_shap_importance.csv). These are historical artifacts, not validated results for the current training pipeline.
+
+The historical HTML report records **R² = 0.7691**, **MAE = 314,089.5592 MAD**, and **MAPE = 22.4777%**. These values must not be presented as the current model's performance. The archived validation snapshot dated May 17, 2026 reports **489 rows** and **passed: false**, including failed price range and missing value checks. Its results cannot be used to claim a fully validated dataset.
+
+Critically, the historical SHAP file ranks `ecart_prix_ville`, `ville_prix_median`, and `ville_rang_prix` ahead of `surface_m2`, and includes `prix_par_m2` and individual listing URLs. These inputs are not part of the current serving compatible training feature selection. The archived importance ranking therefore reflects an older feature schema with leakage risks, not trustworthy interpretability evidence for the corrected regression model.
+
+A portfolio-ready results section needs freshly generated MAE, RMSE, R², baseline comparisons, and SHAP outputs from one consistent training run with documented data validation. Until then, the strongest verifiable claim is that this repository implements the end to end workflow, not that a particular predictive performance was achieved.
+
 ## Project deliverables
 
 - A modular data preparation and regression workflow
