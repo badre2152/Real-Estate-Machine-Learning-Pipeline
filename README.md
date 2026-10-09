@@ -200,3 +200,7 @@ Training saves the regression estimator as both `regression_model.pkl` and `best
 ## Regression target scale
 
 The saved regression estimator now uses `PriceScaleRegressor`, which exposes predictions in MAD even when training uses a logarithmic target. The same estimator is used for API serving, drift predictions, evaluation plots, and prediction intervals. Hyperparameter search and initial regression evaluation remain on the original estimator before the wrapper is attached; SHAP also uses the underlying estimator. The wrapper must be saved and loaded alongside a compatible environment. Previously saved models must be retrained and replaced before enabling logarithmic target training. Runtime behavior has not been verified.
+
+## Prediction interval alignment
+
+The quantile and bootstrap interval methods use predictions from the saved price scale estimator, so interval boundaries and central predictions are expressed in MAD when logarithmic target training is enabled. Bootstrap now preserves pandas feature names during resampling and inference instead of dropping them through NumPy conversion. Nonfinite interval values and negative central predictions are rejected. Quantile residuals are still calibrated using training data rather than an independent calibration split, so the reported interval coverage should not be treated as a guaranteed statistical confidence level. This change has not been run or tested.
