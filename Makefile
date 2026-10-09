@@ -1,5 +1,3 @@
-# Makefile: Avito Real Estate ML Pipeline
-# Usage : make <target>
 
 .PHONY: help install install-dev lint lint-full run run-full clean
 
@@ -8,7 +6,6 @@ SRC_DIR = src
 API_KEY ?= change_me_api_key
 MLFLOW_TRACKING_URI ?= sqlite:///mlflow.db
 
-# Aide
 help:
 	@echo ""
 	@echo "  Avito Real Estate: ML Pipeline"
@@ -22,21 +19,18 @@ help:
 	@echo "  make clean         Supprimer les fichiers générés"
 	@echo ""
 
-# Installation
 install:
 	pip install -r requirements.txt
 
 install-dev:
 	pip install -r requirements.txt -r requirements-dev.txt
 
-# Linting
 lint:
 	ruff check $(SRC_DIR)/ --select E9,F63,F7,F82
 
 lint-full:
 	ruff check $(SRC_DIR)/ --ignore E501,E402
 
-# Pipeline
 run:
 	$(PYTHON) $(SRC_DIR)/pipeline.py
 
@@ -49,7 +43,6 @@ run-full:
 run-no-plots:
 	$(PYTHON) $(SRC_DIR)/pipeline.py --no-plots
 
-# Nettoyage
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete 2>/dev/null || true
@@ -59,7 +52,6 @@ clean:
 	rm -f docs/plots/*.png
 	@echo "✅ Nettoyage terminé"
 
-# Docker (v3)
 docker-build:
 	docker build --target api -t avito-ml-api:3.0 .
 
@@ -81,7 +73,6 @@ docker-health:
 docker-ready:
 	curl -s http://localhost:8000/ready | python -m json.tool
 
-# API requests (v3)
 api-check-auth:
 	@echo "Test sans clé → doit retourner 401:"
 	curl -s -o /dev/null -w "Status: %{http_code}\n" http://localhost:8000/v1/info
@@ -96,7 +87,6 @@ api-predict:
 	  -d '{"surface_m2":120,"ville":"Casablanca","type_bien":"appartement","nb_chambres":3}' \
 	  | python -m json.tool
 
-# MLflow Registry (v3)
 registry-status:
 	curl -s -H "X-API-Key: $(API_KEY)" \
 	  http://localhost:8000/v1/registry | python -m json.tool
@@ -110,7 +100,6 @@ registry-promote:
 mlflow-ui:
 	mlflow ui --backend-store-uri $(MLFLOW_TRACKING_URI) --port 5000
 
-# Drift Detection (v3)
 drift-latest:
 	curl -s -H "X-API-Key: $(API_KEY)" \
 	  http://localhost:8000/v1/drift/latest | python -m json.tool
@@ -122,7 +111,6 @@ drift-detect:
 	  -d '{"data":[{"surface_m2":120,"ville":"Casablanca","type_bien":"appartement"},{"surface_m2":200,"ville":"Rabat","type_bien":"villa"}],"include_predictions":true}' \
 	  | python -m json.tool
 
-# Feature Store (v3)
 fs-groups:
 	curl -s -H "X-API-Key: $(API_KEY)" \
 	  http://localhost:8000/v1/features/groups | python -m json.tool
