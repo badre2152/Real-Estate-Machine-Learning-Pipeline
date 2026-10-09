@@ -28,14 +28,12 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Config & Logging (avant tout le reste)
 from config_loader import cfg
 from logger_setup import get_logger, configure_root_logger
 
 configure_root_logger()
 logger = get_logger(__name__)
 
-# Modules pipeline existants
 from classification import (
     evaluate_classification,
     get_feature_importance as clf_importance,
@@ -54,7 +52,6 @@ from regression import (
     train_regression,
 )
 
-# Nouveaux modules v2
 from baselines import (
     run_regression_baselines,
     run_classification_baselines,
@@ -72,21 +69,11 @@ from report_generator import ReportGenerator
 from shap_explainer import SHAPExplainer
 from smote_handler import SmoteHandler
 
-
-# 
-# Helper sauvegarde: noms compatibles avec api.py
-# 
-
 def _save_artifact(obj, path: str) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
         pickle.dump(obj, f)
     logger.info(f"   💾 Sauvegardé → {path}")
-
-
-# 
-# Pipeline principal
-# 
 
 def run_pipeline(
     optimize: bool        = None,
@@ -108,7 +95,6 @@ def run_pipeline(
     if bool(train_features) != bool(test_features):
         raise ValueError('Specify both train_features and test_features, or neither')
 
-    # Résoudre les paramètres (CLI > config)
     optimize        = optimize        if optimize        is not None else cfg.pipeline.optimize
     use_log_target  = use_log_target  if use_log_target  is not None else cfg.pipeline.use_log_target
     use_smote       = use_smote       if use_smote       is not None else cfg.pipeline.use_smote
@@ -132,7 +118,6 @@ def run_pipeline(
     logger.info(f"   Options : optimize={optimize} | log_target={use_log_target} | smote={use_smote}")
     logger.info("=" * 50)
 
-    # Initialisation outils transversaux
     monitor = PipelineMonitor(output_dir=reports_dir)
     tracker = MLflowTracker(run_name="pipeline_v2")
     tracker.start()
@@ -159,7 +144,6 @@ def run_pipeline(
     report_path         = ""
     monitoring_path     = ""
     pi_cover            = {}
-    # Résultats des nouvelles étapes v3 (valeurs par défaut sûres)
     reg_registry_result = {"version": None, "promoted": False, "reason": "not_run"}
     clf_registry_result = {"version": None, "promoted": False, "reason": "not_run"}
     drift_report        = None
@@ -167,7 +151,6 @@ def run_pipeline(
 
     try:
 
-        # ÉTAPE 1 : Extraction OBT
         with monitor.step("1_extraction"):
             logger.info("\n" + "=" * 50)
             logger.info("📥 ÉTAPE 1: Extraction OBT")
@@ -181,7 +164,6 @@ def run_pipeline(
 
         tracker.log_params({"data.raw_rows": len(df), "data.raw_cols": len(df.columns)})
 
-        # ÉTAPE 2 : Validation des données
         with monitor.step("2_validation"):
             logger.info("\n" + "=" * 50)
             logger.info("🛡️  ÉTAPE 2: Validation des données")
@@ -199,7 +181,6 @@ def run_pipeline(
         if not validation_report.passed:
             logger.warning("⚠️  Validation échouée: vérifier les données avant de continuer.")
 
-        # ÉTAPE 3 : Nettoyage
         with monitor.step("3_cleaning"):
             logger.info("\n" + "=" * 50)
             logger.info("🧹 ÉTAPE 3: Nettoyage")
@@ -207,7 +188,6 @@ def run_pipeline(
             if not train_features:
                 df = clean_dataframe(df)
 
-        # ÉTAPE 4 : Split
         with monitor.step("4_split"):
             logger.info("\n" + "=" * 50)
             logger.info("✂️  ÉTAPE 4: Split train/test")
@@ -220,7 +200,6 @@ def run_pipeline(
             else:
                 df_train, df_test = split_data(df, test_size=test_size, random_state=random_state)
 
-        # ÉTAPE 5 : Feature Engineering
         with monitor.step("5_feature_engineering"):
             logger.info("\n" + "=" * 50)
             logger.info("⚙️  ÉTAPE 5: Feature Engineering")
@@ -233,7 +212,6 @@ def run_pipeline(
             else:
                 logger.info('Using prepared DVC features without recomputing feature engineering')
 
-        # ÉTAPE 6 : Encoding + Scaling
         with monitor.step("6_encoding_scaling"):
             logger.info("\n" + "=" * 50)
             logger.info("🔧 ÉTAPE 6: Encoding + Scaling")
@@ -248,9 +226,6 @@ def run_pipeline(
                 save_preprocessor=True,
             )
 
-        # Sauvegarder feature_names: critique pour SHAP et l'API
-        # preprocessor.pkl est déjà sauvegardé par prepare_data(),
-        # mais on le resauvegarde ici aussi pour garantir la cohérence API
         import os as _os
         _preproc_src = f"{models_dir}/preprocessor.pkl"
         if not _os.path.exists(_preproc_src):
@@ -262,7 +237,6 @@ def run_pipeline(
             "data.n_features": len(feature_names),
         })
 
-        # ÉTAPE 7 : Baselines
         with monitor.step("7_baselines"):
             logger.info("\n" + "=" * 50)
             logger.info("📏 ÉTAPE 7: Baseline Models")
@@ -276,7 +250,6 @@ def run_pipeline(
 
             tracker.log_baseline_results(baseline_reg, baseline_clf or None)
 
-        # ÉTAPE 8 : SMOTE
         X_train_clf = X_train_clf_raw.copy()
         if y_clf_train is not None:
             with monitor.step("8_smote"):
@@ -294,7 +267,6 @@ def run_pipeline(
                     "smote.strategy" : smote_report["sampling_strategy"],
                 })
 
-        # ÉTAPE 9A : Régression
         with monitor.step("9a_regression_train"):
             logger.info("\n" + "=" * 50)
             logger.info("📈 ÉTAPE 9A: Entraînement Régression")
@@ -315,13 +287,11 @@ def run_pipeline(
 
         tracker.log_regression_results(reg_metrics, reg_name)
 
-        # Sauvegardes régression: DEUX noms pour compatibilité API
         _save_reg(reg_model, f"{models_dir}/regression_model.pkl")
         _save_artifact(reg_model,   f"{models_dir}/best_regression_model.pkl")
         _save_artifact(reg_metrics, f"{models_dir}/regression_metrics.pkl")
         tracker.log_model(reg_model, "regression_model")
 
-        # Registry : enregistrer + promouvoir si meilleur
         reg_registry_result = {"version": None, "promoted": False, "reason": "skipped"}
         if tracker.run_id:
             reg_registry_result = auto_register_and_promote(
@@ -338,7 +308,6 @@ def run_pipeline(
                 f"{'🚀 promu Production' if reg_registry_result['promoted'] else '🟡 Staging'}"
             )
 
-        # ÉTAPE 9B : Classification
         clf_model = clf_name = label_enc = None
 
         if y_clf_train is not None:
@@ -361,14 +330,12 @@ def run_pipeline(
 
             tracker.log_classification_results(clf_metrics, clf_name)
 
-            # Sauvegardes classification: DEUX noms pour compatibilité API
             _save_clf(clf_model, label_enc, f"{models_dir}/classification_model.pkl")
             _save_artifact(clf_model,   f"{models_dir}/best_classification_model.pkl")
             _save_artifact(label_enc,   f"{models_dir}/label_encoder.pkl")
             _save_artifact(clf_metrics, f"{models_dir}/classification_metrics.pkl")
             tracker.log_model(clf_model, "classification_model")
 
-            # Registry : enregistrer + promouvoir si meilleur
             clf_registry_result = {"version": None, "promoted": False, "reason": "skipped"}
             if tracker.run_id:
                 clf_registry_result = auto_register_and_promote(
@@ -387,7 +354,6 @@ def run_pipeline(
         else:
             logger.warning("⚠️  Classification ignorée: cible non disponible dans l'OBT")
 
-        # ÉTAPE 10 : Prediction Intervals
         with monitor.step("10_prediction_intervals"):
             logger.info("\n" + "=" * 50)
             logger.info("📐 ÉTAPE 10: Intervalles de Prédiction (95% CI)")
@@ -407,10 +373,8 @@ def run_pipeline(
             })
             pi_examples = pi_df.head(10).to_dict(orient="records")
 
-            # Sauvegarde pi_builder: critique pour l'API
             _save_artifact(pi_builder, f"{models_dir}/pi_builder.pkl")
 
-        # ÉTAPE 11 : SHAP
         with monitor.step("11_shap"):
             logger.info("\n" + "=" * 50)
             logger.info("🔍 ÉTAPE 11: SHAP Interprétabilité")
@@ -430,7 +394,6 @@ def run_pipeline(
                 if path and str(path).endswith(".png"):
                     tracker.log_artifact(path, "shap_plots")
 
-        # ÉTAPE 12 : Visualisations
         if generate_plots:
             with monitor.step("12_plots"):
                 logger.info("\n" + "=" * 50)
@@ -442,21 +405,18 @@ def run_pipeline(
                 )
                 tracker.log_artifacts_dir(plots_dir, "plots")
 
-        # ÉTAPE 12A : Feature Store, écriture des features calculées
         fs_stats = {}
         with monitor.step("12a_feature_store"):
             logger.info("\n" + "=" * 50)
             logger.info("🏪 ÉTAPE 12A: Feature Store (écriture features)")
             logger.info("=" * 50)
             try:
-                # Reconstituer X_train en DataFrame avec les noms de features
                 X_train_df = (
                     pd.DataFrame(X_train, columns=feature_names)
                     if not isinstance(X_train, pd.DataFrame)
                     else X_train.copy()
                 )
 
-                # Écriture dans le Feature Store
                 store_path = os.path.join(models_dir, "..", "feature_store", "store.db")
                 fs_stats = pipeline_write_features(
                     df_train     = X_train_df,
@@ -465,7 +425,6 @@ def run_pipeline(
                     version      = "v1",
                 )
 
-                # Log dans MLflow
                 tracker.log_metrics({
                     "feature_store/n_groups"  : len(fs_stats),
                     "feature_store/total_rows": sum(s.n_rows for s in fs_stats.values()),
@@ -476,7 +435,6 @@ def run_pipeline(
             except Exception as fs_exc:
                 logger.warning(f"   ⚠️  Feature Store ignoré : {fs_exc}")
 
-        # ÉTAPE 12B : Drift Detection
         drift_report = None
         drift_report_path = None
         with monitor.step("12b_drift_detection"):
@@ -484,7 +442,6 @@ def run_pipeline(
             logger.info("🔍 ÉTAPE 12B: Drift Detection (Train vs Test)")
             logger.info("=" * 50)
             try:
-                # Initialiser le détecteur avec X_train comme référence
                 X_train_df = pd.DataFrame(X_train, columns=feature_names) if not isinstance(X_train, pd.DataFrame) else X_train
                 X_test_df  = pd.DataFrame(X_test,  columns=feature_names) if not isinstance(X_test,  pd.DataFrame) else X_test
 
@@ -493,7 +450,6 @@ def run_pipeline(
                     output_dir=reports_dir,
                 )
 
-                # Prédictions pour drift des outputs
                 reg_preds_train = reg_model.predict(X_train)
                 reg_preds_test  = reg_model.predict(X_test)
 
@@ -506,7 +462,6 @@ def run_pipeline(
 
                 drift_report_path = drift_report.save(reports_dir)
 
-                # Logger les métriques de drift dans MLflow
                 tracker.log_metrics({
                     "drift/dataset_psi"    : drift_report.dataset_psi,
                     "drift/n_drifted"      : drift_report.n_drifted,
@@ -524,7 +479,6 @@ def run_pipeline(
             except Exception as drift_exc:
                 logger.warning(f"   ⚠️  Drift Detection ignorée : {drift_exc}")
 
-        # ÉTAPE 13 : Rapport HTML + Monitoring
         with monitor.step("13_report"):
             logger.info("\n" + "=" * 50)
             logger.info("📄 ÉTAPE 13: Rapport HTML")
@@ -549,7 +503,6 @@ def run_pipeline(
             tracker.log_artifact(report_path,    "reports")
             tracker.log_artifact(monitoring_path, "reports")
 
-        # RÉSUMÉ FINAL
         monitor.print_summary()
         tracker.end(success=True)
 
@@ -624,11 +577,6 @@ def run_pipeline(
         monitor.print_summary()
         raise
 
-
-# 
-# CLI
-# 
-
 def _parse_args():
     p = argparse.ArgumentParser(
         description="Pipeline ML v2: Prix Immobilier Avito Maroc",
@@ -653,7 +601,6 @@ def _parse_args():
     p.add_argument("--test-size",  type=float, default=None)
     p.add_argument("--seed",       type=int,   default=None)
     return p.parse_args()
-
 
 if __name__ == "__main__":
     args = _parse_args()
