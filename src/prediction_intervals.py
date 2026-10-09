@@ -107,8 +107,12 @@ class PredictionIntervalBuilder:
         if not np.all(np.isfinite(residuals)):
             raise ValueError("Nonfinite calibration residuals")
 
-        self._residual_lower = float(np.quantile(residuals, self.alpha / 2))
-        self._residual_upper = float(np.quantile(residuals, 1 - self.alpha / 2))
+        import math
+        n = len(residuals)
+        rank = min(n, math.ceil((n + 1) * (1 - self.alpha)))
+        radius = float(np.partition(np.abs(residuals), rank - 1)[rank - 1])
+        self._residual_lower = -radius
+        self._residual_upper = radius
 
         logger.info(
             f"   PI quantile calibré : [{self._residual_lower:+,.0f}, {self._residual_upper:+,.0f}]"
