@@ -27,9 +27,7 @@ load_dotenv()
 
 logger = get_logger(__name__)
 
-# Colonnes minimum attendues: adaptées à la table OBT réelle
 REQUIRED_COLUMNS = ["prix", "surface_m2", "ville"]
-
 
 def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
     """
@@ -70,7 +68,6 @@ def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
                     f"❌ Impossible de se connecter à PostgreSQL après {max_retries} tentatives."
                 ) from exc
 
-
 def validate_schema(df: pd.DataFrame) -> None:
     """
     Vérifie que les colonnes essentielles sont présentes dans le DataFrame.
@@ -84,19 +81,15 @@ def validate_schema(df: pd.DataFrame) -> None:
         )
     logger.info(f"✅ Schéma validé: {len(df.columns)} colonnes présentes")
 
-
-# Allowlist des tables autorisées (anti SQL injection)
 ALLOWED_TABLES = {
     "ml_schema.feature_store",
     "ml_schema.obt",
     "public.real_estate",
 }
 
-# Allowlist des colonnes de filtre autorisées (anti SQL injection)
 ALLOWED_FILTER_COLS = {
     "ville", "type_bien", "region", "annee", "mois",
 }
-
 
 def _safe_table(table: str) -> str:
     """Valide le nom de table contre une allowlist: lève ValueError si non autorisé."""
@@ -106,7 +99,6 @@ def _safe_table(table: str) -> str:
             f"Tables autorisées : {sorted(ALLOWED_TABLES)}"
         )
     return table
-
 
 def _build_safe_query(
     table: str,
@@ -139,13 +131,11 @@ def _build_safe_query(
 
     return query, params
 
-
 def extract_obt(
     table: str = "ml_schema.feature_store",
     filter_col: str | None = None,
     filter_val: str | None = None,
     limit: int | None = None,
-    # Rétro-compatibilité : ancien paramètre filters ignoré avec warning
     filters: str | None = None,
 ) -> pd.DataFrame:
     """
@@ -182,10 +172,8 @@ def extract_obt(
         f"✅ {len(df):,} lignes extraites: {df.shape[1]} colonnes ({elapsed:.2f}s)"
     )
 
-    # Validation du schéma
     validate_schema(df)
 
-    # Rapport des valeurs manquantes
     missing_pct = df.isnull().mean() * 100
     top_missing = missing_pct[missing_pct > 0].sort_values(ascending=False)
     if not top_missing.empty:
@@ -194,7 +182,6 @@ def extract_obt(
             logger.info(f"   {col:<35s} {pct:.1f}%")
 
     return df
-
 
 def extract_sample(n: int = 1000) -> pd.DataFrame:
     """
@@ -217,12 +204,10 @@ def extract_sample(n: int = 1000) -> pd.DataFrame:
     finally:
         engine.dispose()
 
-    # Même validation que extract_obt(): garantit la cohérence train/test
     validate_schema(df)
 
     logger.info(f"✅ Échantillon extrait et validé : {df.shape}")
     return df
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract real estate data from PostgreSQL")
