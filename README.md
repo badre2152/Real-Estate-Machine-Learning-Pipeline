@@ -192,3 +192,7 @@ Classification currently predicts the property type from `type_bien`. The intern
 ## Classification artifacts
 
 Training saves a standalone classifier, a standalone label encoder, and a combined classification bundle. API startup can now load either standalone artifacts or extract the model and encoder from the combined bundle if needed. If a classifier is loaded without a label encoder, classification output is disabled rather than returning raw numeric class IDs as property types. Decode failures do not masquerade as valid property types. Saved artifact compatibility and runtime behavior have not been verified by executing the API.
+
+## Regression artifacts and prediction validation
+
+Training saves the regression estimator as both `regression_model.pkl` and `best_regression_model.pkl`. The API loads the preferred best-model file first, with the other as fallback. The prediction endpoint now rejects nonfinite or negative regression prices and inconsistent or nonfinite interval bounds; internal errors are not exposed to clients. The optional `pipeline.use_log_target` setting requires special attention: training can fit on log-transformed prices while the API currently interprets the raw estimator output as MAD. A consistent inverse transformation and artifact metadata still need to be implemented before enabling that setting in deployment. No training or runtime validation was performed.
