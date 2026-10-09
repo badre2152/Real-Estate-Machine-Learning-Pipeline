@@ -43,7 +43,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 from starlette import status
 
 from logger_setup import get_logger
@@ -249,9 +249,10 @@ async def check_rate_limit(api_key: str = Depends(require_api_key)) -> None:
 # 
 
 class PropertyInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     surface_m2: float = Field(..., gt=0, le=10_000)
     ville: str = Field(..., min_length=1)
-    type_bien: str
+    type_bien: str = Field(..., min_length=1)
     quartier: Optional[str] = Field(None, description="Quartier (optionnel)")
     nb_chambres: Optional[int] = Field(None, ge=0, le=20)
     nb_salles_bain: Optional[int] = Field(None, ge=0, le=10)
@@ -595,7 +596,7 @@ def _build_input_df(data: PropertyInput) -> pd.DataFrame:
         # Champs bruts
         "surface_m2"         : surface_m2,
         "ville"              : data.ville,
-        "quartier"           : getattr(data, "quartier", "Autre Secteur"),
+        "quartier"           : data.quartier or "Autre Secteur",
         "type_bien"          : data.type_bien,
         "nb_chambres"        : nb_chambres,
         "nb_salles_bain"     : nb_salles_bain,
