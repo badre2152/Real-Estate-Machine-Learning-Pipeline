@@ -62,25 +62,19 @@ def get_classification_models() -> dict:
     return models
 
 def encode_target(y_train, y_test):
-    """
-    Encode la variable cible en entiers avec ordre ordinal :
-    bas=0, moyen=1, élevé=2.
-    Les valeurs inconnues sont mappées sur 'moyen'.
-    """
-    le = LabelEncoder()
-    le.fit(ORDERED_CLASSES)
-
-    def _safe_transform(y):
-        mapping = {"luxe": "élevé", "luxury": "élevé"}
-        s = pd.Series(y).astype(str).str.lower().str.strip()
-        s = s.map(lambda v: mapping.get(v, v))
-        s = s.where(s.isin(ORDERED_CLASSES), other="moyen")
-        return le.transform(s)
-
-    y_tr = _safe_transform(y_train)
-    y_te = _safe_transform(y_test)
-    logger.info(f"   Classes encodées : {list(le.classes_)}")
-    return y_tr, y_te, le
+    train = pd.Series(y_train).astype("string").str.strip().str.lower()
+    test = pd.Series(y_test).astype("string").str.strip().str.lower()
+    if train.isna().any() or test.isna().any() or train.eq("").any() or test.eq("").any():
+        raise ValueError("Classification labels must be present")
+    encoder = LabelEncoder()
+    encoded_train = encoder.fit_transform(train)
+    if len(encoder.classes_) < 2:
+        raise ValueError("Classification requires at least two property types")
+    unknown = set(test.unique()) - set(encoder.classes_)
+    if unknown:
+        raise ValueError("Unseen property types in evaluation: " + ", ".join(sorted(unknown)))
+    encoded_test = encoder.transform(test)
+    return encoded_train, encoded_test, encoder
 
 def check_class_balance(y_enc, label_encoder) -> float:
     """Affiche la distribution des classes et retourne le ratio min/max."""
@@ -111,7 +105,7 @@ def train_classification(
         (best_model, best_name, label_encoder)
     """
     logger.info("\n" + "=" * 50)
-    logger.info("🧠 MODÈLE DE CLASSIFICATION: Catégorie de Prix")
+    logger.info("🧠 MODÈLE DE CLASSIFICATION: Type de Bien")
     logger.info("=" * 50)
 
     y_enc, _, le = encode_target(y_train, y_train)
@@ -170,10 +164,8 @@ def train_classification(
 
 def evaluate_classification(model, X_test, y_test, label_encoder):
     """Évalue le modèle de classification sur le test set."""
-    mapping = {"luxe": "élevé", "luxury": "élevé"}
-    _s = pd.Series(y_test).astype(str).str.lower().str.strip().map(lambda v: mapping.get(v, v))
-    _s = _s.where(_s.isin(ORDERED_CLASSES), other="moyen")
-    y_te_enc = label_encoder.transform(_s)
+    labels = pd.Series(y_test).astype("string").str.strip().str.lower()
+    y_te_enc = label_encoder.transform(labels)
     y_pred = model.predict(X_test)
 
     accuracy  = accuracy_score(y_te_enc, y_pred)
@@ -200,7 +192,7 @@ def evaluate_classification(model, X_test, y_test, label_encoder):
         logger.info(f"   ROC-AUC   : {roc_auc:.4f}")
     logger.info(
         "\n📋 Rapport détaillé :\n"
-        + classification_report(y_te_enc, y_pred, target_names=label_encoder.classes_)
+        + classification_report(y_te_enc, y_pred, labels=np.arange(len(label_encoder.classes_)), target_names=label_encoder.classes_, zero_division=0)
     )
 
     if f1 >= 0.85:
