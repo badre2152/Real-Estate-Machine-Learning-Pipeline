@@ -1,5 +1,3 @@
-# Dependencies for serving the FastAPI application and its model endpoints
-# Keep model serialization dependencies available at runtime.
 scikit-learn>=1.4.0
 xgboost>=2.0.0
 numpy>=1.26.0
