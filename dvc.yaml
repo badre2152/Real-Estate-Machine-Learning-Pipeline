@@ -47,6 +47,7 @@ stages:
       - config/config.yaml:
           - pipeline.test_size
           - pipeline.random_state
+          - prediction_intervals.method
     outs:
       - data/processed/train_fe.parquet:
           cache: true
@@ -54,9 +55,11 @@ stages:
           cache: true
       - data/processed/geo_stats.pkl:
           cache: true
+      - data/processed/calibration_fe.parquet:
+          cache: true
 
   train:
-    cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet --train-features data/processed/train_fe.parquet --test-features data/processed/test_fe.parquet
+    cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet --train-features data/processed/train_fe.parquet --test-features data/processed/test_fe.parquet --calibration-features data/processed/calibration_fe.parquet
     deps:
       - src/pipeline.py
       - src/regression.py
@@ -70,6 +73,7 @@ stages:
       - data/raw/obt.parquet
       - data/processed/train_fe.parquet
       - data/processed/test_fe.parquet
+      - data/processed/calibration_fe.parquet
       - reports/dvc/validation_report.json
     params:
       - config/config.yaml:
