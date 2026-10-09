@@ -158,3 +158,5 @@ Les fichiers de `reports/` actuellement versionnés sont des exemples historique
 
 **BRAHIM BADRE**  
 Data Analyst | Data Engineer
+
+Les nouveaux rapports produits par le pipeline sont enregistrés dans `reports/runtime/`, via `paths.reports_dir` de `config/config.yaml`. Les exemples historiques déjà suivis dans `reports/` sont conservés et ne sont plus écrasés par le pipeline avec la configuration par défaut. Le répertoire runtime est ignoré par Git. Les sorties de validation DVC restent séparées dans `reports/dvc/`.
