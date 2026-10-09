@@ -73,3 +73,7 @@ La configuration par défaut `paths.reports_dir` pointe désormais vers `reports
 ## Independent DVC calibration partition
 
 The `featurize` stage now reserves the quantile calibration subset before feature engineering, calculates geographic statistics from model training rows only, and saves `data/processed/calibration_fe.parquet` alongside the training and test files. The `train` stage consumes this dedicated file instead of splitting already engineered features. Preprocessing fits on training rows and transforms the calibration rows. DVC tracks the calibration file and the interval method parameter. With bootstrap intervals, the calibration file is an empty schema-compatible Parquet artifact and is not consumed. This change has not been executed or validated; regenerate DVC outputs and the trained models before deploying it.
+
+## DVC stage dependency audit
+
+The featurize stage depends on the validation report, and training tracks changes to preprocessing and feature engineering code. Training declares the regression estimator, metrics, and prediction interval artifact as reproducible outputs. The interval method, confidence level, and bootstrap count are tracked parameters. The interval builder now respects its explicitly supplied configuration instead of replacing the arguments with global defaults. A fresh DVC reproduction and model retraining are needed before deployment; no stages or tests were executed as part of this audit.
