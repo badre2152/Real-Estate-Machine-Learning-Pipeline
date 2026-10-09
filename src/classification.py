@@ -109,11 +109,14 @@ def train_classification(
     logger.info("=" * 50)
 
     y_enc, _, le = encode_target(y_train, y_train)
+    counts = np.bincount(y_enc)
+    if counts.min() < 2:
+        raise ValueError("At least two examples per property type are required")
     check_class_balance(y_enc, le)
 
     models  = get_classification_models()
     results = {}
-    skf     = StratifiedKFold(n_splits=5, shuffle=True, random_state=_RS)
+    skf = StratifiedKFold(n_splits=min(_CV, int(counts.min())), shuffle=True, random_state=_RS)
 
     for name, model in models.items():
         scores = cross_val_score(
