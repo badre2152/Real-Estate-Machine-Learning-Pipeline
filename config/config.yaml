@@ -26,7 +26,7 @@ pipeline:
 
 # Chemins de sortie
 paths:
-  models_dir: "models"
+  models_dir: "${MODELS_DIR:models}"
   plots_dir: "docs/plots"
   logs_dir: "logs"
   reports_dir: "reports/runtime"
