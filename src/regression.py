@@ -12,11 +12,9 @@ Améliorations v2 :
   - Logging structuré
 """
 
-# stdlib
 import pickle
 from typing import Optional
 
-# third-party
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -24,7 +22,6 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score, RandomizedSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# local
 from logger_setup import get_logger
 
 try:
@@ -37,7 +34,6 @@ except Exception:
 
 logger = get_logger(__name__)
 
-
 def _try_xgboost():
     try:
         from xgboost import XGBRegressor
@@ -46,12 +42,8 @@ def _try_xgboost():
         logger.warning("   ⚠️  xgboost non installé: ignoré (pip install xgboost)")
         return None
 
-
 def get_regression_models() -> dict:
     """Retourne le dictionnaire des modèles candidats."""
-    # n_jobs=1 sur les estimateurs: cross_val_score utilise n_jobs=-1 pour
-    # paralléliser les folds. Si l'estimateur ET cross_val_score sont tous les
-    # deux n_jobs=-1, on obtient un CPU oversubscription (N_folds × N_cores²).
     models = {
         "Ridge"            : Ridge(alpha=1.0),
         "RandomForest"     : RandomForestRegressor(n_estimators=100, random_state=_RS, n_jobs=1),
@@ -61,7 +53,6 @@ def get_regression_models() -> dict:
     if XGB:
         models["XGBoost"] = XGB(n_estimators=100, random_state=_RS, n_jobs=1, verbosity=0)
     return models
-
 
 def train_regression(
     X_train, y_train, use_log_target: bool = False
@@ -89,8 +80,6 @@ def train_regression(
     results = {}
 
     for name, model in models.items():
-        # n_jobs=-1 ici = parallélisme sur les folds (outer) uniquement
-        # Les estimateurs ont n_jobs=1 pour éviter le oversubscription
         scores = cross_val_score(model, X_train, y, cv=_CV, scoring="r2", n_jobs=-1)
         results[name] = scores.mean()
         logger.info(
@@ -103,7 +92,6 @@ def train_regression(
 
     best_model.fit(X_train, y)
     return best_model, best_name, use_log_target
-
 
 def optimize_model(model, X_train, y_train, n_iter: int = None):
     """
@@ -148,7 +136,6 @@ def optimize_model(model, X_train, y_train, n_iter: int = None):
     logger.info(f"   R² CV optimisé : {search.best_score_:.4f}")
     return search.best_estimator_
 
-
 def evaluate_regression(
     model,
     X_test,
@@ -173,7 +160,6 @@ def evaluate_regression(
     rmse = np.sqrt(mse)
     r2   = r2_score(y_true, y_pred)
 
-    # MAPE standard: exclure les valeurs nulles (division par zéro)
     nonzero_mask = np.abs(y_true) > np.finfo(float).eps
     mape = (
         np.mean(np.abs((y_true[nonzero_mask] - y_pred[nonzero_mask])
@@ -197,7 +183,6 @@ def evaluate_regression(
     else:
         logger.info("   🔴 Modèle faible: approfondir l'analyse")
 
-    # Vérification : le modèle doit battre les baselines
     if baseline_results:
         best_baseline_r2 = max(
             v.get("R2", -999) for v in baseline_results.values()
@@ -215,7 +200,6 @@ def evaluate_regression(
             )
 
     return {"MAE": mae, "MSE": mse, "RMSE": rmse, "MAPE": mape, "R2": r2}
-
 
 def get_feature_importance(model, feature_names: list, top_n: int = 15):
     """
@@ -238,13 +222,11 @@ def get_feature_importance(model, feature_names: list, top_n: int = 15):
         logger.info(f"   {feat:<35s} {bar} {imp:.4f}")
     return importances
 
-
 def save_model(model, path: str = "models/regression_model.pkl") -> None:
     """Sauvegarde le modèle entraîné sur disque."""
     with open(path, "wb") as f:
         pickle.dump(model, f)
     logger.info(f"💾 Modèle régression sauvegardé → {path}")
-
 
 def load_model(path: str = "models/regression_model.pkl"):
     """Charge un modèle depuis disque."""
