@@ -184,3 +184,7 @@ The preprocessing stage excludes price-derived inputs and geographic price stati
 ## Classification target
 
 The classification target is generated from `type_bien` only. Earlier fallbacks based on `piscine` or price bands could expose the label through model inputs or change the meaning of the target. If `type_bien` is absent, no classification target is synthesized. The geographic deviation feature that required the true price is no longer generated. The API field `price_category` currently refers to the classification prediction and may represent property type rather than a price band; its naming should be reviewed before a public API release. Existing training artifacts must be retrained before deployment. These changes have not been run or tested.
+
+## Classification response semantics
+
+Classification currently predicts the property type from `type_bien`. The internal training target remains named `categorie_prix` for compatibility with existing pipeline files, but it does not mean a price band. The prediction API now returns this value in `property_type`; the legacy `price_category` response field remains present with a null value to avoid falsely labelling a property type as a price band. Consumers should migrate to `property_type`. Retrain and redeploy model artifacts before relying on this output; older classifiers may represent a different target.
