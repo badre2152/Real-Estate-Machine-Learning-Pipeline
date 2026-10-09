@@ -163,12 +163,28 @@ async def load_models():
                     key, fname, type(exc).__name__
                 )
                 continue
+            if key == "clf_model" and isinstance(loaded_value, dict):
+                model = loaded_value.get("model")
+                encoder = loaded_value.get("label_encoder")
+                if model is None or encoder is None:
+                    logger.warning("Incomplete classification bundle: %s", fname)
+                    continue
+                _state["_bundled_label_encoder"] = encoder
+                loaded_value = model
             _state[key] = loaded_value
             logger.info("Loaded model artifact: %s", key)
             loaded = True
             break
         if not loaded:
             logger.warning("Model artifact unavailable: %s", key)
+
+    if _state["label_encoder"] is None:
+        _state["label_encoder"] = _state.pop("_bundled_label_encoder", None)
+    else:
+        _state.pop("_bundled_label_encoder", None)
+    if _state["clf_model"] is not None and _state["label_encoder"] is None:
+        logger.warning("Classification model disabled because its label encoder is missing")
+        _state["clf_model"] = None
 
     _state["loaded_at"] = datetime.now().isoformat()
     if _state["reg_model"] is None or _state["preprocessor"] is None:
@@ -406,10 +422,9 @@ async def predict(data: PropertyInput, request: Request):
             if _state["label_encoder"] is not None:
                 try:
                     category = str(_state["label_encoder"].inverse_transform([raw_pred])[0])
-                except Exception:
-                    category = str(raw_pred)
-            else:
-                category = str(raw_pred)
+                except (ValueError, TypeError, AttributeError) as exc:
+                    logger.warning("Classification decoding failed (%s)", type(exc).__name__)
+                    category = None
 
         _state["total_predictions"] += 1
         latency_ms = (time.perf_counter() - t0) * 1000
