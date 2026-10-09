@@ -79,7 +79,13 @@ def split_data(
     Returns:
         df_train, df_test: DataFrames bruts (non transformés)
     """
-    df_train, df_test = train_test_split(df, test_size=(test_size or _TS), random_state=(random_state or _RS))
+    effective_size = _TS if test_size is None else test_size
+    effective_state = _RS if random_state is None else random_state
+    if not 0 < effective_size < 1:
+        raise ValueError("test_size must be between zero and one")
+    if len(df) < 2:
+        raise ValueError("At least two rows are required to split data")
+    df_train, df_test = train_test_split(df, test_size=effective_size, random_state=effective_state)
     logger.info(f"   ✅ Split : {len(df_train):,} train | {len(df_test):,} test")
     return df_train.reset_index(drop=True), df_test.reset_index(drop=True)
 
