@@ -235,7 +235,6 @@ async def check_rate_limit(api_key: str = Depends(require_api_key)) -> None:
         )
 
 class PropertyInput(BaseModel):
-    model_config = ConfigDict(extra="forbid")
     surface_m2: float = Field(..., gt=0, le=10_000)
     ville: str = Field(..., min_length=1)
     type_bien: str = Field(..., min_length=1)
@@ -261,15 +260,13 @@ class PropertyInput(BaseModel):
             raise ValueError("type_bien must not be blank")
         return cleaned.lower()
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(extra="forbid", json_schema_extra={
             "example": {
                 "surface_m2": 120, "ville": "Casablanca",
                 "type_bien": "appartement", "nb_chambres": 3,
                 "nb_salles_bain": 2, "etage": 4, "age_bien": 10,
             }
-        }
-    }
+        })
 
 class PredictionResponse(BaseModel):
     request_id: str
