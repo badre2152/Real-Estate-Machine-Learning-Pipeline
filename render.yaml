@@ -1,33 +1,17 @@
-# 
-# render.yaml: Render Blueprint configuration
-#
-# كيفاش تستعمله:
-#   1. سجل في https://render.com (مجاني)
-#   2. New to Blueprint to ربط الـ GitHub repo
-#   3. Configure an existing PostgreSQL database in the Render Dashboard
-#   4. Render deploys the API service using the supplied credentials
-#
-# Variables اللي تحتاج تغيّرها في Dashboard:
-#   - API_KEYS          to كلمة السر ديال الـ API
-#   - DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
-# 
 
 services:
 
-  # API FastAPI
   - type: web
     name: avito-ml-api
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     dockerCommand: "uvicorn src.api:app --host 0.0.0.0 --port $PORT --workers 1"
-    # Review the current plan and resource limits before deployment
     plan: free
 
     healthCheckPath: /health
 
     envVars:
-      # Security: غيّر هذا في Render Dashboard
       - key: API_KEYS
         sync: false          # Render يطلب منك تكتبها يدوياً (أمان)
       - key: ENVIRONMENT
@@ -37,8 +21,6 @@ services:
       - key: CORS_ORIGINS
         sync: false
 
-      # Configure an existing PostgreSQL instance in the Render Dashboard.
-      # Do not commit database credentials to the repository.
       - key: DB_HOST
         sync: false
       - key: DB_PORT
@@ -50,7 +32,6 @@ services:
       - key: DB_PASSWORD
         sync: false
 
-      # App
       - key: MODELS_DIR
         value: /app/models
       - key: PYTHONPATH
