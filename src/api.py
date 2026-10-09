@@ -276,7 +276,7 @@ class PredictionResponse(BaseModel):
     interval_width: float
     property_type: Optional[str]
     price_category: Optional[str] = None
-    confidence_level: float = 0.95
+    confidence_level: Optional[float] = None
     formatted: str
     model_version: str = "3.0"
     latency_ms: float
@@ -431,6 +431,7 @@ async def predict(data: PropertyInput, request: Request):
             lower_95       = lower,
             upper_95       = upper,
             interval_width = upper - lower,
+            confidence_level = float(_state["pi_builder"].confidence_level) if _state["pi_builder"] is not None else None,
             property_type  = category,
             price_category = None,
             formatted      = f"{pred:,.0f} MAD [{lower:,.0f} à {upper:,.0f}]",
