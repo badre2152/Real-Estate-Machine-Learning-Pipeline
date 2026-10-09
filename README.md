@@ -176,3 +176,7 @@ Au démarrage, FastAPI tente de charger chaque artefact pickle depuis `MODELS_DI
 Les endpoints `/v1/predict` et `/v1/predict/batch` demandent désormais le modèle de régression et le préprocesseur. S'il manque l'un des deux, l'API retourne HTTP 503 avec un message générique et un request ID, au lieu de tenter une inférence sur des colonnes brutes. La version batch vérifie cette disponibilité avant de traiter les éléments. Les exceptions internes restent masquées au client. Aucun appel de prédiction n'a été exécuté pour vérifier le résultat.
 
 Pour `/v1/predict/batch`, la liste accepte de 1 à 100 objets. Chaque propriété est validée indépendamment avec `PropertyInput` : une propriété mal formée reçoit une entrée d'erreur contenant son index (indexation à partir de zéro) et les noms des champs concernés, tandis que les propriétés valides continuent. L'ordre des entrées de réponse correspond à celui des propriétés soumises. Les détails bruts de validation et les données envoyées ne sont pas exposés dans ces erreurs. Une structure de requête incorrecte (par exemple une liste absente) reste rejetée globalement par la validation HTTP.
+
+## Target leakage protection
+
+The preprocessing stage excludes price-derived inputs and geographic price statistics from model features. The API no longer supplies placeholder values for those inputs. Existing saved models and preprocessors must be retrained together before deployment, as the input schema may differ. No training or runtime verification has been performed for this change.
