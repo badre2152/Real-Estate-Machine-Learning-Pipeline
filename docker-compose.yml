@@ -1,18 +1,9 @@
 
-# docker-compose.yml v3: Avito Real Estate ML Platform
-# Services: PostgreSQL + API FastAPI + MLflow UI + Nginx
-#
-# Usage:
-#   docker compose up -d                  to API + DB + MLflow
-#   docker compose --profile train up     to + Pipeline training
-#   docker compose --profile nginx up     to + Nginx reverse proxy
-
 
 version: "3.9"
 
 services:
 
-  # PostgreSQL
   db:
     image: postgres:15-alpine
     container_name: avito_db
@@ -33,7 +24,6 @@ services:
     networks:
       - avito_net
 
-  # API FastAPI
   api:
     build:
       context: .
@@ -48,21 +38,17 @@ services:
       mlflow:
         condition: service_started
     environment:
-      # Database
       DB_HOST:     db
       DB_PORT:     5432
       DB_NAME:     ${DB_NAME}
       DB_USER:     ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
-      # API Security
       API_KEYS:              ${API_KEYS:?Set API_KEYS in .env}
       ENVIRONMENT:           ${ENVIRONMENT:-dev}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
       CORS_ORIGINS:          ${CORS_ORIGINS:-*}
-      # MLflow
       MLFLOW_TRACKING_URI: http://mlflow:5000
       MLFLOW_UI_URL:       http://mlflow:5000
-      # App
       MODELS_DIR: /app/models
       REPORTS_DIR: /app/reports/runtime
       LOG_LEVEL:  ${LOG_LEVEL:-INFO}
@@ -73,7 +59,6 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     healthcheck:
-      # API healthcheck
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
@@ -82,7 +67,6 @@ services:
     networks:
       - avito_net
 
-  # MLflow UI
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.11.3
     container_name: avito_mlflow
@@ -101,7 +85,6 @@ services:
     networks:
       - avito_net
 
-  # Pipeline ML (training)
   pipeline:
     build:
       context: .
@@ -135,7 +118,6 @@ services:
     profiles:
       - train
 
-  # Nginx Reverse Proxy (optional)
   nginx:
     image: nginx:alpine
     container_name: avito_nginx
@@ -154,7 +136,6 @@ services:
     profiles:
       - nginx
 
-# Volumes
 volumes:
   postgres_data:
     driver: local
@@ -163,7 +144,6 @@ volumes:
   reports_runtime:
     driver: local
 
-# Network
 networks:
   avito_net:
     driver: bridge
