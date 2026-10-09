@@ -41,7 +41,6 @@ try:
 except ImportError:
     MPL_AVAILABLE = False
 
-
 class SHAPExplainer:
     """
     Wrapper SHAP compatible Tree-based et modèles linéaires.
@@ -80,7 +79,6 @@ class SHAPExplainer:
         if not SHAP_AVAILABLE:
             return
 
-        # Sous-échantillonner pour accélérer
         bg = X_background
         if hasattr(bg, "shape") and bg.shape[0] > self.n_samples:
             idx = np.random.choice(bg.shape[0], self.n_samples, replace=False)
@@ -120,8 +118,6 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  SHAP explainer échoué : {exc}")
             return None
 
-    # Calcul des SHAP values
-
     def compute(self, X_test) -> Optional[np.ndarray]:
         """
         Calcule les SHAP values sur X_test.
@@ -130,7 +126,6 @@ class SHAPExplainer:
         if not SHAP_AVAILABLE or self.explainer is None:
             return None
 
-        # Sous-échantillonner le test pour la vitesse
         X = X_test
         if hasattr(X, "shape") and X.shape[0] > self.n_samples:
             idx = np.random.choice(X.shape[0], self.n_samples, replace=False)
@@ -140,7 +135,6 @@ class SHAPExplainer:
             logger.info(f"   Calcul SHAP values sur {X.shape[0]} échantillons ...")
             sv = self.explainer.shap_values(X)
 
-            # Pour les classifieurs multiclasses → prendre la dernière classe (élevé)
             if isinstance(sv, list):
                 sv = sv[-1]
 
@@ -152,8 +146,6 @@ class SHAPExplainer:
         except Exception as exc:
             logger.warning(f"   ⚠️  Calcul SHAP échoué : {exc}")
             return None
-
-    # Plots
 
     def plot_summary(self, output_dir: str, prefix: str = "") -> Optional[str]:
         """Summary plot (beeswarm): vue globale des features."""
@@ -231,8 +223,6 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  SHAP waterfall échoué : {exc}")
             return None
 
-    # Export des importance SHAP
-
     def get_feature_importance(self) -> Optional[pd.DataFrame]:
         """
         Retourne un DataFrame trié par importance SHAP moyenne (|SHAP|).
@@ -246,8 +236,6 @@ class SHAPExplainer:
             "shap_mean" : mean_abs,
         }).sort_values("shap_mean", ascending=False).reset_index(drop=True)
         return df
-
-    # Interface principale
 
     def run(
         self, X_test, output_dir: str = "docs/plots", prefix: str = ""
@@ -284,8 +272,6 @@ class SHAPExplainer:
             logger.info(f"   💾 SHAP importance → {csv_path}")
 
         return plots
-
-    # Helpers
 
     def _ready(self) -> bool:
         return SHAP_AVAILABLE and self.explainer is not None and self.shap_values is not None
