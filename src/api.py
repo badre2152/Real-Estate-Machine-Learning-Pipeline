@@ -520,10 +520,9 @@ def _build_input_df(data: PropertyInput) -> pd.DataFrame:
     surface_m2       = data.surface_m2
 
     surface_x_chambres  = surface_m2 * nb_chambres if nb_chambres else 0.0
-    surface_par_chambre = surface_m2 / nb_chambres if nb_chambres else 0.0
-    ratio_chambres_bains = (nb_chambres / nb_salles_bain
-                            if nb_salles_bain and nb_chambres else 0.0)
-    prix_par_m2 = 0.0  # inconnu à la prédiction
+    surface_par_chambre = surface_m2 / (nb_chambres + 1)
+    ratio_chambres_bains = nb_chambres / (nb_salles_bain + 1)
+    prix_par_m2 = 0.0
 
     geo_stats = _get_geo_stats_for_ville(data.ville)
 
