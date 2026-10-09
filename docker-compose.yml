@@ -64,9 +64,11 @@ services:
       MLFLOW_UI_URL:       http://mlflow:5000
       # App
       MODELS_DIR: /app/models
+      REPORTS_DIR: /app/reports/runtime
       LOG_LEVEL:  ${LOG_LEVEL:-INFO}
     volumes:
       - ./models:/app/models:ro
+      - reports_runtime:/app/reports/runtime:ro
       - ./logs:/app/logs
     ports:
       - "127.0.0.1:8000:8000"
@@ -125,6 +127,7 @@ services:
       - ./models:/app/models
       - ./logs:/app/logs
       - ./reports:/app/reports
+      - reports_runtime:/app/reports/runtime
       - ./docs/plots:/app/docs/plots
     networks:
       - avito_net
@@ -155,6 +158,8 @@ volumes:
   postgres_data:
     driver: local
   mlflow_data:
+    driver: local
+  reports_runtime:
     driver: local
 
 # Network
