@@ -201,6 +201,17 @@ def run_pipeline(
             else:
                 df_train, df_test = split_data(df, test_size=test_size, random_state=random_state)
 
+        calibration_df = None
+        if cfg.prediction_intervals.method == "quantile" and not train_features:
+            if len(df_train) < 12:
+                raise ValueError("Not enough rows for calibration")
+            from sklearn.model_selection import train_test_split
+            df_train, calibration_df = train_test_split(
+                df_train, test_size=0.2, random_state=random_state
+            )
+            df_train = df_train.reset_index(drop=True)
+            calibration_df = calibration_df.reset_index(drop=True)
+
         with monitor.step("5_feature_engineering"):
             logger.info("\n" + "=" * 50)
             logger.info("⚙️  ÉTAPE 5: Feature Engineering")
@@ -208,13 +219,14 @@ def run_pipeline(
             if not train_features:
                 df_train, geo_stats = engineer_features_train(df_train)
                 df_test = engineer_features_test(df_test, geo_stats)
+                if calibration_df is not None:
+                    calibration_df = engineer_features_test(calibration_df, geo_stats)
                 if "categorie_prix" in df_train.columns and "categorie_prix" not in df_test.columns:
                     df_test = add_classification_target(df_test)
             else:
                 logger.info('Using prepared DVC features without recomputing feature engineering')
 
-        calibration_df = None
-        if cfg.prediction_intervals.method == "quantile":
+        if cfg.prediction_intervals.method == "quantile" and train_features:
             if len(df_train) < 12:
                 raise ValueError("Not enough rows for calibration")
             from sklearn.model_selection import train_test_split
