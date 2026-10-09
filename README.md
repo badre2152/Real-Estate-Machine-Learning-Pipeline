@@ -195,4 +195,8 @@ Training saves a standalone classifier, a standalone label encoder, and a combin
 
 ## Regression artifacts and prediction validation
 
-Training saves the regression estimator as both `regression_model.pkl` and `best_regression_model.pkl`. The API loads the preferred best-model file first, with the other as fallback. The prediction endpoint now rejects nonfinite or negative regression prices and inconsistent or nonfinite interval bounds; internal errors are not exposed to clients. The optional `pipeline.use_log_target` setting requires special attention: training can fit on log-transformed prices while the API currently interprets the raw estimator output as MAD. A consistent inverse transformation and artifact metadata still need to be implemented before enabling that setting in deployment. No training or runtime validation was performed.
+Training saves the regression estimator as both `regression_model.pkl` and `best_regression_model.pkl`. The API loads the preferred best-model file first, with the other as fallback. The prediction endpoint now rejects nonfinite or negative regression prices and inconsistent or nonfinite interval bounds; internal errors are not exposed to clients. No training or runtime validation was performed.
+
+## Regression target scale
+
+The saved regression estimator now uses `PriceScaleRegressor`, which exposes predictions in MAD even when training uses a logarithmic target. The same estimator is used for API serving, drift predictions, evaluation plots, and prediction intervals. Hyperparameter search and initial regression evaluation remain on the original estimator before the wrapper is attached; SHAP also uses the underlying estimator. The wrapper must be saved and loaded alongside a compatible environment. Previously saved models must be retrained and replaced before enabling logarithmic target training. Runtime behavior has not been verified.
