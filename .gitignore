@@ -16,7 +16,6 @@ docs/plots/*.png
 Thumbs.db
 feature_store/*.db
 
-.env
 .env.local
 .env.production
 *.pem
@@ -24,7 +23,6 @@ feature_store/*.db
 nginx/certs/
 secrets/
 
-feature_store/*.db
 feature_store/*.db-shm
 feature_store/*.db-wal
 
