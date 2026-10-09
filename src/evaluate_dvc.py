@@ -4,7 +4,6 @@ import json
 import math
 from pathlib import Path
 
-
 def read_metric(section: dict, name: str) -> float:
     value = section.get(name)
     if not isinstance(value, (int, float)) or isinstance(value, bool):
@@ -13,7 +12,6 @@ def read_metric(section: dict, name: str) -> float:
     if not math.isfinite(result):
         raise ValueError(f"Nonfinite metric: {name}")
     return result
-
 
 def main() -> None:
     path = Path("models/results.json")
@@ -34,7 +32,6 @@ def main() -> None:
         f1 = read_metric(classification, "F1")
         accuracy = read_metric(classification, "Accuracy")
         print(f"Classification F1={f1:.4f}, Accuracy={accuracy:.4f}")
-
 
 if __name__ == "__main__":
     main()
