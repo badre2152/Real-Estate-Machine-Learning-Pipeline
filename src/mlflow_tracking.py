@@ -34,7 +34,6 @@ except ImportError:
     MLFLOW_AVAILABLE = False
     logger.warning("⚠️  mlflow non installé: tracking désactivé (pip install mlflow)")
 
-
 class MLflowTracker:
     """
     Wrapper MLflow avec fallback silencieux si mlflow n'est pas installé.
@@ -62,8 +61,6 @@ class MLflowTracker:
         self._run = None
         self._active = False
 
-    # Context manager
-
     def __enter__(self):
         self.start()
         return self
@@ -71,8 +68,6 @@ class MLflowTracker:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.end(success=(exc_type is None))
         return False  # ne supprime pas les exceptions
-
-    # Cycle de vie du run
 
     def start(self) -> None:
         if not MLFLOW_AVAILABLE:
@@ -100,14 +95,11 @@ class MLflowTracker:
         except Exception as exc:
             logger.warning(f"⚠️  MLflow end échoué : {type(exc).__name__}")
 
-    # Logging
-
     def log_params(self, params: dict[str, Any]) -> None:
         """Enregistre les paramètres du pipeline (hyperparamètres, options)."""
         if not MLFLOW_AVAILABLE or not self._active:
             return
         try:
-            # MLflow limite les params à 500 chars: tronquer si nécessaire
             safe = {k: str(v)[:500] for k, v in params.items()}
             mlflow.log_params(safe)
             logger.debug(f"   MLflow params : {list(safe.keys())}")
@@ -119,7 +111,6 @@ class MLflowTracker:
         if not MLFLOW_AVAILABLE or not self._active:
             return
         try:
-            # Filtrer les None (ex: ROC-AUC non calculable)
             clean = {k: float(v) for k, v in metrics.items() if v is not None}
             mlflow.log_metrics(clean, step=step)
             logger.debug(f"   MLflow metrics : {list(clean.keys())}")
@@ -169,8 +160,6 @@ class MLflowTracker:
             mlflow.set_tag(key, str(value))
         except Exception as exc:
             logger.warning(f"⚠️  mlflow.set_tag échoué : {type(exc).__name__}")
-
-    # Helpers pour le pipeline
 
     def log_pipeline_params(self, options: dict, data_info: dict) -> None:
         """Raccourci pour logger tous les paramètres pipeline en une fois."""
