@@ -32,7 +32,6 @@ from logger_setup import get_logger
 
 logger = get_logger(__name__)
 
-
 def _b64_image(path: str) -> Optional[str]:
     """Encode une image en base64 pour l'intégrer dans le HTML."""
     if not path or not os.path.exists(path):
@@ -43,7 +42,6 @@ def _b64_image(path: str) -> Optional[str]:
     mime = {"png": "image/png", "jpg": "image/jpeg", "svg": "image/svg+xml"}.get(ext, "image/png")
     return f"data:{mime};base64,{data}"
 
-
 def _metric_card(label: str, value, unit: str = "", color: str = "#4f46e5") -> str:
     fmt_value = f"{value:,.4f}" if isinstance(value, float) else str(value)
     return f"""
@@ -51,7 +49,6 @@ def _metric_card(label: str, value, unit: str = "", color: str = "#4f46e5") -> s
       <div class="metric-value" style="color:{color}">{fmt_value}{unit}</div>
       <div class="metric-label">{label}</div>
     </div>"""
-
 
 def _table_from_dict(data: dict, title: str = "") -> str:
     if not data:
@@ -66,7 +63,6 @@ def _table_from_dict(data: dict, title: str = "") -> str:
       <table><thead><tr><th>Métrique</th><th>Valeur</th></tr></thead>
       <tbody>{rows}</tbody></table>
     </div>"""
-
 
 def _baseline_comparison_table(model_metrics: dict, baselines: dict, metric_key: str) -> str:
     if not baselines:
@@ -87,7 +83,6 @@ def _baseline_comparison_table(model_metrics: dict, baselines: dict, metric_key:
       <thead><tr><th>Modèle</th><th>{metric_key}</th><th>Δ vs réel</th></tr></thead>
       <tbody>{rows}</tbody>
     </table>"""
-
 
 class ReportGenerator:
     """
@@ -169,7 +164,6 @@ class ReportGenerator:
 
         timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-        # Charger le rapport monitoring si disponible
         monitoring_data = {}
         if monitoring_path and os.path.exists(monitoring_path):
             with open(monitoring_path) as f:
@@ -209,8 +203,6 @@ class ReportGenerator:
 
         logger.info(f"   📄 Rapport HTML → {path}")
         return path
-
-    # Sections
 
     def _section_summary(self, reg: dict, clf: dict) -> str:
         reg  = reg  or {}
