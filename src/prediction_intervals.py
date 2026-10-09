@@ -15,7 +15,6 @@ Usage :
     builder = PredictionIntervalBuilder(method="bootstrap", n_bootstrap=200)
     builder.fit(model, X_train, y_train)
     df_pred = builder.predict_with_interval(X_test)
-    # → DataFrame avec colonnes: prediction, lower, upper, interval_width
 """
 
 import numpy as np
@@ -25,11 +24,6 @@ from typing import Optional, Tuple
 from logger_setup import get_logger
 
 logger = get_logger(__name__)
-
-
-# 
-# Builder principal
-# 
 
 class PredictionIntervalBuilder:
     """
@@ -69,7 +63,6 @@ class PredictionIntervalBuilder:
         self.alpha        = 1 - self.confidence_level
         self._fitted      = False
 
-        # Stockage interne selon la méthode
         self._residual_lower: Optional[float] = None
         self._residual_upper: Optional[float] = None
         self._bootstrap_models: list = []
@@ -79,8 +72,6 @@ class PredictionIntervalBuilder:
             f"   PredictionIntervals : method={self.method}, "
             f"CI={self.confidence_level:.0%}, alpha={self.alpha:.3f}"
         )
-
-    # Fit
 
     def fit(self, model, X_train, y_train) -> "PredictionIntervalBuilder":
         """
@@ -141,8 +132,6 @@ class PredictionIntervalBuilder:
 
         logger.info(f"   ✅ {self.n_bootstrap} modèles bootstrap entraînés")
 
-    # Predict
-
     def predict_with_interval(self, X_test) -> pd.DataFrame:
         """
         Génère des prédictions avec intervalles de confiance.
@@ -169,16 +158,12 @@ class PredictionIntervalBuilder:
             lower = np.quantile(all_preds, self.alpha / 2, axis=1)
             upper = np.quantile(all_preds, 1 - self.alpha / 2, axis=1)
 
-        # Sanity checks, prix immobilier toujours positif
-        # lower < 0 possible si les résidus sont très négatifs → clip à 0
         lower = np.maximum(lower, 0.0)
-        # Garantir lower <= prediction <= upper (interval ne doit pas être inversé)
         lower = np.minimum(lower, point_pred)
         upper = np.maximum(upper, point_pred)
 
         interval_width = upper - lower
 
-        # Vérifier que l'intervalle n'est pas vide (upper > lower)
         n_degenerate = int(np.sum(interval_width <= 0))
         if n_degenerate > 0:
             logger.warning(
@@ -193,7 +178,6 @@ class PredictionIntervalBuilder:
             "interval_width" : interval_width,
         })
 
-        # Statistiques de l'intervalle
         mean_width = df["interval_width"].mean()
         logger.info(
             f"   PI {self.confidence_level:.0%} : largeur moyenne = {mean_width:,.0f} MAD | "
@@ -201,8 +185,6 @@ class PredictionIntervalBuilder:
         )
 
         return df
-
-    # Rapport
 
     def evaluate_coverage(
         self, X_test, y_test
@@ -247,11 +229,6 @@ class PredictionIntervalBuilder:
             f"[{row['lower']:,.0f} à {row['upper']:,.0f}] "
             f"(±{row['interval_width']/2:,.0f})"
         )
-
-
-# 
-# Fonction utilitaire rapide
-# 
 
 def predict_with_ci(
     model,
