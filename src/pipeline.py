@@ -261,6 +261,15 @@ def run_pipeline(
             "data.n_features": len(feature_names),
         })
 
+        classification_counts = (
+            y_clf_train.astype("string").str.strip().str.lower().value_counts()
+            if y_clf_train is not None else pd.Series(dtype="int64")
+        )
+        classification_enabled = len(classification_counts) >= 2 and classification_counts.min() >= 2
+        if not classification_enabled:
+            y_clf_train = None
+            y_clf_test = None
+
         with monitor.step("7_baselines"):
             logger.info("\n" + "=" * 50)
             logger.info("📏 ÉTAPE 7: Baseline Models")
@@ -340,14 +349,7 @@ def run_pipeline(
 
         clf_model = clf_name = label_enc = None
 
-        classification_counts = (
-            y_clf_train.astype("string").str.strip().str.lower().value_counts()
-            if y_clf_train is not None else pd.Series(dtype="int64")
-        )
-        can_train_classification = (
-            len(classification_counts) >= 2 and classification_counts.min() >= 2
-        )
-        if can_train_classification:
+        if classification_enabled:
             with monitor.step("9b_classification_train"):
                 logger.info("\n" + "=" * 50)
                 logger.info("🧠 ÉTAPE 9B: Entraînement Classification")
