@@ -188,3 +188,7 @@ The classification target is generated from `type_bien` only. Earlier fallbacks 
 ## Classification response semantics
 
 Classification currently predicts the property type from `type_bien`. The internal training target remains named `categorie_prix` for compatibility with existing pipeline files, but it does not mean a price band. The prediction API now returns this value in `property_type`; the legacy `price_category` response field remains present with a null value to avoid falsely labelling a property type as a price band. Consumers should migrate to `property_type`. Retrain and redeploy model artifacts before relying on this output; older classifiers may represent a different target.
+
+## Classification artifacts
+
+Training saves a standalone classifier, a standalone label encoder, and a combined classification bundle. API startup can now load either standalone artifacts or extract the model and encoder from the combined bundle if needed. If a classifier is loaded without a label encoder, classification output is disabled rather than returning raw numeric class IDs as property types. Decode failures do not masquerade as valid property types. Saved artifact compatibility and runtime behavior have not been verified by executing the API.
