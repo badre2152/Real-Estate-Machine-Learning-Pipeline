@@ -554,7 +554,7 @@ def _build_input_df(data: PropertyInput) -> pd.DataFrame:
         "type_bien"          : data.type_bien,
         "nb_chambres"        : nb_chambres,
         "nb_salles_bain"     : nb_salles_bain,
-        "etage"              : str(data.etage) if data.etage is not None else "",
+        "etage"              : data.etage if data.etage is not None else np.nan,
         "age_bien"           : data.age_bien if data.age_bien is not None else None,
         "annee_construction" : None,
         "region_label"       : None,
