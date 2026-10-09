@@ -318,7 +318,8 @@ def run_pipeline(
             regression_X = X_train
             regression_y = y_reg_train
             reg_model, reg_name, _ = train_regression(
-                regression_X, regression_y, use_log_target=use_log_target
+                regression_X, regression_y, use_log_target=use_log_target,
+                cv_frame=df_train,
             )
             if optimize:
                 y_opt = np.log1p(regression_y) if use_log_target else regression_y
