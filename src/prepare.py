@@ -185,6 +185,11 @@ def prepare_data(
         y_clf_train = None
         y_clf_test = None
 
+    if df_train_fe.empty or df_test_fe.empty:
+        raise ValueError("Empty training or test partition")
+    if calibration_df is not None and calibration_df.empty:
+        raise ValueError("Empty calibration partition")
+
     numeric_cols, categorical_cols = detect_column_types(df_train_fe)
 
     numeric_cols     = [c for c in numeric_cols     if c in df_test_fe.columns]
