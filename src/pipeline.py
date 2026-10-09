@@ -165,9 +165,7 @@ def run_pipeline(
             df = pd.read_parquet(input_parquet) if input_parquet else extract_obt(table=table)
 
         if df.empty:
-            logger.error("❌ DataFrame vide: vérifier la base de données.")
-            tracker.end(success=False)
-            return {}
+            raise ValueError("Input dataset is empty")
 
         tracker.log_params({"data.raw_rows": len(df), "data.raw_cols": len(df.columns)})
 
