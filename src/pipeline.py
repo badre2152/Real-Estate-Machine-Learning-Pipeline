@@ -48,6 +48,7 @@ from regression import (
     evaluate_regression,
     get_feature_importance,
     optimize_model,
+    PriceScaleRegressor,
     save_model as _save_reg,
     train_regression,
 )
@@ -287,6 +288,10 @@ def run_pipeline(
 
         tracker.log_regression_results(reg_metrics, reg_name)
 
+        reg_model_raw = reg_model
+        reg_model = PriceScaleRegressor(reg_model_raw, log_target=bool(use_log_target))
+        reg_model.estimator_ = reg_model_raw
+
         _save_reg(reg_model, f"{models_dir}/regression_model.pkl")
         _save_artifact(reg_model,   f"{models_dir}/best_regression_model.pkl")
         _save_artifact(reg_metrics, f"{models_dir}/regression_metrics.pkl")
@@ -380,7 +385,7 @@ def run_pipeline(
             logger.info("🔍 ÉTAPE 11: SHAP Interprétabilité")
             logger.info("=" * 50)
             shap_exp = SHAPExplainer(
-                model        = reg_model,
+                model        = reg_model_raw,
                 X_background = X_train,
                 feature_names= feature_names,
             )
