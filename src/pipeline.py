@@ -323,7 +323,9 @@ def run_pipeline(
             )
             if optimize:
                 y_opt = np.log1p(regression_y) if use_log_target else regression_y
-                reg_model = optimize_model(reg_model, regression_X, y_opt)
+                reg_model = optimize_model(
+                    reg_model, regression_X, y_opt, cv_frame=df_train
+                )
 
         with monitor.step("9a_regression_eval"):
             reg_metrics = evaluate_regression(reg_model, X_test, y_reg_test, use_log_target)
