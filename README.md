@@ -212,3 +212,7 @@ When quantile intervals are enabled, the regression stage reserves 20% of the tr
 ## Calibration preprocessing isolation
 
 For quantile intervals, calibration rows are now reserved before fitting the imputer, scaler, and one hot encoder. `prepare_data` fits on model training rows and only transforms the held out calibration rows. The regression estimator also trains without those calibration rows, while the final test set remains untouched. Feature engineering still runs before this secondary calibration split, including geographic statistics derived from the initial training partition. These geographic price aggregates are excluded from model inputs, but full end to end isolation of all feature engineering has not been established. Retraining is required and runtime execution has not been verified.
+
+## Calibration and feature engineering
+
+For direct pipeline execution with quantile intervals, calibration rows are separated from training before feature engineering. Geographic statistics are fitted using the model training portion only and applied to calibration and test rows without fitting again. Preprocessing also fits on model training rows only. In the DVC route, prepared feature files are generated before the calibration split; their geographic price statistics still include calibration rows, but these statistics are explicitly excluded from model inputs by `prepare.py`. Full separation in the DVC feature artifact stage remains to be implemented. Existing models and interval artifacts need retraining. The changes have not been executed.
