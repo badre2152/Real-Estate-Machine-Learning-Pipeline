@@ -93,7 +93,14 @@ stages:
           - smote.k_neighbors
           - prediction_intervals.method
           - prediction_intervals.confidence_level
+          - prediction_intervals.n_bootstrap
     outs:
+      - models/regression_model.pkl:
+          cache: true
+      - models/regression_metrics.pkl:
+          cache: true
+      - models/pi_builder.pkl:
+          cache: true
       - models/best_regression_model.pkl:
           cache: true
       - models/preprocessor.pkl:
