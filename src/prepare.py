@@ -47,8 +47,8 @@ EXCLUDE_FROM_FEATURES = {
     "ville_rang_prix",
     "region_prix_median",
     "id", "url", "titre", "description",
-    "date_annonce", "created_at", "date_scraping",  # brutes → remplacées par les dérivées
-    "type_bien",          # source de la cible classification
+    "date_annonce", "created_at", "date_scraping",
+    "type_bien",
 }
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -178,9 +178,12 @@ def prepare_data(
 
     y_clf_train = df_train_fe.get(TARGET_CLASSIFICATION)
     y_clf_test  = df_test_fe.get(TARGET_CLASSIFICATION)
-    if y_clf_train is not None:
+    if y_clf_train is not None and y_clf_test is not None:
         y_clf_train = y_clf_train.reset_index(drop=True)
-        y_clf_test  = y_clf_test.reset_index(drop=True)
+        y_clf_test = y_clf_test.reset_index(drop=True)
+    else:
+        y_clf_train = None
+        y_clf_test = None
 
     numeric_cols, categorical_cols = detect_column_types(df_train_fe)
 
