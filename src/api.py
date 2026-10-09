@@ -410,11 +410,18 @@ async def predict(data: PropertyInput, request: Request):
         X = _state["preprocessor"].transform(row)
         pred = float(_state["reg_model"].predict(X)[0])
 
+        if not np.isfinite(pred) or pred < 0:
+            raise ValueError("Invalid regression prediction")
+
         lower, upper = pred, pred
         if _state["pi_builder"] is not None:
             pi_df = _state["pi_builder"].predict_with_interval(X)
             lower = float(pi_df["lower"].iloc[0])
             upper = float(pi_df["upper"].iloc[0])
+            if not np.isfinite(lower) or not np.isfinite(upper):
+                raise ValueError("Nonfinite prediction interval")
+            if lower > upper or not (lower <= pred <= upper):
+                raise ValueError("Inconsistent prediction interval")
 
         category = None
         if _state["clf_model"] is not None:
