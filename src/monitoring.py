@@ -92,7 +92,7 @@ class PipelineMonitor:
     Thread-safe pour une utilisation dans des pipelines séquentiels.
     """
 
-    def __init__(self, output_dir: str = "reports"):
+    def __init__(self, output_dir: str | None = None):
         try:
             from config_loader import cfg
             self.alert_r2  = float(cfg.monitoring.alert_r2_threshold)
@@ -103,7 +103,7 @@ class PipelineMonitor:
             self.alert_r2  = 0.50
             self.alert_f1  = 0.50
             self.log_steps = True
-            self.output_dir = output_dir
+            self.output_dir = output_dir or "reports/runtime"
 
         self._steps: list[StepTiming] = []
         self._alerts: list[MetricAlert] = []
