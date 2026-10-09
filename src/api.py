@@ -164,21 +164,36 @@ async def load_models():
     }
 
     for key, candidates in files.items():
+        _state[key] = {} if key in ("reg_metrics", "clf_metrics") else None
         loaded = False
         for fname in candidates:
             path = _MODELS_DIR / fname
-            if path.exists():
-                with open(path, "rb") as f:
-                    _state[key] = pickle.load(f)
-                logger.info(f"   ✅ {key} ← {path}")
-                loaded = True
-                break
+            if not path.is_file():
+                continue
+            try:
+                with path.open("rb") as model_file:
+                    loaded_value = pickle.load(model_file)
+                if key in ("reg_metrics", "clf_metrics") and not isinstance(loaded_value, dict):
+                    raise ValueError("Metrics artifact must be a dictionary")
+            except (OSError, pickle.UnpicklingError, EOFError, ImportError,
+                    AttributeError, ValueError, TypeError) as exc:
+                logger.warning(
+                    "Could not load %s from %s (%s)",
+                    key, fname, type(exc).__name__
+                )
+                continue
+            _state[key] = loaded_value
+            logger.info("Loaded model artifact: %s", key)
+            loaded = True
+            break
         if not loaded:
-            logger.warning(f"   ⚠️  {key} introuvable (testé : {candidates})")
+            logger.warning("Model artifact unavailable: %s", key)
 
     _state["loaded_at"] = datetime.now().isoformat()
-    logger.info("✅ API v3 prête")
-
+    if _state["reg_model"] is None or _state["preprocessor"] is None:
+        logger.warning("API started without required prediction artifacts")
+    else:
+        logger.info("API prediction artifacts loaded")
 
 # 
 # Sécurité: API Key + Rate Limit
@@ -352,7 +367,7 @@ async def ready():
         "preprocessor"        : _state["preprocessor"] is not None,
         "pi_builder"          : _state["pi_builder"] is not None,
     }
-    is_ready = models_status["regression_model"]
+    is_ready = models_status["regression_model"] and models_status["preprocessor"]
     response_data = {
         "ready"            : is_ready,
         "models_loaded"    : models_status,
