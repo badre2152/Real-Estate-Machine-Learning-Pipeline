@@ -40,7 +40,7 @@ COPY src/        ./src/
 COPY config/     ./config/
 
 # Directories + non-root user
-RUN mkdir -p models logs reports docs/plots mlruns \
+RUN mkdir -p models logs reports/runtime docs/plots mlruns \
     && useradd --no-create-home --shell /bin/false mluser \
     && chown -R mluser:mluser /app
 
