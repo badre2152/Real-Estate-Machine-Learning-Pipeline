@@ -39,6 +39,7 @@ stages:
     cmd: python src/featurize_dvc.py
     deps:
       - data/raw/obt.parquet
+      - reports/dvc/validation_report.json
       - src/featurize_dvc.py
       - src/features.py
       - src/prepare.py
@@ -62,6 +63,8 @@ stages:
     cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet --train-features data/processed/train_fe.parquet --test-features data/processed/test_fe.parquet --calibration-features data/processed/calibration_fe.parquet
     deps:
       - src/pipeline.py
+      - src/prepare.py
+      - src/features.py
       - src/regression.py
       - src/classification.py
       - src/baselines.py
