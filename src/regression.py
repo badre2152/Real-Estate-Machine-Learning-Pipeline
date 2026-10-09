@@ -155,7 +155,7 @@ def train_regression(
     best_model.fit(X_train, y)
     return best_model, best_name, use_log_target
 
-def optimize_model(model, X_train, y_train, n_iter: int = None):
+def optimize_model(model, X_train, y_train, n_iter: int = None, cv_frame=None):
     """
     Optimise les hyperparamètres via RandomizedSearchCV.
     Plus rapide que GridSearchCV, aussi efficace en pratique.
@@ -189,14 +189,42 @@ def optimize_model(model, X_train, y_train, n_iter: int = None):
         logger.warning(f"   ⚠️  Pas de grille pour {model_name}: optimisation ignorée")
         return model
 
+    search_model = model
+    search_features = X_train
+    if cv_frame is not None:
+        from sklearn.base import clone
+        from sklearn.pipeline import Pipeline
+        from prepare import build_preprocessor, detect_column_types
+
+        numeric_cols, categorical_cols = detect_column_types(cv_frame)
+        selected_cols = numeric_cols + categorical_cols
+        if not selected_cols:
+            raise ValueError("Cross-validation requires usable features")
+        search_features = cv_frame[selected_cols]
+        search_model = Pipeline([
+            ("preprocessor", build_preprocessor(numeric_cols, categorical_cols)),
+            ("estimator", clone(model)),
+        ])
+        param_dist = {
+            f"estimator__{key}": values for key, values in param_dist.items()
+        }
+
     search = RandomizedSearchCV(
-        model, param_dist, n_iter=(n_iter or _NIT), cv=_CV,
+        search_model, param_dist, n_iter=(n_iter or _NIT), cv=_CV,
         scoring="r2", random_state=_RS, n_jobs=-1, verbose=0,
     )
-    search.fit(X_train, y_train)
-    logger.info(f"   ✅ Meilleurs paramètres : {search.best_params_}")
-    logger.info(f"   R² CV optimisé : {search.best_score_:.4f}")
-    return search.best_estimator_
+    search.fit(search_features, y_train)
+    logger.info("Optimized CV score: %.4f", search.best_score_)
+    if cv_frame is None:
+        return search.best_estimator_
+
+    best_params = {
+        key.removeprefix("estimator__"): value
+        for key, value in search.best_params_.items()
+    }
+    tuned_model = clone(model).set_params(**best_params)
+    tuned_model.fit(X_train, y_train)
+    return tuned_model
 
 def evaluate_regression(
     model,
