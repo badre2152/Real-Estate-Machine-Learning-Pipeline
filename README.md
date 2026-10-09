@@ -160,3 +160,5 @@ Les fichiers de `reports/` actuellement versionnés sont des exemples historique
 Data Analyst | Data Engineer
 
 Les nouveaux rapports produits par le pipeline sont enregistrés dans `reports/runtime/`, via `paths.reports_dir` de `config/config.yaml`. Les exemples historiques déjà suivis dans `reports/` sont conservés et ne sont plus écrasés par le pipeline avec la configuration par défaut. Le répertoire runtime est ignoré par Git. Les sorties de validation DVC restent séparées dans `reports/dvc/`.
+
+Les endpoints API qui consultent les rapports de drift utilisent `REPORTS_DIR` s'il est défini, sinon `reports/runtime/`. Les composants Monitoring et Drift Detection utilisent également ce répertoire par défaut. Attention : dans Docker Compose, l'API et le pipeline doivent partager explicitement le même stockage de rapports pour que l'API puisse lire les rapports créés par le pipeline ; un chemin identique dans deux conteneurs isolés ne suffit pas. Aucun volume partagé n'a été ajouté pendant cette modification.
