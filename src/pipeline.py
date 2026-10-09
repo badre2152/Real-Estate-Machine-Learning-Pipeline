@@ -213,19 +213,31 @@ def run_pipeline(
             else:
                 logger.info('Using prepared DVC features without recomputing feature engineering')
 
+        calibration_df = None
+        if cfg.prediction_intervals.method == "quantile":
+            if len(df_train) < 12:
+                raise ValueError("Not enough rows for calibration")
+            from sklearn.model_selection import train_test_split
+            df_train, calibration_df = train_test_split(
+                df_train, test_size=0.2, random_state=random_state
+            )
+            df_train = df_train.reset_index(drop=True)
+            calibration_df = calibration_df.reset_index(drop=True)
+
         with monitor.step("6_encoding_scaling"):
             logger.info("\n" + "=" * 50)
             logger.info("🔧 ÉTAPE 6: Encoding + Scaling")
             logger.info("=" * 50)
-            (X_train, X_test,
-             y_reg_train, y_reg_test,
-             y_clf_train, y_clf_test,
-             feature_names, X_train_clf_raw) = prepare_data(
+            prepared = prepare_data(
                 df_train, df_test,
                 use_smote=False,       # SMOTE géré séparément ci-dessous
                 random_state=random_state,
                 save_preprocessor=True,
+                calibration_df=calibration_df,
             )
+            (X_train, X_test, y_reg_train, y_reg_test,
+             y_clf_train, y_clf_test, feature_names, X_train_clf_raw) = prepared[:8]
+            X_cal, y_cal = prepared[8:] if calibration_df is not None else (None, None)
 
         import os as _os
         _preproc_src = f"{models_dir}/preprocessor.pkl"
@@ -275,18 +287,6 @@ def run_pipeline(
             import numpy as np
             regression_X = X_train
             regression_y = y_reg_train
-            X_cal = y_cal = None
-            if cfg.prediction_intervals.method == "quantile":
-                if len(X_train) < 12:
-                    raise ValueError("Not enough training samples for independent interval calibration")
-                from sklearn.model_selection import train_test_split
-                indices_fit, indices_cal = train_test_split(
-                    np.arange(len(X_train)), test_size=0.2, random_state=random_state
-                )
-                regression_X = X_train.iloc[indices_fit]
-                regression_y = y_reg_train.iloc[indices_fit]
-                X_cal = X_train.iloc[indices_cal]
-                y_cal = y_reg_train.iloc[indices_cal]
             reg_model, reg_name, _ = train_regression(
                 regression_X, regression_y, use_log_target=use_log_target
             )
