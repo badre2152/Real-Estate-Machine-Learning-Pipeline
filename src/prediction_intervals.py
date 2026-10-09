@@ -73,7 +73,7 @@ class PredictionIntervalBuilder:
             f"CI={self.confidence_level:.0%}, alpha={self.alpha:.3f}"
         )
 
-    def fit(self, model, X_train, y_train) -> "PredictionIntervalBuilder":
+    def fit(self, model, X_train, y_train, X_cal=None, y_cal=None) -> "PredictionIntervalBuilder":
         """
         Calibre les intervalles de prédiction sur les données d'entraînement.
 
@@ -89,7 +89,9 @@ class PredictionIntervalBuilder:
         self._base_model = model
 
         if self.method == "quantile":
-            self._fit_quantile(model, X_train, y_train)
+            if X_cal is None or y_cal is None or len(y_cal) < 2:
+                raise ValueError("Quantile calibration requires an independent calibration set")
+            self._fit_quantile(model, X_cal, y_cal)
         elif self.method == "bootstrap":
             self._fit_bootstrap(model, X_train, y_train)
         else:
@@ -98,11 +100,13 @@ class PredictionIntervalBuilder:
         self._fitted = True
         return self
 
-    def _fit_quantile(self, model, X_train, y_train) -> None:
+    def _fit_quantile(self, model, X_cal, y_cal) -> None:
         """Calcule les quantiles des résidus sur le train."""
         logger.info("   PI : calibration quantile des résidus ...")
-        y_pred_train = model.predict(X_train)
-        residuals    = np.array(y_train) - y_pred_train
+        y_pred_cal = model.predict(X_cal)
+        residuals = np.asarray(y_cal) - y_pred_cal
+        if not np.all(np.isfinite(residuals)):
+            raise ValueError("Nonfinite calibration residuals")
 
         self._residual_lower = float(np.quantile(residuals, self.alpha / 2))
         self._residual_upper = float(np.quantile(residuals, 1 - self.alpha / 2))
@@ -242,6 +246,8 @@ def predict_with_ci(
     X_test,
     method: str = "quantile",
     confidence: float = 0.95,
+    X_cal=None,
+    y_cal=None,
 ) -> pd.DataFrame:
     """
     Raccourci : calibre et prédit avec intervalles en une seule ligne.
@@ -252,5 +258,5 @@ def predict_with_ci(
     builder = PredictionIntervalBuilder(
         method=method, confidence_level=confidence
     )
-    builder.fit(model, X_train, y_train)
+    builder.fit(model, X_train, y_train, X_cal=X_cal, y_cal=y_cal)
     return builder.predict_with_interval(X_test)
