@@ -37,11 +37,6 @@ except ImportError:
     GE_AVAILABLE = False
     logger.debug("great_expectations non installé: validation personnalisée uniquement")
 
-
-# 
-# Structures de résultat
-# 
-
 @dataclass
 class ValidationResult:
     """Résultat d'un test de validation individuel."""
@@ -50,7 +45,6 @@ class ValidationResult:
     message: str
     severity: str = "error"   # "error" | "warning" | "info"
     details: dict = field(default_factory=dict)
-
 
 @dataclass
 class ValidationReport:
@@ -99,11 +93,6 @@ class ValidationReport:
             ],
         }
 
-
-# 
-# Validateur principal
-# 
-
 class DataValidator:
     """
     Validateur de données configurable.
@@ -136,10 +125,7 @@ class DataValidator:
             self.surface_max      = surface_max
             self.max_missing_pct  = max_missing_pct
 
-    # Tests individuels
-
     def _check_required_columns(self, df: pd.DataFrame) -> ValidationResult:
-        # 1. Vérifier la présence des colonnes
         missing = [c for c in self.required_columns if c not in df.columns]
         if missing:
             return ValidationResult(
@@ -150,8 +136,6 @@ class DataValidator:
                 details={"missing": missing},
             )
 
-        # 2. Vérifier que les colonnes requises ne sont pas entièrement nulles
-        #    Un DataFrame peut avoir la colonne mais avec 100% de valeurs manquantes.
         NULL_THRESHOLD = 0.80   # > 80% nulls → erreur
         mostly_null = []
         for col in self.required_columns:
@@ -284,8 +268,6 @@ class DataValidator:
             ))
         return results
 
-    # Validation complète
-
     def validate(self, df: pd.DataFrame, stage: str = "input") -> ValidationReport:
         """
         Exécute tous les tests de validation sur le DataFrame.
@@ -325,7 +307,6 @@ class DataValidator:
             results=all_results,
         )
 
-        # Log résumé
         for r in all_results:
             icon = "✅" if r.passed else ("❌" if r.severity == "error" else "⚠️")
             logger.info(f"   {icon} {r.message}")
@@ -335,8 +316,6 @@ class DataValidator:
         if not report.passed:
             logger.error("   ❌ Validation ÉCHOUÉE: vérifier les données avant de continuer")
         return report
-
-    # Export JSON
 
     def save_report(self, report: ValidationReport, output_dir: str = "reports") -> str:
         """Sauvegarde le rapport de validation en JSON."""
@@ -353,11 +332,6 @@ class DataValidator:
             json.dump(report.to_dict(), f, indent=2, ensure_ascii=False, cls=_Encoder)
         logger.info(f"   💾 Rapport validation → {path}")
         return path
-
-
-# 
-# Great Expectations (optionnel)
-# 
 
 def run_great_expectations(df: pd.DataFrame, output_dir: str = "reports/ge") -> Optional[dict]:
     """
