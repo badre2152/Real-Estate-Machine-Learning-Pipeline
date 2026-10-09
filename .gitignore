@@ -66,3 +66,6 @@ reports/*.html
 
 # DVC validation output generated locally
 reports/dvc/
+
+# Generated pipeline runtime reports
+reports/runtime/
