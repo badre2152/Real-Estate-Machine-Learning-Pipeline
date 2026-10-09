@@ -138,8 +138,8 @@ def train_classification(
                 X_train, y_enc, test_size=0.15, random_state=_RS, stratify=y_enc
             )
             best_model.set_params(
-                n_estimators    = 500,      # max estimators: early stopping va couper
-                early_stopping_rounds = 20, # arrêt si pas d'amélioration sur 20 rounds
+                n_estimators = 500,
+                early_stopping_rounds = 20
             )
             best_model.fit(
                 X_fit, y_fit,
@@ -160,7 +160,7 @@ def train_classification(
         logger.info("   🎯 Calibration isotonique des probabilités ...")
         if hasattr(best_model, "set_params") and hasattr(best_model, "early_stopping_rounds"):
             best_model.set_params(early_stopping_rounds=None)
-        best_model = CalibratedClassifierCV(best_model, method="isotonic", cv=5)
+        best_model = CalibratedClassifierCV(best_model, method="sigmoid", cv=min(3, int(counts.min())))
         best_model.fit(X_train, y_enc)
 
     return best_model, best_name, le
