@@ -69,3 +69,7 @@ Attention : les anciens exemples `reports/validation_report.json`, `reports/moni
 ## Rapports historiques et runtime
 
 La configuration par défaut `paths.reports_dir` pointe désormais vers `reports/runtime/` pour les nouveaux rapports produits par `src/pipeline.py`. Les exemples historiques suivis dans `reports/` restent inchangés pendant les exécutions avec cette configuration. Le stage `validate` de DVC écrit séparément dans `reports/dvc/`. Les deux répertoires de sortie sont ignorés par Git. Une configuration personnalisée des chemins peut modifier ce comportement.
+
+## Independent DVC calibration partition
+
+The `featurize` stage now reserves the quantile calibration subset before feature engineering, calculates geographic statistics from model training rows only, and saves `data/processed/calibration_fe.parquet` alongside the training and test files. The `train` stage consumes this dedicated file instead of splitting already engineered features. Preprocessing fits on training rows and transforms the calibration rows. DVC tracks the calibration file and the interval method parameter. With bootstrap intervals, the calibration file is an empty schema-compatible Parquet artifact and is not consumed. This change has not been executed or validated; regenerate DVC outputs and the trained models before deploying it.
