@@ -29,7 +29,7 @@ paths:
   models_dir: "models"
   plots_dir: "docs/plots"
   logs_dir: "logs"
-  reports_dir: "reports"
+  reports_dir: "reports/runtime"
   mlflow_uri: "${MLFLOW_TRACKING_URI:sqlite:///mlflow.db}"
   dvc_remote: "s3://my-bucket/dvc-remote"   # changer selon votre remote
 
@@ -140,7 +140,7 @@ drift:
   ks_pvalue_threshold:   0.05   # KS test p-value < 0.05 → drift numérique
   chi2_pvalue_threshold: 0.05   # Chi² p-value < 0.05 → drift catégoriel
   retrain_drift_pct:     0.30   # > 30% features driftées → retrain
-  output_dir: "reports"
+  output_dir: "reports/runtime"
 
 # Feature Store
 feature_store:
