@@ -101,6 +101,8 @@ A portfolio-ready results section needs freshly generated MAE, RMSE, R², baseli
 
 **Reproducibility limitation:** Saved model artifacts are not bundled in this repository. The API and deployment configuration need newly generated compatible models, preprocessors, and interval artifacts before providing predictions. No tests, CI, training, or deployment were run as part of the code review.
 
+For a concise inventory of available evidence, missing experiment results, and suggested portfolio visuals, see the [Portfolio Evidence Checklist](docs/PORTFOLIO_EVIDENCE.md).
+
 ## Technical documentation
 
 - [DVC workflow](docs/DVC_GUIDE.md)
