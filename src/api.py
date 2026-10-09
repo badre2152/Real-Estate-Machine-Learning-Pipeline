@@ -43,7 +43,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from starlette import status
 
 from logger_setup import get_logger
@@ -300,7 +300,7 @@ class PredictionResponse(BaseModel):
 
 
 class BatchInput(BaseModel):
-    properties: list[PropertyInput] = Field(..., min_length=1, max_length=100)
+    properties: list[dict] = Field(..., min_length=1, max_length=100)
 
 
 class BatchResponse(BaseModel):
@@ -500,13 +500,30 @@ async def predict_batch(data: BatchInput, request: Request):
         })
     results, n_success, n_errors = [], 0, 0
 
-    for prop in data.properties:
+    for index, raw_property in enumerate(data.properties):
+        try:
+            prop = PropertyInput.model_validate(raw_property)
+        except ValidationError as exc:
+            results.append({
+                "index": index,
+                "error": {
+                    "error": "invalid_property",
+                    "message": "Invalid property fields.",
+                    "fields": sorted({
+                        str(item["loc"][0]) for item in exc.errors()
+                        if item.get("loc")
+                    }),
+                },
+            })
+            n_errors += 1
+            continue
+
         try:
             result = await predict(prop, request)
             results.append(result)
             n_success += 1
-        except HTTPException as e:
-            results.append({"error": e.detail})
+        except HTTPException as exc:
+            results.append({"index": index, "error": exc.detail})
             n_errors += 1
 
     return BatchResponse(
