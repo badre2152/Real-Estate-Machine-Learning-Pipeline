@@ -97,7 +97,7 @@ class PriceScaleRegressor:
 
 
 def train_regression(
-    X_train, y_train, use_log_target: bool = False
+    X_train, y_train, use_log_target: bool = False, cv_frame=None
 ):
     """
     Entraîne plusieurs modèles de régression et retourne le meilleur.
@@ -121,8 +121,28 @@ def train_regression(
     models  = get_regression_models()
     results = {}
 
+    cv_features = X_train
+    cv_preprocessor = None
+    if cv_frame is not None:
+        from sklearn.pipeline import Pipeline
+        from sklearn.base import clone
+        from prepare import build_preprocessor, detect_column_types
+
+        numeric_cols, categorical_cols = detect_column_types(cv_frame)
+        selected_cols = numeric_cols + categorical_cols
+        if not selected_cols:
+            raise ValueError("Cross-validation requires usable features")
+        cv_features = cv_frame[selected_cols]
+        cv_preprocessor = build_preprocessor(numeric_cols, categorical_cols)
+
     for name, model in models.items():
-        scores = cross_val_score(model, X_train, y, cv=_CV, scoring="r2", n_jobs=-1)
+        cv_model = model
+        if cv_preprocessor is not None:
+            cv_model = Pipeline([
+                ("preprocessor", clone(cv_preprocessor)),
+                ("estimator", clone(model)),
+            ])
+        scores = cross_val_score(cv_model, cv_features, y, cv=_CV, scoring="r2", n_jobs=-1)
         results[name] = scores.mean()
         logger.info(
             f"   {name:<25s} → R² CV : {scores.mean():.4f} (±{scores.std():.4f})"
