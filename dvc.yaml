@@ -1,27 +1,6 @@
-# 
-# dvc.yaml: Pipeline DVC pour le versioning des données et modèles
-#
-# Chaque stage définit :
-#   cmd      : commande à exécuter
-#   deps     : fichiers/dossiers qui déclenchent un re-run si modifiés
-#   params   : paramètres lus dans config.yaml qui déclenchent un re-run
-#   outs     : sorties cachées et versionnées par DVC
-#   metrics  : fichiers de métriques trackés par DVC
-#   plots    : fichiers de plots trackés par DVC
-#
-# Lancer le pipeline complet :
-#   dvc repro
-#
-# Lancer un stage spécifique :
-#   dvc repro extract
-#
-# Comparer deux versions :
-#   dvc metrics diff HEAD~1
-# 
 
 stages:
 
-  # Stage 1 : Extraction
   extract:
     cmd: python src/extract.py --output data/raw/obt.parquet
     deps:
@@ -37,7 +16,6 @@ stages:
           cache: true
           persist: false
 
-  # Stage 2 : Validation
   validate:
     cmd: python src/validate_dvc.py --input data/raw/obt.parquet --output-dir reports/dvc
     deps:
@@ -57,7 +35,6 @@ stages:
       - reports/dvc/validation_report.json:
           cache: false
 
-  # Stage 3 : Feature Engineering
   featurize:
     cmd: python src/featurize_dvc.py
     deps:
@@ -78,7 +55,6 @@ stages:
       - data/processed/geo_stats.pkl:
           cache: true
 
-  # Stage 4 : Entraînement complet
   train:
     cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet --train-features data/processed/train_fe.parquet --test-features data/processed/test_fe.parquet
     deps:
@@ -121,7 +97,6 @@ stages:
       - models/results.json:
           cache: false
 
-  # Stage 5 : Évaluation & Rapport
   evaluate:
     cmd: python src/evaluate_dvc.py
     deps:
