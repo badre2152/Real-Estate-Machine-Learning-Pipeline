@@ -1,4 +1,3 @@
-# Source control and credentials
 .git
 .github
 .env
@@ -9,7 +8,6 @@
 nginx/certs/
 secrets/
 
-# Local virtual environments and caches
 .venv/
 venv/
 __pycache__/
@@ -19,7 +17,6 @@ __pycache__/
 .ruff_cache/
 .DS_Store
 
-# Data, generated models and runtime artifacts
 data/
 models/
 logs/
@@ -34,7 +31,6 @@ docs/plots/
 *.db-shm
 *.db-wal
 
-# Local tools and unrelated assets
 .vscode/
 .idea/
 tests/
