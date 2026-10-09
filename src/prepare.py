@@ -10,11 +10,9 @@ Le split est donc la PREMIÈRE transformation après l'extraction.
 Le feature engineering est fait APRÈS le split pour éviter la fuite de données.
 """
 
-# ── stdlib ────────────────────────────────────────────────────────────────────
 import os
 import pickle
 
-# ── third-party ───────────────────────────────────────────────────────────────
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -23,7 +21,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-# ── local ─────────────────────────────────────────────────────────────────────
 from logger_setup import get_logger
 
 try:
@@ -38,16 +35,27 @@ logger = get_logger(__name__)
 TARGET_REGRESSION     = "prix"
 TARGET_CLASSIFICATION = "categorie_prix"
 
-# Colonnes à exclure des features (targets, identifiants, colonnes sources)
 EXCLUDE_FROM_FEATURES = {
     TARGET_REGRESSION,
     TARGET_CLASSIFICATION,
-    "log_prix",           # dérivé de la target → fuite de données
+    "log_prix",
+    "prix_par_m2",
+    "log_prix_par_m2",
+    "ecart_prix_ville",
+    "ville_prix_mean",
+    "ville_prix_median",
+    "ville_rang_prix",
+    "region_prix_median",
     "id", "url", "titre", "description",
-    "date_annonce", "created_at", "date_scraping",  # brutes → remplacées par les dérivées
-    "type_bien",          # source de la cible classification
+    "date_annonce", "created_at", "date_scraping",
+    "type_bien",
 }
 
+SERVING_FEATURES = {
+    "surface_m2", "ville", "quartier", "nb_chambres",
+    "nb_salles_bain", "etage", "age_bien",
+    "surface_x_chambres", "surface_par_chambre", "ratio_chambres_bains",
+}
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -65,7 +73,6 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"   Lignes supprimées : {n0 - len(df):,} | Restantes : {len(df):,}")
     return df
 
-
 def split_data(
     df: pd.DataFrame,
     test_size: float = None,
@@ -76,19 +83,24 @@ def split_data(
     Toute transformation ultérieure doit être fittée sur train uniquement.
 
     Returns:
-        df_train, df_test — DataFrames bruts (non transformés)
+        df_train, df_test: DataFrames bruts (non transformés)
     """
-    df_train, df_test = train_test_split(df, test_size=(test_size or _TS), random_state=(random_state or _RS))
+    effective_size = _TS if test_size is None else test_size
+    effective_state = _RS if random_state is None else random_state
+    if not 0 < effective_size < 1:
+        raise ValueError("test_size must be between zero and one")
+    if len(df) < 2:
+        raise ValueError("At least two rows are required to split data")
+    df_train, df_test = train_test_split(df, test_size=effective_size, random_state=effective_state)
     logger.info(f"   ✅ Split : {len(df_train):,} train | {len(df_test):,} test")
     return df_train.reset_index(drop=True), df_test.reset_index(drop=True)
-
 
 def detect_column_types(df: pd.DataFrame) -> tuple[list, list]:
     """
     Détecte automatiquement les colonnes numériques et catégorielles,
     en excluant les colonnes non-features.
     """
-    feature_cols = [c for c in df.columns if c not in EXCLUDE_FROM_FEATURES]
+    feature_cols = [c for c in df.columns if c in SERVING_FEATURES and c not in EXCLUDE_FROM_FEATURES]
 
     numeric_cols = [
         c for c in feature_cols
@@ -103,7 +115,6 @@ def detect_column_types(df: pd.DataFrame) -> tuple[list, list]:
 
     logger.info(f"   Numériques    : {len(numeric_cols)} | Catégorielles : {len(categorical_cols)}")
     return numeric_cols, categorical_cols
-
 
 def build_preprocessor(numeric_cols: list, categorical_cols: list) -> ColumnTransformer:
     """
@@ -131,7 +142,6 @@ def build_preprocessor(numeric_cols: list, categorical_cols: list) -> ColumnTran
 
     return ColumnTransformer(transformers=transformers, remainder="drop")
 
-
 def apply_smote(X_train: pd.DataFrame, y_train, random_state: int = 42):
     """
     Applique SMOTE sur le train set de classification uniquement.
@@ -144,9 +154,8 @@ def apply_smote(X_train: pd.DataFrame, y_train, random_state: int = 42):
         logger.info(f"   ✅ SMOTE : {len(X_train):,} → {len(X_res):,} échantillons")
         return X_res, y_res
     except ImportError:
-        logger.warning("   ⚠️  imbalanced-learn non installé — SMOTE ignoré")
+        logger.warning("   ⚠️  imbalanced-learn non installé: SMOTE ignoré")
         return X_train, y_train
-
 
 def prepare_data(
     df_train_fe: pd.DataFrame,
@@ -154,6 +163,7 @@ def prepare_data(
     use_smote: bool = False,
     random_state: int = None,
     save_preprocessor: bool = True,
+    calibration_df: pd.DataFrame = None,
 ) -> tuple:
     """
     Prépare les données APRÈS feature engineering.
@@ -172,24 +182,28 @@ def prepare_data(
         feature_names
     """
     logger.info("\n" + "=" * 50)
-    logger.info("🔧 PRÉPARATION — Encoding + Scaling")
+    logger.info("🔧 PRÉPARATION: Encoding + Scaling")
     logger.info("=" * 50)
 
-    # Extraire les targets AVANT de construire X
     y_reg_train = df_train_fe[TARGET_REGRESSION].reset_index(drop=True)
     y_reg_test  = df_test_fe[TARGET_REGRESSION].reset_index(drop=True)
 
     y_clf_train = df_train_fe.get(TARGET_CLASSIFICATION)
     y_clf_test  = df_test_fe.get(TARGET_CLASSIFICATION)
-    if y_clf_train is not None:
+    if y_clf_train is not None and y_clf_test is not None:
         y_clf_train = y_clf_train.reset_index(drop=True)
-        y_clf_test  = y_clf_test.reset_index(drop=True)
+        y_clf_test = y_clf_test.reset_index(drop=True)
+    else:
+        y_clf_train = None
+        y_clf_test = None
 
-    # Détecter les colonnes features sur le train
+    if df_train_fe.empty or df_test_fe.empty:
+        raise ValueError("Empty training or test partition")
+    if calibration_df is not None and calibration_df.empty:
+        raise ValueError("Empty calibration partition")
+
     numeric_cols, categorical_cols = detect_column_types(df_train_fe)
 
-    # Garder uniquement les colonnes présentes dans les deux sets (train ET test)
-    # pour éviter l'erreur "columns are missing" (ex: log_prix_par_m2 absent du test)
     numeric_cols     = [c for c in numeric_cols     if c in df_test_fe.columns]
     categorical_cols = [c for c in categorical_cols if c in df_test_fe.columns]
 
@@ -197,22 +211,25 @@ def prepare_data(
     X_train_raw = df_train_fe[valid_cols].reset_index(drop=True)
     X_test_raw  = df_test_fe[valid_cols].reset_index(drop=True)
 
-    # Fit sur train → transform sur train ET test
     preprocessor  = build_preprocessor(numeric_cols, categorical_cols)
     X_train_arr   = preprocessor.fit_transform(X_train_raw)
     X_test_arr    = preprocessor.transform(X_test_raw)
+    X_cal = y_cal = None
+    if calibration_df is not None:
+        X_cal_arr = preprocessor.transform(calibration_df[valid_cols])
+        y_cal = calibration_df[TARGET_REGRESSION].reset_index(drop=True)
 
-    # Reconstruire les noms de colonnes après OHE
     ohe_names = []
     if categorical_cols and "cat" in preprocessor.named_transformers_:
         ohe = preprocessor.named_transformers_["cat"]["encoder"]
         ohe_names = list(ohe.get_feature_names_out(categorical_cols))
     feature_names = numeric_cols + ohe_names
+    if calibration_df is not None:
+        X_cal = pd.DataFrame(X_cal_arr, columns=feature_names)
 
     X_train = pd.DataFrame(X_train_arr, columns=feature_names)
     X_test  = pd.DataFrame(X_test_arr,  columns=feature_names)
 
-    # SMOTE sur la classification uniquement (ne touche pas X pour la régression)
     X_train_clf = X_train.copy()
     if y_clf_train is not None:
         counts = y_clf_train.value_counts()
@@ -223,12 +240,15 @@ def prepare_data(
             if use_smote:
                 X_train_clf, y_clf_train = apply_smote(X_train_clf, y_clf_train, random_state or _RS)
 
-    # Sauvegarde du préprocesseur
     if save_preprocessor:
-        os.makedirs("models", exist_ok=True)
-        with open("models/preprocessor.pkl", "wb") as f:
+        from config_loader import cfg
+        model_dir = os.getenv("MODELS_DIR") or cfg.paths.models_dir
+        os.makedirs(model_dir, exist_ok=True)
+        preprocessor_path = os.path.join(model_dir, "preprocessor.pkl")
+        with open(preprocessor_path, "wb") as f:
             pickle.dump(preprocessor, f)
-        logger.info("   💾 Préprocesseur → models/preprocessor.pkl")
+        logger.info("   Préprocesseur sauvegardé dans %s", preprocessor_path)
 
     logger.info(f"\n✅ Train : {len(X_train):,} | Test : {len(X_test):,} | Features : {len(feature_names)}")
-    return X_train, X_test, y_reg_train, y_reg_test, y_clf_train, y_clf_test, feature_names, X_train_clf
+    result = (X_train, X_test, y_reg_train, y_reg_test, y_clf_train, y_clf_test, feature_names, X_train_clf)
+    return result + (X_cal, y_cal) if calibration_df is not None else result

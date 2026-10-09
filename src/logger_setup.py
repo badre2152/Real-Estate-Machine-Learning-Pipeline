@@ -2,7 +2,7 @@
 logger_setup.py
 ---------------
 Logging professionnel avec rotation journalière, niveaux configurables,
-et format structuré — remplace tous les print() du projet.
+et format structuré: remplace tous les print() du projet.
 
 Usage :
     from logger_setup import get_logger
@@ -16,7 +16,6 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from typing import Optional
 
-
 def get_logger(
     name: str,
     level: Optional[str] = None,
@@ -27,8 +26,8 @@ def get_logger(
 ) -> logging.Logger:
     """
     Retourne un logger configuré avec :
-      - Handler console (stdout) — toujours actif
-      - Handler fichier avec rotation journalière — si log_dir fourni
+      - Handler console (stdout): toujours actif
+      - Handler fichier avec rotation journalière: si log_dir fourni
 
     Les paramètres sont lus depuis config.yaml si non spécifiés.
 
@@ -43,7 +42,6 @@ def get_logger(
     Returns:
         Logger configuré.
     """
-    # Chargement lazy de la config pour éviter les imports circulaires
     try:
         from config_loader import cfg
         _level = level or cfg.logging.level
@@ -54,13 +52,12 @@ def get_logger(
     except Exception:
         _level = level or "INFO"
         _log_dir = log_dir or "logs"
-        _fmt = fmt or "%(asctime)s [%(levelname)s] %(name)s — %(message)s"
+        _fmt = fmt or "%(asctime)s [%(levelname)s] %(name)s | %(message)s"
         _datefmt = datefmt or "%Y-%m-%d %H:%M:%S"
         _backup_count = backup_count
 
     logger = logging.getLogger(name)
 
-    # Ne pas dupliquer les handlers si le logger existe déjà
     if logger.handlers:
         return logger
 
@@ -69,13 +66,11 @@ def get_logger(
 
     formatter = logging.Formatter(fmt=_fmt, datefmt=_datefmt)
 
-    # ── Handler console ─────────────────────────────────────────────────────
     console = logging.StreamHandler(sys.stdout)
     console.setLevel(numeric_level)
     console.setFormatter(formatter)
     logger.addHandler(console)
 
-    # ── Handler fichier avec rotation ────────────────────────────────────────
     if _log_dir:
         log_path = Path(_log_dir)
         log_path.mkdir(parents=True, exist_ok=True)
@@ -89,12 +84,9 @@ def get_logger(
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-    # Empêcher la propagation vers le root logger (évite les doublons)
-    # Note: propagate reste True pour permettre à pytest caplog de capturer les logs
-    # logger.propagate = False
+    logger.propagate = False
 
     return logger
-
 
 def configure_root_logger(level: Optional[str] = None, log_dir: Optional[str] = None) -> None:
     """
@@ -109,9 +101,7 @@ def configure_root_logger(level: Optional[str] = None, log_dir: Optional[str] = 
         _level = level or "INFO"
         _log_dir = log_dir or "logs"
 
-    # Configurer le root logger pour capturer les libs tierces (sklearn, xgboost…)
     get_logger("root", level=_level, log_dir=_log_dir)
 
-    # Silencer les loggers trop verbeux des librairies
     for noisy in ("matplotlib", "PIL", "urllib3", "boto3", "botocore"):
         logging.getLogger(noisy).setLevel(logging.WARNING)

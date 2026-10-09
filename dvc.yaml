@@ -1,31 +1,11 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# dvc.yaml — Pipeline DVC pour le versioning des données et modèles
-#
-# Chaque stage définit :
-#   cmd      : commande à exécuter
-#   deps     : fichiers/dossiers qui déclenchent un re-run si modifiés
-#   params   : paramètres lus dans config.yaml qui déclenchent un re-run
-#   outs     : sorties cachées et versionnées par DVC
-#   metrics  : fichiers de métriques trackés par DVC
-#   plots    : fichiers de plots trackés par DVC
-#
-# Lancer le pipeline complet :
-#   dvc repro
-#
-# Lancer un stage spécifique :
-#   dvc repro extract
-#
-# Comparer deux versions :
-#   dvc metrics diff HEAD~1
-# ═══════════════════════════════════════════════════════════════════════════════
 
 stages:
 
-  # ── Stage 1 : Extraction ───────────────────────────────────────────────────
   extract:
     cmd: python src/extract.py --output data/raw/obt.parquet
     deps:
       - src/extract.py
+      - src/config_loader.py
     params:
       - config/config.yaml:
           - database.table
@@ -36,56 +16,39 @@ stages:
           cache: true
           persist: false
 
-  # ── Stage 2 : Validation ───────────────────────────────────────────────────
   validate:
-    cmd: python -c "
-      import pandas as pd
-      from src.data_validation import DataValidator
-      df = pd.read_parquet('data/raw/obt.parquet')
-      v = DataValidator()
-      r = v.validate(df, stage='dvc_validate')
-      v.save_report(r, output_dir='reports')
-      import sys; sys.exit(0 if r.passed else 1)
-      "
+    cmd: python src/validate_dvc.py --input data/raw/obt.parquet --output-dir reports/dvc
     deps:
       - data/raw/obt.parquet
       - src/data_validation.py
+      - src/validate_dvc.py
+      - src/config_loader.py
     params:
       - config/config.yaml:
           - validation.required_columns
           - validation.price_min
           - validation.price_max
+          - validation.surface_min
+          - validation.surface_max
           - validation.max_missing_pct
     outs:
-      - reports/validation_report.json:
+      - reports/dvc/validation_report.json:
           cache: false
 
-  # ── Stage 3 : Feature Engineering ─────────────────────────────────────────
   featurize:
-    cmd: python -c "
-      import pandas as pd, pickle
-      from sklearn.model_selection import train_test_split
-      from src.prepare import clean_dataframe
-      from src.features import engineer_features_train, engineer_features_test, add_classification_target
-      df = pd.read_parquet('data/raw/obt.parquet')
-      df = clean_dataframe(df)
-      df_train, df_test = train_test_split(df, test_size=0.2, random_state=42)
-      df_train, geo_stats = engineer_features_train(df_train)
-      df_test = engineer_features_test(df_test, geo_stats)
-      df_test = add_classification_target(df_test)
-      df_train.to_parquet('data/processed/train_fe.parquet', index=False)
-      df_test.to_parquet('data/processed/test_fe.parquet', index=False)
-      with open('data/processed/geo_stats.pkl','wb') as f: pickle.dump(geo_stats, f)
-      print(f'Train : {len(df_train):,} | Test : {len(df_test):,}')
-      "
+    cmd: python src/featurize_dvc.py
     deps:
       - data/raw/obt.parquet
+      - reports/dvc/validation_report.json
+      - src/featurize_dvc.py
       - src/features.py
       - src/prepare.py
+      - src/config_loader.py
     params:
       - config/config.yaml:
           - pipeline.test_size
           - pipeline.random_state
+          - prediction_intervals.method
     outs:
       - data/processed/train_fe.parquet:
           cache: true
@@ -93,12 +56,15 @@ stages:
           cache: true
       - data/processed/geo_stats.pkl:
           cache: true
+      - data/processed/calibration_fe.parquet:
+          cache: true
 
-  # ── Stage 4 : Entraînement complet ─────────────────────────────────────────
   train:
-    cmd: python src/pipeline.py
+    cmd: python src/pipeline.py --input-parquet data/raw/obt.parquet --train-features data/processed/train_fe.parquet --test-features data/processed/test_fe.parquet --calibration-features data/processed/calibration_fe.parquet
     deps:
       - src/pipeline.py
+      - src/prepare.py
+      - src/features.py
       - src/regression.py
       - src/classification.py
       - src/baselines.py
@@ -106,13 +72,19 @@ stages:
       - src/prediction_intervals.py
       - src/shap_explainer.py
       - src/report_generator.py
+      - src/config_loader.py
       - data/raw/obt.parquet
+      - data/processed/train_fe.parquet
+      - data/processed/test_fe.parquet
+      - data/processed/calibration_fe.parquet
+      - reports/dvc/validation_report.json
     params:
       - config/config.yaml:
           - pipeline.optimize
           - pipeline.use_log_target
           - pipeline.use_smote
           - pipeline.use_calibration
+          - pipeline.generate_plots
           - pipeline.test_size
           - pipeline.random_state
           - regression.cv_folds
@@ -121,40 +93,26 @@ stages:
           - smote.k_neighbors
           - prediction_intervals.method
           - prediction_intervals.confidence_level
+          - prediction_intervals.n_bootstrap
     outs:
-      - models/best_regression_model.pkl:
+      - models/regression_model.pkl:
           cache: true
-      - models/best_classification_model.pkl:
-          cache: true
-      - models/preprocessor.pkl:
+      - models/regression_metrics.pkl:
           cache: true
       - models/pi_builder.pkl:
           cache: true
+      - models/best_regression_model.pkl:
+          cache: true
+      - models/preprocessor.pkl:
+          cache: true
       - models/feature_names.pkl:
           cache: true
-      - models/label_encoder.pkl:
-          cache: true
     metrics:
       - models/results.json:
-          cache: false
-    plots:
-      - docs/plots:
           cache: false
 
-  # ── Stage 5 : Évaluation & Rapport ─────────────────────────────────────────
   evaluate:
-    cmd: python -c "
-      import json
-      with open('models/results.json') as f:
-          r = json.load(f)
-      reg = r.get('regression', {})
-      clf = r.get('classification') or {}
-      print(f'R2={reg.get(\"R2\",0):.4f} | MAE={reg.get(\"MAE\",0):,.0f}')
-      if clf:
-          print(f'F1={clf.get(\"F1\",0):.4f} | Acc={clf.get(\"Accuracy\",0):.4f}')
-      "
+    cmd: python src/evaluate_dvc.py
     deps:
       - models/results.json
-    metrics:
-      - models/results.json:
-          cache: false
+      - src/evaluate_dvc.py

@@ -1,13 +1,13 @@
 """
-api.py  (v3 — FastAPI Production-Ready)
+api.py  (v3: FastAPI service)
 ----------------------------------------
 API de prédiction FastAPI pour le pipeline ML Avito Real Estate.
 
 Améliorations v3 :
   ✅ Authentication par API Key (header X-API-Key)
-  ✅ Rate Limiting (60 req/min par IP — in-memory)
+  ✅ Rate Limiting (60 req/min par IP: in-memory)
   ✅ /health endpoint complet (liveness probe)
-  ✅ /ready endpoint (readiness probe — modèles chargés ?)
+  ✅ /ready endpoint (readiness probe: modèles chargés ?)
   ✅ Gestion des erreurs structurée avec request_id
   ✅ Request ID unique par requête (tracing)
   ✅ Compression GZip automatique
@@ -15,18 +15,19 @@ Améliorations v3 :
   ✅ Backward compatibility avec anciens endpoints
 
 Endpoints :
-  GET  /health           — liveness probe (sans auth)
-  GET  /ready            — readiness probe (sans auth)
-  GET  /v1/info          — infos modèle chargé
-  POST /v1/predict       — prédiction prix + intervalle de confiance
-  POST /v1/predict/batch — prédictions en lot (max 100)
-  GET  /v1/metrics       — métriques de monitoring
+  GET  /health          : liveness probe (sans auth)
+  GET  /ready           : readiness probe (sans auth)
+  GET  /v1/info         : infos modèle chargé
+  POST /v1/predict      : prédiction prix + intervalle de confiance
+  POST /v1/predict/batch: prédictions en lot (max 100)
+  GET  /v1/metrics      : métriques de monitoring
 
 Lancer :
     uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 """
 
 import json
+import hashlib
 import os
 import pickle
 import time
@@ -42,7 +43,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 from starlette import status
 
 from logger_setup import get_logger
@@ -50,27 +51,19 @@ from prediction_intervals import PredictionIntervalBuilder
 
 logger = get_logger(__name__)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Configuration
-# ─────────────────────────────────────────────────────────────────────────────
-
-_API_KEYS_RAW = os.getenv("API_KEYS", "dev-key-change-me")
+_API_KEYS_RAW = os.getenv("API_KEYS", "")
 VALID_API_KEYS: set = {k.strip() for k in _API_KEYS_RAW.split(",") if k.strip()}
 RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
 
-# Sécurité : vérifier que la clé par défaut n'est pas utilisée en production
-_DEFAULT_KEY = "dev-key-change-me"
-if _DEFAULT_KEY in VALID_API_KEYS and os.getenv("ENVIRONMENT", "dev") == "production":
-    import warnings
-    warnings.warn(
-        "🔴 SECURITE : Clé API par défaut détectée en production ! "
-        "Changer API_KEYS dans les variables d'environnement.",
-        stacklevel=1,
-    )
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Rate Limiter (sliding window in-memory)
-# ─────────────────────────────────────────────────────────────────────────────
+_ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").strip().lower()
+_CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",") if origin.strip()]
+if _ENVIRONMENT == "production":
+    if not VALID_API_KEYS or "change_me_api_key" in VALID_API_KEYS:
+        raise RuntimeError("Configure non-placeholder API_KEYS for production")
+    if not _CORS_ORIGINS or "*" in _CORS_ORIGINS:
+        raise RuntimeError("Configure explicit CORS_ORIGINS for production")
+if not VALID_API_KEYS:
+    logger.warning("API_KEYS is empty. Authenticated endpoints will reject all requests.")
 
 class _InMemoryRateLimiter:
     """
@@ -95,20 +88,15 @@ class _InMemoryRateLimiter:
         self._buckets[key] = calls
         return True, remaining - 1
 
-
 _rate_limiter = _InMemoryRateLimiter(max_calls=RATE_LIMIT_PER_MINUTE)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# App FastAPI
-# ─────────────────────────────────────────────────────────────────────────────
-
 app = FastAPI(
-    title="Avito Real Estate — API de Prédiction",
+    title="Avito Real Estate: API de Prédiction",
     description=(
         "API ML pour estimer le prix d'un bien immobilier au Maroc "
         "avec intervalle de confiance à 95%.\n\n"
         "**Authentification** : passer le header `X-API-Key` avec votre clé.\n\n"
-        "**Rate Limit** : 60 requêtes/minute par IP."
+        f"**Rate Limit** : {RATE_LIMIT_PER_MINUTE} requêtes/minute par clé API."
     ),
     version="3.0.0",
     docs_url="/docs",
@@ -118,14 +106,10 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
+    allow_origins=_CORS_ORIGINS,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
-
-# ─────────────────────────────────────────────────────────────────────────────
-# State des modèles
-# ─────────────────────────────────────────────────────────────────────────────
 
 _MODELS_DIR = Path(os.getenv("MODELS_DIR", "models"))
 _state: dict = {
@@ -143,12 +127,11 @@ _state: dict = {
     "uptime_start"      : None,
 }
 
-
 @app.on_event("startup")
 async def load_models():
     """Charge les modèles depuis le dossier models/ au démarrage."""
     _state["uptime_start"] = time.time()
-    logger.info("🚀 Démarrage API v3 — chargement des modèles ...")
+    logger.info("🚀 Démarrage API v3: chargement des modèles ...")
 
     files = {
         "reg_model"    : ["best_regression_model.pkl", "regression_model.pkl"],
@@ -162,28 +145,65 @@ async def load_models():
     }
 
     for key, candidates in files.items():
+        _state[key] = {} if key in ("reg_metrics", "clf_metrics") else None
         loaded = False
         for fname in candidates:
             path = _MODELS_DIR / fname
-            if path.exists():
-                with open(path, "rb") as f:
-                    _state[key] = pickle.load(f)
-                logger.info(f"   ✅ {key} ← {path}")
-                loaded = True
-                break
+            if not path.is_file():
+                continue
+            try:
+                with path.open("rb") as model_file:
+                    loaded_value = pickle.load(model_file)
+                if key in ("reg_metrics", "clf_metrics") and not isinstance(loaded_value, dict):
+                    raise ValueError("Metrics artifact must be a dictionary")
+            except (OSError, pickle.UnpicklingError, EOFError, ImportError,
+                    AttributeError, ValueError, TypeError) as exc:
+                logger.warning(
+                    "Could not load %s from %s (%s)",
+                    key, fname, type(exc).__name__
+                )
+                continue
+            if key == "clf_model" and isinstance(loaded_value, dict):
+                model = loaded_value.get("model")
+                encoder = loaded_value.get("label_encoder")
+                if model is None or encoder is None:
+                    logger.warning("Incomplete classification bundle: %s", fname)
+                    continue
+                _state["_bundled_label_encoder"] = encoder
+                loaded_value = model
+            _state[key] = loaded_value
+            logger.info("Loaded model artifact: %s", key)
+            loaded = True
+            break
         if not loaded:
-            logger.warning(f"   ⚠️  {key} introuvable (testé : {candidates})")
+            logger.warning("Model artifact unavailable: %s", key)
+
+    if _state["label_encoder"] is None:
+        _state["label_encoder"] = _state.pop("_bundled_label_encoder", None)
+    else:
+        _state.pop("_bundled_label_encoder", None)
+    if _state["clf_model"] is not None and _state["label_encoder"] is None:
+        logger.warning("Classification model disabled because its label encoder is missing")
+        _state["clf_model"] = None
+
+    if _state["preprocessor"] is not None:
+        expected = getattr(_state["preprocessor"], "feature_names_in_", None)
+        if expected is not None:
+            request_columns = set(_build_input_df(PropertyInput(
+                surface_m2=100, ville="Casablanca", type_bien="appartement"
+            )).columns)
+            missing = set(expected) - request_columns
+            if missing:
+                logger.error("Preprocessor expects unavailable input fields: %s", sorted(missing))
+                _state["preprocessor"] = None
 
     _state["loaded_at"] = datetime.now().isoformat()
-    logger.info("✅ API v3 prête")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Sécurité — API Key + Rate Limit
-# ─────────────────────────────────────────────────────────────────────────────
+    if _state["reg_model"] is None or _state["preprocessor"] is None:
+        logger.warning("API started without required prediction artifacts")
+    else:
+        logger.info("API prediction artifacts loaded")
 
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
 
 async def require_api_key(
     request: Request,
@@ -210,31 +230,25 @@ async def require_api_key(
         )
     return api_key
 
-
-async def check_rate_limit(request: Request) -> None:
-    """Vérifie le rate limit par IP."""
-    client_ip = request.client.host if request.client else "unknown"
-    allowed, remaining = _rate_limiter.is_allowed(client_ip)
+async def check_rate_limit(api_key: str = Depends(require_api_key)) -> None:
+    """Applique un quota par clé API sans conserver la clé en clair."""
+    key_id = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+    allowed, remaining = _rate_limiter.is_allowed(key_id)
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={
                 "error": "rate_limit_exceeded",
-                "message": f"Trop de requêtes. Max {RATE_LIMIT_PER_MINUTE}/min par IP.",
+                "message": f"Trop de requêtes. Max {RATE_LIMIT_PER_MINUTE}/min par clé API.",
                 "retry_after_s": 60,
             },
             headers={"Retry-After": "60"},
         )
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Schémas Pydantic
-# ─────────────────────────────────────────────────────────────────────────────
-
 class PropertyInput(BaseModel):
     surface_m2: float = Field(..., gt=0, le=10_000)
     ville: str = Field(..., min_length=1)
-    type_bien: str
+    type_bien: str = Field(..., min_length=1)
     quartier: Optional[str] = Field(None, description="Quartier (optionnel)")
     nb_chambres: Optional[int] = Field(None, ge=0, le=20)
     nb_salles_bain: Optional[int] = Field(None, ge=0, le=10)
@@ -244,23 +258,26 @@ class PropertyInput(BaseModel):
     @field_validator("ville")
     @classmethod
     def normalize_ville(cls, v: str) -> str:
-        return v.strip().title()
+        cleaned = v.strip()
+        if not cleaned:
+            raise ValueError("ville must not be blank")
+        return cleaned.title()
 
     @field_validator("type_bien")
     @classmethod
     def normalize_type(cls, v: str) -> str:
-        return v.strip().lower()
+        cleaned = v.strip()
+        if not cleaned:
+            raise ValueError("type_bien must not be blank")
+        return cleaned.lower()
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(extra="forbid", json_schema_extra={
             "example": {
                 "surface_m2": 120, "ville": "Casablanca",
                 "type_bien": "appartement", "nb_chambres": 3,
                 "nb_salles_bain": 2, "etage": 4, "age_bien": 10,
             }
-        }
-    }
-
+        })
 
 class PredictionResponse(BaseModel):
     request_id: str
@@ -268,17 +285,16 @@ class PredictionResponse(BaseModel):
     lower_95: float
     upper_95: float
     interval_width: float
-    price_category: Optional[str]
-    confidence_level: float = 0.95
+    property_type: Optional[str]
+    price_category: Optional[str] = None
+    confidence_level: Optional[float] = None
     formatted: str
     model_version: str = "3.0"
     latency_ms: float
     timestamp: str
 
-
 class BatchInput(BaseModel):
-    properties: list[PropertyInput] = Field(..., max_length=100)
-
+    properties: list[dict] = Field(..., min_length=1, max_length=100)
 
 class BatchResponse(BaseModel):
     request_id: str
@@ -287,11 +303,6 @@ class BatchResponse(BaseModel):
     n_success: int
     n_errors: int
     total_latency_ms: float
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Middleware — Request ID + logging
-# ─────────────────────────────────────────────────────────────────────────────
 
 @app.middleware("http")
 async def request_middleware(request: Request, call_next):
@@ -311,15 +322,10 @@ async def request_middleware(request: Request, call_next):
     )
     return response
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints publics (sans auth)
-# ─────────────────────────────────────────────────────────────────────────────
-
 @app.get("/health", tags=["Ops"], summary="Liveness probe")
 async def health():
     """
-    Liveness probe — répond 200 si le processus est en vie.
+    Liveness probe: répond 200 si le processus est en vie.
     Pas d'authentification requise.
     Utilisé par Docker HEALTHCHECK et Kubernetes.
     """
@@ -331,11 +337,10 @@ async def health():
         "timestamp": datetime.now().isoformat(),
     }
 
-
 @app.get("/ready", tags=["Ops"], summary="Readiness probe")
 async def ready():
     """
-    Readiness probe — répond 200 si les modèles sont prêts, 503 sinon.
+    Readiness probe: répond 200 si les modèles sont prêts, 503 sinon.
     Pas d'authentification requise.
     """
     models_status = {
@@ -344,7 +349,7 @@ async def ready():
         "preprocessor"        : _state["preprocessor"] is not None,
         "pi_builder"          : _state["pi_builder"] is not None,
     }
-    is_ready = models_status["regression_model"]
+    is_ready = models_status["regression_model"] and models_status["preprocessor"]
     response_data = {
         "ready"            : is_ready,
         "models_loaded"    : models_status,
@@ -356,13 +361,7 @@ async def ready():
         return JSONResponse(status_code=503, content=response_data)
     return response_data
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints v1 (authentification requise)
-# ─────────────────────────────────────────────────────────────────────────────
-
 _auth_deps = [Depends(require_api_key), Depends(check_rate_limit)]
-
 
 @app.get("/v1/info", tags=["Info"], dependencies=_auth_deps)
 async def model_info():
@@ -377,7 +376,6 @@ async def model_info():
         "error_count"           : _state["errors"],
         "api_version"           : "3.0.0",
     }
-
 
 @app.get("/v1/metrics", tags=["Monitoring"], dependencies=_auth_deps)
 async def metrics():
@@ -394,7 +392,6 @@ async def metrics():
         "rate_limit_per_min"  : RATE_LIMIT_PER_MINUTE,
     }
 
-
 @app.post(
     "/v1/predict",
     response_model=PredictionResponse,
@@ -410,7 +407,7 @@ async def predict(data: PropertyInput, request: Request):
     t0 = time.perf_counter()
     req_id = getattr(request.state, "request_id", str(uuid.uuid4())[:8])
 
-    if _state["reg_model"] is None:
+    if _state["reg_model"] is None or _state["preprocessor"] is None:
         raise HTTPException(
             status_code=503,
             detail={"error": "model_unavailable", "message": "Modèle non disponible.", "request_id": req_id},
@@ -418,25 +415,23 @@ async def predict(data: PropertyInput, request: Request):
 
     try:
         row = _build_input_df(data)
-        X = _state["preprocessor"].transform(row) if _state["preprocessor"] else row.values
+        X = _state["preprocessor"].transform(row)
         pred = float(_state["reg_model"].predict(X)[0])
+
+        if not np.isfinite(pred) or pred < 0:
+            raise ValueError("Invalid regression prediction")
 
         lower, upper = pred, pred
         if _state["pi_builder"] is not None:
             pi_df = _state["pi_builder"].predict_with_interval(X)
             lower = float(pi_df["lower"].iloc[0])
             upper = float(pi_df["upper"].iloc[0])
+            if not np.isfinite(lower) or not np.isfinite(upper):
+                raise ValueError("Nonfinite prediction interval")
+            if lower > upper or not (lower <= pred <= upper):
+                raise ValueError("Inconsistent prediction interval")
 
-        category = None
-        if _state["clf_model"] is not None:
-            raw_pred = _state["clf_model"].predict(X)[0]
-            if _state["label_encoder"] is not None:
-                try:
-                    category = str(_state["label_encoder"].inverse_transform([raw_pred])[0])
-                except Exception:
-                    category = str(raw_pred)
-            else:
-                category = str(raw_pred)
+        category = data.type_bien
 
         _state["total_predictions"] += 1
         latency_ms = (time.perf_counter() - t0) * 1000
@@ -447,8 +442,10 @@ async def predict(data: PropertyInput, request: Request):
             lower_95       = lower,
             upper_95       = upper,
             interval_width = upper - lower,
-            price_category = category,
-            formatted      = f"{pred:,.0f} MAD [{lower:,.0f} – {upper:,.0f}]",
+            confidence_level = float(_state["pi_builder"].confidence_level) if _state["pi_builder"] is not None else None,
+            property_type  = category,
+            price_category = None,
+            formatted      = f"{pred:,.0f} MAD [{lower:,.0f} à {upper:,.0f}]",
             latency_ms     = round(latency_ms, 2),
             timestamp      = datetime.now().isoformat(),
         )
@@ -457,27 +454,49 @@ async def predict(data: PropertyInput, request: Request):
         raise
     except Exception as exc:
         _state["errors"] += 1
-        logger.error(f"[{req_id}] Erreur : {exc}", exc_info=True)
+        logger.error("[%s] Prediction failed (%s)", req_id, type(exc).__name__)
         raise HTTPException(
             status_code=500,
-            detail={"error": "prediction_failed", "message": str(exc), "request_id": req_id},
+            detail={"error": "prediction_failed", "message": "Erreur interne de prédiction.", "request_id": req_id},
         )
-
 
 @app.post("/v1/predict/batch", response_model=BatchResponse, tags=["Prediction"], dependencies=_auth_deps)
 async def predict_batch(data: BatchInput, request: Request):
     """Prédictions en lot pour plusieurs biens simultanément (max 100)."""
     t0 = time.perf_counter()
     req_id = getattr(request.state, "request_id", str(uuid.uuid4())[:8])
+    if _state["reg_model"] is None or _state["preprocessor"] is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "model_unavailable",
+            "message": "Modèle ou préprocesseur indisponible.",
+            "request_id": req_id,
+        })
     results, n_success, n_errors = [], 0, 0
 
-    for prop in data.properties:
+    for index, raw_property in enumerate(data.properties):
+        try:
+            prop = PropertyInput.model_validate(raw_property)
+        except ValidationError as exc:
+            results.append({
+                "index": index,
+                "error": {
+                    "error": "invalid_property",
+                    "message": "Invalid property fields.",
+                    "fields": sorted({
+                        str(item["loc"][0]) for item in exc.errors()
+                        if item.get("loc")
+                    }),
+                },
+            })
+            n_errors += 1
+            continue
+
         try:
             result = await predict(prop, request)
             results.append(result)
             n_success += 1
-        except HTTPException as e:
-            results.append({"error": e.detail})
+        except HTTPException as exc:
+            results.append({"index": index, "error": exc.detail})
             n_errors += 1
 
     return BatchResponse(
@@ -489,11 +508,6 @@ async def predict_batch(data: BatchInput, request: Request):
         total_latency_ms = round((time.perf_counter() - t0) * 1000, 2),
     )
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Backward compatibility — anciens endpoints sans /v1
-# ─────────────────────────────────────────────────────────────────────────────
-
 @app.get("/", tags=["Ops"], include_in_schema=False)
 async def root():
     models_loaded = _state["reg_model"] is not None
@@ -502,7 +516,7 @@ async def root():
         "version"     : "2.0.0",
         "models_loaded": models_loaded,
         "timestamp"   : datetime.now().isoformat(),
-        "message"     : "Avito ML API — voir /docs ou /health",
+        "message"     : "Avito ML API: voir /docs ou /health",
     }
 
 @app.get("/info", include_in_schema=False, dependencies=_auth_deps)
@@ -521,11 +535,6 @@ async def predict_compat(data: PropertyInput, request: Request):
 async def predict_batch_compat(data: BatchInput, request: Request):
     return await predict_batch(data, request)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Helpers
-# ─────────────────────────────────────────────────────────────────────────────
-
 def _build_input_df(data: PropertyInput) -> pd.DataFrame:
     """
     Construit le DataFrame d'entrée avec toutes les features attendues
@@ -535,85 +544,28 @@ def _build_input_df(data: PropertyInput) -> pd.DataFrame:
     nb_salles_bain   = data.nb_salles_bain if data.nb_salles_bain is not None else 0
     surface_m2       = data.surface_m2
 
-    # Features dérivées de base
     surface_x_chambres  = surface_m2 * nb_chambres if nb_chambres else 0.0
-    surface_par_chambre = surface_m2 / nb_chambres if nb_chambres else 0.0
-    ratio_chambres_bains = (nb_chambres / nb_salles_bain
-                            if nb_salles_bain and nb_chambres else 0.0)
-    prix_par_m2 = 0.0  # inconnu à la prédiction
-
-    # Stats géo — chargées depuis le Feature Store si disponible
-    geo_stats = _get_geo_stats_for_ville(data.ville)
-
+    surface_par_chambre = surface_m2 / (nb_chambres + 1)
+    ratio_chambres_bains = nb_chambres / (nb_salles_bain + 1)
     row = {
-        # Champs bruts
         "surface_m2"         : surface_m2,
         "ville"              : data.ville,
-        "quartier"           : getattr(data, "quartier", "Autre Secteur"),
+        "quartier"           : data.quartier or "Autre Secteur",
         "type_bien"          : data.type_bien,
         "nb_chambres"        : nb_chambres,
         "nb_salles_bain"     : nb_salles_bain,
-        "etage"              : str(data.etage) if data.etage is not None else "",
+        "etage"              : data.etage if data.etage is not None else np.nan,
         "age_bien"           : data.age_bien if data.age_bien is not None else None,
         "annee_construction" : None,
         "region_label"       : None,
         "is_grande_ville"    : None,
         "lien"               : "",
         "titre"              : "",
-        # Features dérivées
         "surface_x_chambres"  : surface_x_chambres,
         "surface_par_chambre" : surface_par_chambre,
         "ratio_chambres_bains": ratio_chambres_bains,
-        "prix_par_m2"         : prix_par_m2,
-        "log_prix_par_m2"     : 0.0,
-        # Stats géo
-        "ville_prix_mean"    : geo_stats.get("ville_prix_mean", 0.0),
-        "ville_prix_median"  : geo_stats.get("ville_prix_median", 0.0),
-        "ville_rang_prix"    : geo_stats.get("ville_rang_prix", 0.0),
-        "ecart_prix_ville"   : geo_stats.get("ecart_prix_ville", 0.0),
     }
     return pd.DataFrame([row])
-
-
-def _get_geo_stats_for_ville(ville: str) -> dict:
-    """
-    Récupère les statistiques géographiques pour une ville donnée
-    depuis le Feature Store (geographic group).
-    Retourne des valeurs par défaut si non disponible.
-    """
-    try:
-        fs_path = os.path.join(
-            os.getenv("MODELS_DIR", "models"), "..", "feature_store", "store.db"
-        )
-        if not os.path.exists(fs_path):
-            return {}
-
-        from feature_store import FeatureStore
-        fs = FeatureStore(store_path=fs_path)
-        geo_df = fs.read_all(group="geographic", version="v1")
-
-        if geo_df.empty:
-            return {}
-
-        # Chercher les colonnes ville_prix_mean, ville_prix_median, etc.
-        geo_cols = [c for c in geo_df.columns if c.startswith("ville_prix")
-                    or c in ("ville_rang_prix", "ecart_prix_ville")]
-
-        if not geo_cols:
-            return {}
-
-        # Prendre la moyenne globale comme fallback
-        stats = {col: float(geo_df[col].mean()) for col in geo_cols if col in geo_df.columns}
-        return stats
-
-    except Exception as e:
-        logger.warning(f"⚠️  Geo stats non disponibles pour '{ville}': {e}")
-        return {}
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints Registry (v3 — nouveaux)
-# ─────────────────────────────────────────────────────────────────────────────
 
 @app.get(
     "/v1/registry",
@@ -643,11 +595,11 @@ async def registry_status():
                 "production": clf_registry.get_production_info(),
                 "all_versions": clf_registry.get_latest_versions(),
             },
-            "mlflow_ui": "http://localhost:5000",
+            "mlflow_ui": os.getenv("MLFLOW_UI_URL"),
         }
     except Exception as exc:
-        raise HTTPException(500, detail={"error": "registry_error", "message": str(exc)})
-
+        logger.exception("Registry status unavailable")
+        raise HTTPException(500, detail={"error": "registry_error"})
 
 @app.post(
     "/v1/registry/promote",
@@ -698,12 +650,8 @@ async def registry_promote(
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(500, detail={"error": str(exc)})
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints Drift Detection (v3 — nouveaux)
-# ─────────────────────────────────────────────────────────────────────────────
+        logger.exception("Registry promotion failed")
+        raise HTTPException(500, detail={"error": "registry_promotion_failed"})
 
 @app.get(
     "/v1/drift/latest",
@@ -717,7 +665,7 @@ async def drift_latest():
     Les rapports sont générés automatiquement à chaque training pipeline.
     """
     import glob
-    reports_dir = os.getenv("REPORTS_DIR", "reports")
+    reports_dir = os.getenv("REPORTS_DIR", "reports/runtime")
     pattern = os.path.join(reports_dir, "drift_report_*.json")
     files = sorted(glob.glob(pattern), reverse=True)
 
@@ -739,7 +687,6 @@ async def drift_latest():
         **report,
     }
 
-
 class DriftDetectRequest(BaseModel):
     """Données pour la détection de drift en temps réel."""
     data: list[dict] = Field(..., description="Liste de propriétés (même format que /predict)")
@@ -756,7 +703,6 @@ class DriftDetectRequest(BaseModel):
             }
         }
     }
-
 
 @app.post(
     "/v1/drift/detect",
@@ -787,12 +733,9 @@ async def drift_detect(data: DriftDetectRequest, request: Request):
     try:
         from drift_detector import DriftDetector
 
-        # Charger les données de référence depuis les modèles
-        # reference_data.pkl est sauvegardé par feature_store.py dans feature_store/
         _fs_dir  = os.path.join(os.getenv("MODELS_DIR", "models"), "..", "feature_store")
         ref_path = os.path.join(_fs_dir, "reference_data.pkl")
 
-        # Fallback : chercher aussi dans MODELS_DIR (ancienne convention)
         if not os.path.exists(ref_path):
             ref_path = os.path.join(os.getenv("MODELS_DIR", "models"), "reference_data.pkl")
 
@@ -810,19 +753,16 @@ async def drift_detect(data: DriftDetectRequest, request: Request):
         with open(ref_path, "rb") as f:
             reference_df = pickle.load(f)
 
-        # Préparer les données actuelles
         current_df = pd.DataFrame(data.data)
         X_current = _state["preprocessor"].transform(current_df)
         X_current_df = pd.DataFrame(X_current, columns=_state.get("feature_names", []) or [f"f{i}" for i in range(X_current.shape[1])])
 
-        # Prédictions si demandé
         pred_ref = pred_cur = None
         if data.include_predictions and _state["reg_model"] is not None:
             X_ref = _state["preprocessor"].transform(reference_df)
             pred_ref = _state["reg_model"].predict(X_ref[:min(1000, len(X_ref))])
             pred_cur = _state["reg_model"].predict(X_current)
 
-        # Détection
         detector = DriftDetector(reference_data=reference_df)
         report = detector.detect(
             current_data    = X_current_df,
@@ -840,13 +780,8 @@ async def drift_detect(data: DriftDetectRequest, request: Request):
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"[{req_id}] Drift detect error: {exc}", exc_info=True)
-        raise HTTPException(500, detail={"error": "drift_detection_failed", "message": str(exc)})
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoints Feature Store (v3 — nouveaux)
-# ─────────────────────────────────────────────────────────────────────────────
+        logger.error("[%s] Drift detection failed (%s)", req_id, type(exc).__name__)
+        raise HTTPException(500, detail={"error": "drift_detection_failed"})
 
 def _get_feature_store():
     """Charge le Feature Store depuis le dossier models."""
@@ -855,7 +790,6 @@ def _get_feature_store():
         os.getenv("MODELS_DIR", "models"), "..", "feature_store", "store.db"
     )
     return FeatureStore(store_path=store_path)
-
 
 async def _run_in_thread(func, *args, **kwargs):
     """
@@ -866,7 +800,6 @@ async def _run_in_thread(func, *args, **kwargs):
     import functools
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, functools.partial(func, *args, **kwargs))
-
 
 @app.get(
     "/v1/features/groups",
@@ -892,8 +825,8 @@ async def feature_groups():
             "freshness": freshness,
         }
     except Exception as exc:
-        raise HTTPException(500, detail={"error": "feature_store_error", "message": str(exc)})
-
+        logger.exception("Feature store group listing failed")
+        raise HTTPException(500, detail={"error": "feature_store_error"})
 
 @app.get(
     "/v1/features/{group}",
@@ -935,8 +868,8 @@ async def read_features(
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(500, detail={"error": str(exc)})
-
+        logger.exception("Feature store operation failed")
+        raise HTTPException(500, detail={"error": "feature_store_error"})
 
 @app.get(
     "/v1/features/{group}/stats",
@@ -954,12 +887,8 @@ async def feature_group_stats(group: str):
             "history": stats,
         }
     except Exception as exc:
-        raise HTTPException(500, detail={"error": str(exc)})
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Endpoint Retraining Webhook (v3 — nouveau)
-# ─────────────────────────────────────────────────────────────────────────────
+        logger.exception("Feature store statistics unavailable")
+        raise HTTPException(500, detail={"error": "feature_store_error"})
 
 class RetrainRequest(BaseModel):
     reason: str = Field("manual", description="Raison du retraining (drift / manual / scheduled)")
@@ -970,7 +899,6 @@ class RetrainRequest(BaseModel):
             "example": {"reason": "drift_detected", "force": False}
         }
     }
-
 
 @app.post(
     "/v1/retrain",
@@ -998,11 +926,10 @@ async def trigger_retrain(data: RetrainRequest, request: Request):
     """
     req_id = getattr(request.state, "request_id", "unknown")
 
-    # Vérifier le dernier rapport de drift
     drift_recommendation = "unknown"
     try:
         import glob
-        reports_dir = os.getenv("REPORTS_DIR", "reports")
+        reports_dir = os.getenv("REPORTS_DIR", "reports/runtime")
         files = sorted(glob.glob(os.path.join(reports_dir, "drift_report_*.json")), reverse=True)
         if files:
             with open(files[0]) as f:
@@ -1019,16 +946,14 @@ async def trigger_retrain(data: RetrainRequest, request: Request):
             "triggered"          : False,
             "reason"             : data.reason,
             "drift_recommendation": drift_recommendation,
-            "message"            : "Aucun drift détecté — retraining non nécessaire. Utiliser force=True pour forcer.",
+            "message"            : "Aucun drift détecté: retraining non nécessaire. Utiliser force=True pour forcer.",
         }
 
-    # En production : lancer le pipeline en background
-    # Ici : retourner les instructions pour CI/CD
     job_id = f"retrain_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{req_id}"
 
     logger.warning(
-        f"🔴 RETRAINING DÉCLENCHÉ — job={job_id} | "
-        f"reason={data.reason} | drift={drift_recommendation}"
+        f"🔴 RETRAINING DÉCLENCHÉ: job={job_id} | "
+        f"drift={drift_recommendation}"
     )
 
     return {

@@ -1,12 +1,12 @@
 """
 feature_store.py
 ----------------
-Feature Store للـ ML Pipeline — Avito Real Estate v3.
+Feature Store للـ ML Pipeline: Avito Real Estate v3.
 
 واش هو الـ Feature Store؟
   بدل ما كل pipeline يعيد حساب نفس الـ features من الصفر،
   الـ Feature Store يحسبهم مرة واحدة، يخزّنهم، وكل مرة
-  pipeline أو API يحتاجهم يجيبهم مباشرة — سريع ومتّسق.
+  pipeline أو API يحتاجهم يجيبهم مباشرة: سريع ومتّسق.
 
 المشكلة اللي يحلّها:
   ❌ قبل : pipeline → OBT → compute features → train
@@ -18,7 +18,7 @@ Feature Store للـ ML Pipeline — Avito Real Estate v3.
             → نفس الـ features دائماً، مرة واحدة
 
 Architecture :
-  ┌─────────────────────────────────────────────────────┐
+  ┌=====================================================┐
   │  FeatureStore                                        │
   │                                                      │
   │  Backend: SQLite (local) ou PostgreSQL (production) │
@@ -28,7 +28,7 @@ Architecture :
   │    feature_definitions → تعريف كل feature           │
   │    feature_values     → القيم المحسوبة              │
   │    feature_stats      → إحصائيات للـ monitoring     │
-  └─────────────────────────────────────────────────────│
+  └=====================================================│
 
 Feature Groups (منظّمة حسب النوع):
   - property_base      : features الأساسية (surface, nb_chambres...)
@@ -41,13 +41,10 @@ Usage:
 
     fs = FeatureStore()
 
-    # Pipeline — كتابة features بعد training
     fs.write(df=X_train_with_metadata, group="property_base", version="v1")
 
-    # API — قراءة features لـ prediction
     features = fs.read(entity_ids=["id1", "id2"], group="property_base")
 
-    # Point-in-time correct lookup (prevent data leakage)
     features = fs.read_as_of(timestamp="2024-01-01", group="geographic")
 """
 
@@ -72,11 +69,6 @@ from logger_setup import get_logger
 
 logger = get_logger(__name__)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Configuration
-# ─────────────────────────────────────────────────────────────────────────────
-
 def _load_fs_cfg():
     try:
         from config_loader import cfg
@@ -95,11 +87,6 @@ DEFAULT_STORE_PATH  = os.getenv("FEATURE_STORE_PATH", _FS_CFG["store_path"])
 DEFAULT_CACHE_TTL   = int(os.getenv("FEATURE_STORE_CACHE_TTL", str(_FS_CFG["cache_ttl"])))
 DEFAULT_FS_VERSION  = _FS_CFG["version"]
 DEFAULT_STALENESS_H = _FS_CFG["staleness"]
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Data classes
-# ─────────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class FeatureGroup:
@@ -121,7 +108,6 @@ class FeatureGroup:
             "version"    : self.version,
         }
 
-
 @dataclass
 class FeatureStats:
     """Statistiques d'un groupe de features (pour monitoring)."""
@@ -130,13 +116,8 @@ class FeatureStats:
     n_features  : int
     written_at  : str
     version     : str
-    checksum    : str           # hash du DataFrame — détecter les changements
+    checksum    : str           # hash du DataFrame: détecter les changements
     size_bytes  : int
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# FeatureStore
-# ─────────────────────────────────────────────────────────────────────────────
 
 class FeatureStore:
     """
@@ -161,13 +142,10 @@ class FeatureStore:
         self._cache_ttl = cache_ttl_s
         self._memory_cache: dict[str, tuple[pd.DataFrame, float]] = {}
 
-        # Créer le dossier si nécessaire
         Path(store_path).parent.mkdir(parents=True, exist_ok=True)
 
         self._init_db()
         logger.info(f"🏪 FeatureStore initialisé → {store_path}")
-
-    # ── Initialisation DB ─────────────────────────────────────────────────────
 
     def _init_db(self) -> None:
         """Crée les tables SQLite si elles n'existent pas."""
@@ -227,8 +205,6 @@ class FeatureStore:
         finally:
             conn.close()
 
-    # ── Écriture ──────────────────────────────────────────────────────────────
-
     def write(
         self,
         df: pd.DataFrame,
@@ -256,7 +232,6 @@ class FeatureStore:
         """
         group_name = group.name if isinstance(group, FeatureGroup) else group
 
-        # Générer un entity_key synthétique si absent
         if entity_key not in df.columns:
             df = df.copy()
             df[entity_key] = [f"row_{i}" for i in range(len(df))]
@@ -273,7 +248,6 @@ class FeatureStore:
         t0 = time.perf_counter()
 
         with self._conn() as conn:
-            # Enregistrer/MAJ le groupe
             conn.execute("""
                 INSERT OR REPLACE INTO feature_groups
                     (name, description, entity_key, features, version, created_at, updated_at)
@@ -290,7 +264,6 @@ class FeatureStore:
                 written_at,
             ))
 
-            # Écrire les features ligne par ligne (batch insert)
             if overwrite:
                 conn.execute(
                     "DELETE FROM feature_values WHERE group_name=? AND version=?",
@@ -318,7 +291,6 @@ class FeatureStore:
                 VALUES (?, ?, ?, ?, ?, ?)
             """, rows)
 
-            # Enregistrer les stats
             size_bytes = sum(len(r[3]) for r in rows)
             conn.execute("""
                 INSERT INTO feature_stats
@@ -328,7 +300,6 @@ class FeatureStore:
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
 
-        # Invalider le cache mémoire pour ce groupe
         self._invalidate_cache(group_name)
 
         stats = FeatureStats(
@@ -346,8 +317,6 @@ class FeatureStore:
             f"{size_bytes/1024:.1f} KB | checksum={checksum[:8]}"
         )
         return stats
-
-    # ── Lecture ───────────────────────────────────────────────────────────────
 
     def read(
         self,
@@ -374,7 +343,6 @@ class FeatureStore:
         """
         cache_key = f"{group}_{version}_{hash(str(entity_ids))}"
 
-        # Vérifier le cache mémoire
         if use_cache and cache_key in self._memory_cache:
             df_cached, ts = self._memory_cache[cache_key]
             if time.time() - ts < self._cache_ttl:
@@ -407,7 +375,6 @@ class FeatureStore:
             )
             return pd.DataFrame()
 
-        # Reconstruire le DataFrame
         records = []
         for row in rows:
             feat_dict = json.loads(row["features"])
@@ -416,10 +383,12 @@ class FeatureStore:
 
         df = pd.DataFrame(records)
 
-        # Remettre les types numériques
         for col in df.columns:
             if col != "entity_id":
-                df[col] = pd.to_numeric(df[col], errors="ignore")
+                try:
+                    df[col] = pd.to_numeric(df[col])
+                except (TypeError, ValueError):
+                    pass
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
         logger.info(
@@ -427,7 +396,6 @@ class FeatureStore:
             f"{len(df)} entités | {elapsed_ms:.1f}ms"
         )
 
-        # Mettre en cache
         if use_cache:
             self._memory_cache[cache_key] = (df, time.time())
 
@@ -444,7 +412,7 @@ class FeatureStore:
         version: str = "v1",
     ) -> pd.DataFrame:
         """
-        Point-in-time correct lookup — évite le data leakage.
+        Point-in-time correct lookup: évite le data leakage.
 
         Retourne uniquement les features qui étaient disponibles
         AVANT le timestamp donné.
@@ -454,7 +422,7 @@ class FeatureStore:
         Parameters
         ----------
         group     : nom du groupe
-        timestamp : ISO datetime — ne retourner que les features écrites avant
+        timestamp : ISO datetime: ne retourner que les features écrites avant
         version   : version des features
         """
         with self._conn() as conn:
@@ -481,14 +449,15 @@ class FeatureStore:
         df = pd.DataFrame(records)
         for col in df.columns:
             if col != "entity_id":
-                df[col] = pd.to_numeric(df[col], errors="ignore")
+                try:
+                    df[col] = pd.to_numeric(df[col])
+                except (TypeError, ValueError):
+                    pass
 
         logger.info(
             f"   🏪 read_as_of('{group}', {timestamp[:10]}) → {len(df)} entités"
         )
         return df
-
-    # ── Assemblage du training dataset ───────────────────────────────────────
 
     def get_training_dataset(
         self,
@@ -518,7 +487,7 @@ class FeatureStore:
         for group in groups:
             df = self.read_all(group=group, version=version)
             if df.empty:
-                logger.warning(f"   ⚠️  Groupe '{group}' vide — ignoré")
+                logger.warning(f"   ⚠️  Groupe '{group}' vide: ignoré")
                 continue
             dfs.append(df)
 
@@ -526,10 +495,8 @@ class FeatureStore:
             logger.error("   ❌ Aucun groupe disponible pour assembler le dataset")
             return pd.DataFrame()
 
-        # Jointure progressive
         result = dfs[0]
         for df in dfs[1:]:
-            # Éviter les colonnes dupliquées (sauf join_key)
             cols_to_add = [c for c in df.columns if c not in result.columns or c == join_key]
             result = result.merge(df[cols_to_add], on=join_key, how="left")
 
@@ -537,8 +504,6 @@ class FeatureStore:
             f"   ✅ Dataset assemblé : {len(result)} entités × {len(result.columns)} features"
         )
         return result
-
-    # ── Métadonnées et statistiques ───────────────────────────────────────────
 
     def list_groups(self) -> list[dict]:
         """Liste tous les feature groups disponibles."""
@@ -592,14 +557,13 @@ class FeatureStore:
 
         freshness = {row["group_name"]: row["last_written"] for row in rows}
 
-        # Marquer les features obsolètes (> 24h)
         now = datetime.now()
         for group, ts in freshness.items():
             last = datetime.fromisoformat(ts)
             age_h = (now - last).total_seconds() / 3600
             if age_h > 24:
                 logger.warning(
-                    f"   ⚠️  Groupe '{group}' obsolète — "
+                    f"   ⚠️  Groupe '{group}' obsolète: "
                     f"dernière MAJ il y a {age_h:.1f}h"
                 )
 
@@ -633,8 +597,6 @@ class FeatureStore:
 
         logger.info(f"{'='*60}\n")
 
-    # ── Utilitaires ───────────────────────────────────────────────────────────
-
     @staticmethod
     def _serialize_value(val: Any) -> Any:
         """Convertit les types numpy/pandas en types Python natifs pour JSON."""
@@ -663,11 +625,6 @@ class FeatureStore:
         for k in keys_to_del:
             del self._memory_cache[k]
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# pipeline_write_features — Fonction de haut niveau pour le pipeline
-# ─────────────────────────────────────────────────────────────────────────────
-
 def pipeline_write_features(
     df_train: pd.DataFrame,
     feature_names: list[str],
@@ -684,7 +641,6 @@ def pipeline_write_features(
     """
     fs = FeatureStore(store_path=store_path)
 
-    # Définir les groupes selon les features disponibles
     groups: dict[str, list[str]] = {
         "property_base"   : [],
         "property_derived": [],
@@ -692,7 +648,6 @@ def pipeline_write_features(
         "temporal"        : [],
     }
 
-    # Mapper les features aux groupes
     base_patterns      = ["surface_m2", "nb_chambres", "nb_salles_bain", "etage", "age_bien", "type_bien"]
     derived_patterns   = ["prix_par_m2", "log_", "score_luxe", "surface_x", "surface_par", "ratio_"]
     geographic_patterns= ["ville", "region", "median_", "rank_", "prix_median", "geo_"]
@@ -714,13 +669,12 @@ def pipeline_write_features(
     stats: dict[str, FeatureStats] = {}
     df_work = df_train.copy()
 
-    # Ajouter un entity_id synthétique
     df_work["entity_id"] = [f"train_{i}" for i in range(len(df_work))]
 
     for group_name, cols in groups.items():
         cols_available = [c for c in cols if c in df_work.columns]
         if not cols_available:
-            logger.debug(f"   FeatureStore : groupe '{group_name}' vide — ignoré")
+            logger.debug(f"   FeatureStore : groupe '{group_name}' vide: ignoré")
             continue
 
         group_df = df_work[["entity_id"] + cols_available].copy()
@@ -740,7 +694,6 @@ def pipeline_write_features(
         )
         stats[group_name] = stat
 
-    # Sauvegarder les données de référence pour la détection de drift
     ref_path = Path(store_path).parent / "reference_data.pkl"
     df_ref = df_train[feature_names].copy() if all(c in df_train.columns for c in feature_names) else df_train.copy()
     with open(ref_path, "wb") as f:

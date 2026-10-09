@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 _CONFIG_PATH = Path(__file__).parent.parent / "config" / "config.yaml"
 
-
 class _AttrDict(dict):
     """Dict accessible via attributs : cfg.paths.models_dir"""
 
@@ -38,7 +37,6 @@ class _AttrDict(dict):
     def __setattr__(self, key, value):
         self[key] = value
 
-
 def _resolve_env(value: str) -> str:
     """
     Résout les références d'environnement du type ${VAR:default}.
@@ -47,11 +45,16 @@ def _resolve_env(value: str) -> str:
     pattern = r"\$\{(\w+)(?::([^}]*))?\}"
 
     def _replacer(match):
-        var, default = match.group(1), match.group(2) or ""
-        return os.getenv(var, default)
+        var, default = match.group(1), match.group(2)
+        value = os.getenv(var)
+        if value is not None:
+            return value
+        if default is not None:
+            return default
+        logger.warning("Environment variable %s is not configured", var)
+        return ""
 
     return re.sub(pattern, _replacer, value)
-
 
 def _walk_resolve(obj: Any) -> Any:
     """Parcourt récursivement le dict et résout les variables d'env."""
@@ -62,7 +65,6 @@ def _walk_resolve(obj: Any) -> Any:
     if isinstance(obj, str):
         return _resolve_env(obj)
     return obj
-
 
 def load_config(path: Path = _CONFIG_PATH) -> _AttrDict:
     """
@@ -75,10 +77,11 @@ def load_config(path: Path = _CONFIG_PATH) -> _AttrDict:
     with open(path, encoding="utf-8") as f:
         raw = yaml.safe_load(f)
 
+    if not isinstance(raw, dict):
+        raise ValueError(f"Configuration invalide dans {path}: objet YAML attendu")
+
     resolved = _walk_resolve(raw)
     logger.debug(f"Config chargée depuis {path}")
     return _AttrDict(resolved)
 
-
-# ── Singleton global — importez `cfg` directement ────────────────────────────
 cfg = load_config()

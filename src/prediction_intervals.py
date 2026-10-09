@@ -7,15 +7,14 @@ Au lieu de renvoyer une seule valeur, le modèle retourne un intervalle
 de confiance [lower, upper] autour de la prédiction centrale.
 
 Deux méthodes disponibles :
-  1. Quantile (GradientBoosting / XGBoost natif) — précise et rapide
-  2. Bootstrap — universelle, fonctionne avec tout modèle sklearn
+  1. Quantile (GradientBoosting / XGBoost natif): précise et rapide
+  2. Bootstrap: universelle, fonctionne avec tout modèle sklearn
 
 Usage :
     from prediction_intervals import PredictionIntervalBuilder
     builder = PredictionIntervalBuilder(method="bootstrap", n_bootstrap=200)
     builder.fit(model, X_train, y_train)
     df_pred = builder.predict_with_interval(X_test)
-    # → DataFrame avec colonnes: prediction, lower, upper, interval_width
 """
 
 import numpy as np
@@ -25,11 +24,6 @@ from typing import Optional, Tuple
 from logger_setup import get_logger
 
 logger = get_logger(__name__)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Builder principal
-# ─────────────────────────────────────────────────────────────────────────────
 
 class PredictionIntervalBuilder:
     """
@@ -54,22 +48,20 @@ class PredictionIntervalBuilder:
             n_bootstrap:      Nombre de modèles bootstrap (ignoré si method="quantile").
             random_state:     Graine pour la reproductibilité.
         """
-        try:
-            from config_loader import cfg
-            pi = cfg.prediction_intervals
-            self.method           = method or pi.method
-            self.confidence_level = float(pi.confidence_level)
-            self.n_bootstrap      = int(pi.n_bootstrap)
-        except Exception:
-            self.method           = method
-            self.confidence_level = confidence_level
-            self.n_bootstrap      = n_bootstrap
+        self.method = method
+        self.confidence_level = float(confidence_level)
+        self.n_bootstrap = int(n_bootstrap)
+        if self.method not in ("quantile", "bootstrap"):
+            raise ValueError("Unknown prediction interval method")
+        if not 0 < self.confidence_level < 1:
+            raise ValueError("Confidence level must be between zero and one")
+        if self.method == "bootstrap" and self.n_bootstrap < 1:
+            raise ValueError("Bootstrap requires at least one model")
 
         self.random_state = random_state
         self.alpha        = 1 - self.confidence_level
         self._fitted      = False
 
-        # Stockage interne selon la méthode
         self._residual_lower: Optional[float] = None
         self._residual_upper: Optional[float] = None
         self._bootstrap_models: list = []
@@ -80,9 +72,7 @@ class PredictionIntervalBuilder:
             f"CI={self.confidence_level:.0%}, alpha={self.alpha:.3f}"
         )
 
-    # ── Fit ───────────────────────────────────────────────────────────────────
-
-    def fit(self, model, X_train, y_train) -> "PredictionIntervalBuilder":
+    def fit(self, model, X_train, y_train, X_cal=None, y_cal=None) -> "PredictionIntervalBuilder":
         """
         Calibre les intervalles de prédiction sur les données d'entraînement.
 
@@ -98,7 +88,9 @@ class PredictionIntervalBuilder:
         self._base_model = model
 
         if self.method == "quantile":
-            self._fit_quantile(model, X_train, y_train)
+            if X_cal is None or y_cal is None or len(y_cal) < 2:
+                raise ValueError("Quantile calibration requires an independent calibration set")
+            self._fit_quantile(model, X_cal, y_cal)
         elif self.method == "bootstrap":
             self._fit_bootstrap(model, X_train, y_train)
         else:
@@ -107,14 +99,20 @@ class PredictionIntervalBuilder:
         self._fitted = True
         return self
 
-    def _fit_quantile(self, model, X_train, y_train) -> None:
+    def _fit_quantile(self, model, X_cal, y_cal) -> None:
         """Calcule les quantiles des résidus sur le train."""
         logger.info("   PI : calibration quantile des résidus ...")
-        y_pred_train = model.predict(X_train)
-        residuals    = np.array(y_train) - y_pred_train
+        y_pred_cal = model.predict(X_cal)
+        residuals = np.asarray(y_cal) - y_pred_cal
+        if not np.all(np.isfinite(residuals)):
+            raise ValueError("Nonfinite calibration residuals")
 
-        self._residual_lower = float(np.quantile(residuals, self.alpha / 2))
-        self._residual_upper = float(np.quantile(residuals, 1 - self.alpha / 2))
+        import math
+        n = len(residuals)
+        rank = min(n, math.ceil((n + 1) * (1 - self.alpha)))
+        radius = float(np.partition(np.abs(residuals), rank - 1)[rank - 1])
+        self._residual_lower = -radius
+        self._residual_upper = radius
 
         logger.info(
             f"   PI quantile calibré : [{self._residual_lower:+,.0f}, {self._residual_upper:+,.0f}]"
@@ -127,21 +125,19 @@ class PredictionIntervalBuilder:
         logger.info(f"   PI : bootstrap avec {self.n_bootstrap} modèles ...")
         rng = np.random.default_rng(self.random_state)
         n   = len(y_train)
-        X_np = X_train.values if hasattr(X_train, "values") else np.array(X_train)
-        y_np = np.array(y_train)
+        y_np = np.asarray(y_train)
 
         self._bootstrap_models = []
         for i in range(self.n_bootstrap):
             idx = rng.integers(0, n, size=n)
-            m   = clone(model)
-            m.fit(X_np[idx], y_np[idx])
+            X_sample = X_train.iloc[idx] if hasattr(X_train, "iloc") else np.asarray(X_train)[idx]
+            m = clone(model)
+            m.fit(X_sample, y_np[idx])
             self._bootstrap_models.append(m)
             if (i + 1) % 50 == 0:
                 logger.debug(f"      Bootstrap {i+1}/{self.n_bootstrap}")
 
         logger.info(f"   ✅ {self.n_bootstrap} modèles bootstrap entraînés")
-
-    # ── Predict ───────────────────────────────────────────────────────────────
 
     def predict_with_interval(self, X_test) -> pd.DataFrame:
         """
@@ -164,26 +160,28 @@ class PredictionIntervalBuilder:
             upper = point_pred + self._residual_upper
 
         elif self.method == "bootstrap":
-            X_np = X_test.values if hasattr(X_test, "values") else np.array(X_test)
-            all_preds = np.stack([m.predict(X_np) for m in self._bootstrap_models], axis=1)
+            if not self._bootstrap_models:
+                raise ValueError("No bootstrap models available")
+            all_preds = np.stack([m.predict(X_test) for m in self._bootstrap_models], axis=1)
             lower = np.quantile(all_preds, self.alpha / 2, axis=1)
             upper = np.quantile(all_preds, 1 - self.alpha / 2, axis=1)
 
-        # ── Sanity checks — prix immobilier toujours positif ─────────────────
-        # lower < 0 possible si les résidus sont très négatifs → clip à 0
+        if not np.all(np.isfinite(point_pred)) or not np.all(np.isfinite(lower)) or not np.all(np.isfinite(upper)):
+            raise ValueError("Nonfinite prediction interval values")
+        if np.any(point_pred < 0):
+            raise ValueError("Negative point prediction")
+
         lower = np.maximum(lower, 0.0)
-        # Garantir lower <= prediction <= upper (interval ne doit pas être inversé)
         lower = np.minimum(lower, point_pred)
         upper = np.maximum(upper, point_pred)
 
         interval_width = upper - lower
 
-        # Vérifier que l'intervalle n'est pas vide (upper > lower)
         n_degenerate = int(np.sum(interval_width <= 0))
         if n_degenerate > 0:
             logger.warning(
                 f"   ⚠️  {n_degenerate} intervalles dégénérés (lower >= upper) "
-                f"— vérifier le calibrage du modèle."
+                f"Vérifier le calibrage du modèle."
             )
 
         df = pd.DataFrame({
@@ -193,7 +191,6 @@ class PredictionIntervalBuilder:
             "interval_width" : interval_width,
         })
 
-        # Statistiques de l'intervalle
         mean_width = df["interval_width"].mean()
         logger.info(
             f"   PI {self.confidence_level:.0%} : largeur moyenne = {mean_width:,.0f} MAD | "
@@ -201,8 +198,6 @@ class PredictionIntervalBuilder:
         )
 
         return df
-
-    # ── Rapport ───────────────────────────────────────────────────────────────
 
     def evaluate_coverage(
         self, X_test, y_test
@@ -235,7 +230,7 @@ class PredictionIntervalBuilder:
 
         if abs(metrics["coverage_gap"]) > 0.05:
             logger.warning(
-                f"   ⚠️  Écart couverture > 5% — envisager une recalibration"
+                f"   ⚠️  Écart couverture > 5%: envisager une recalibration"
             )
 
         return metrics
@@ -244,14 +239,9 @@ class PredictionIntervalBuilder:
         """Formate une ligne de résultat en texte lisible."""
         return (
             f"{row['prediction']:,.0f} MAD "
-            f"[{row['lower']:,.0f} – {row['upper']:,.0f}] "
+            f"[{row['lower']:,.0f} à {row['upper']:,.0f}] "
             f"(±{row['interval_width']/2:,.0f})"
         )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Fonction utilitaire rapide
-# ─────────────────────────────────────────────────────────────────────────────
 
 def predict_with_ci(
     model,
@@ -259,6 +249,8 @@ def predict_with_ci(
     X_test,
     method: str = "quantile",
     confidence: float = 0.95,
+    X_cal=None,
+    y_cal=None,
 ) -> pd.DataFrame:
     """
     Raccourci : calibre et prédit avec intervalles en une seule ligne.
@@ -269,5 +261,5 @@ def predict_with_ci(
     builder = PredictionIntervalBuilder(
         method=method, confidence_level=confidence
     )
-    builder.fit(model, X_train, y_train)
+    builder.fit(model, X_train, y_train, X_cal=X_cal, y_cal=y_cal)
     return builder.predict_with_interval(X_test)

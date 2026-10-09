@@ -1,7 +1,7 @@
 """
 drift_detector.py
 -----------------
-Drift Detection للـ MLOps الحقيقي — Avito Real Estate Pipeline v3.
+Drift Detection للـ MLOps الحقيقي: Avito Real Estate Pipeline v3.
 
 نوعان من الـ Drift:
   1. Data Drift    : توزيع الـ features تغيّر (السوق تغيّر، بيانات جديدة مختلفة)
@@ -23,12 +23,10 @@ Usage :
 
     detector = DriftDetector(reference_data=X_train)
 
-    # بعد كل batch من predictions
     report = detector.detect(current_data=X_new)
 
     if report.has_drift:
         print(report.summary())
-        # → trigger retraining
 """
 
 from __future__ import annotations
@@ -51,12 +49,6 @@ logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Thresholds & Severity
-# ─────────────────────────────────────────────────────────────────────────────
-
-# PSI thresholds — lus depuis config.yaml, fallback sur les valeurs standard
 def _load_drift_cfg():
     try:
         from config_loader import cfg
@@ -76,18 +68,12 @@ PSI_WARNING           = _DRIFT_CFG["psi_warning"]
 KS_PVALUE_THRESHOLD   = _DRIFT_CFG["ks_pval"]
 CHI2_PVALUE_THRESHOLD = _DRIFT_CFG["chi2_pval"]
 
-
 def _psi_severity(psi: float) -> str:
     if psi < PSI_STABLE:
         return "stable"
     if psi < PSI_WARNING:
         return "warning"
     return "drift"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Result Dataclasses
-# ─────────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class FeatureDriftResult:
@@ -121,7 +107,6 @@ class FeatureDriftResult:
             "cur_mean" : round(self.cur_mean, 2) if self.cur_mean is not None else None,
         }
 
-
 @dataclass
 class PredictionDriftResult:
     """Résultat de drift sur les prédictions du modèle."""
@@ -152,10 +137,9 @@ class PredictionDriftResult:
             "mean_shift_pct": round(self.mean_shift_pct, 2),
         }
 
-
 @dataclass
 class DriftReport:
-    """Rapport complet de drift — features + predictions."""
+    """Rapport complet de drift: features + predictions."""
     timestamp          : str
     n_features_checked : int
     n_drifted          : int
@@ -185,7 +169,7 @@ class DriftReport:
         """Résumé lisible en une ligne."""
         icon = {"ok": "✅", "monitor": "🟡", "retrain": "🔴"}.get(self.recommendation, "❓")
         return (
-            f"{icon} Drift [{self.recommendation.upper()}] — "
+            f"{icon} Drift [{self.recommendation.upper()}]: "
             f"{self.n_drifted}/{self.n_features_checked} features driftées | "
             f"PSI global={self.dataset_psi:.3f} | "
             f"{'Prédictions OK' if not self.prediction_drift or not self.prediction_drift.has_drift else 'Prédictions driftées ⚠️'}"
@@ -208,7 +192,7 @@ class DriftReport:
             "prediction_drift"   : self.prediction_drift.to_dict() if self.prediction_drift else None,
         }
 
-    def save(self, output_dir: str = "reports") -> str:
+    def save(self, output_dir: str = "reports/runtime") -> str:
         """Sauvegarde le rapport en JSON."""
         os.makedirs(output_dir, exist_ok=True)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -217,11 +201,6 @@ class DriftReport:
             json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
         logger.info(f"   💾 Drift report → {path}")
         return path
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PSI Calculator
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _compute_psi(
     reference: np.ndarray,
@@ -238,7 +217,6 @@ def _compute_psi(
         0.10-0.20   → Warning
         PSI > 0.20  → Drift
     """
-    # Créer les bins sur l'étendue combinée des deux distributions
     combined_min = min(np.nanmin(reference), np.nanmin(current))
     combined_max = max(np.nanmax(reference), np.nanmax(current))
 
@@ -249,7 +227,6 @@ def _compute_psi(
 
     def _bin_counts(data: np.ndarray) -> np.ndarray:
         counts = np.histogram(data, bins=breakpoints)[0]
-        # Éviter division par zéro — min 0.0001
         counts = np.where(counts == 0, 0.0001, counts)
         return counts / counts.sum()
 
@@ -258,11 +235,6 @@ def _compute_psi(
 
     psi = np.sum((cur_pct - ref_pct) * np.log(cur_pct / ref_pct))
     return float(np.abs(psi))  # abs pour éviter les valeurs négatives marginales
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# DriftDetector — classe principale
-# ─────────────────────────────────────────────────────────────────────────────
 
 class DriftDetector:
     """
@@ -289,14 +261,13 @@ class DriftDetector:
         categorical_cols: Optional[list[str]] = None,
         psi_threshold_warning: float = PSI_STABLE,
         psi_threshold_drift: float = PSI_WARNING,
-        output_dir: str = "reports",
+        output_dir: str = "reports/runtime",
     ):
         self.reference     = reference_data.copy()
         self.output_dir    = output_dir
         self._psi_warn     = psi_threshold_warning
         self._psi_drift    = psi_threshold_drift
 
-        # Auto-détection des types de colonnes
         if numerical_cols is not None:
             self.numerical_cols = numerical_cols
         else:
@@ -311,17 +282,14 @@ class DriftDetector:
                 reference_data.select_dtypes(include=["object", "category"]).columns
             )
 
-        # Historique des rapports
         self._reports: list[DriftReport] = []
 
         logger.info(
-            f"🔍 DriftDetector initialisé — "
+            f"🔍 DriftDetector initialisé: "
             f"ref={len(reference_data)} lignes | "
             f"{len(self.numerical_cols)} num | "
             f"{len(self.categorical_cols)} cat"
         )
-
-    # ── Détection principale ──────────────────────────────────────────────────
 
     def detect(
         self,
@@ -354,21 +322,18 @@ class DriftDetector:
 
         feature_results: list[FeatureDriftResult] = []
 
-        # 1. Drift sur les features numériques (PSI + KS)
         for col in self.numerical_cols:
             if col not in current_data.columns:
                 continue
             result = self._check_numerical(col, current_data[col])
             feature_results.append(result)
 
-        # 2. Drift sur les features catégorielles (Chi²)
         for col in self.categorical_cols:
             if col not in current_data.columns:
                 continue
             result = self._check_categorical(col, current_data[col])
             feature_results.append(result)
 
-        # 3. Drift sur les prédictions (si fourni)
         pred_drift = None
         if predictions_ref is not None and predictions_cur is not None:
             pred_drift = self._check_predictions(
@@ -376,18 +341,15 @@ class DriftDetector:
                 np.array(predictions_cur),
             )
 
-        # 4. Calcul du PSI global (moyenne des PSI numériques)
         psi_values = [
             r.statistic for r in feature_results
             if r.test_used == "psi" and r.statistic is not None
         ]
         dataset_psi = float(np.mean(psi_values)) if psi_values else 0.0
 
-        # 5. Comptage
         n_drifted  = sum(1 for r in feature_results if r.has_drift)
         n_warnings = sum(1 for r in feature_results if r.severity == "warning")
 
-        # 6. Recommandation
         recommendation = self._recommend(
             n_drifted=n_drifted,
             n_total=len(feature_results),
@@ -395,7 +357,6 @@ class DriftDetector:
             pred_drift=pred_drift,
         )
 
-        # 7. Rapport final
         report = DriftReport(
             timestamp          = datetime.now().isoformat(),
             n_features_checked = len(feature_results),
@@ -411,15 +372,12 @@ class DriftDetector:
 
         self._reports.append(report)
 
-        # 8. Log du résumé
         self._log_report(report)
 
         if save_report:
             report.save(self.output_dir)
 
         return report
-
-    # ── Checks individuels ────────────────────────────────────────────────────
 
     def _check_numerical(
         self,
@@ -436,14 +394,11 @@ class DriftDetector:
                 statistic=0.0, p_value=None, severity="stable",
             )
 
-        # PSI
         psi = _compute_psi(ref_vals, cur_vals)
         severity = self._psi_severity_custom(psi)
 
-        # KS test — pour info seulement
         ks_stat, ks_pvalue = stats.ks_2samp(ref_vals, cur_vals)
 
-        # Si KS est très significatif ET PSI en warning → upgrader à drift
         if severity == "warning" and ks_pvalue < KS_PVALUE_THRESHOLD:
             severity = "drift"
 
@@ -474,12 +429,10 @@ class DriftDetector:
                 statistic=0.0, p_value=1.0, severity="stable",
             )
 
-        # Aligner les catégories
         all_cats = set(ref_vals.unique()) | set(cur_vals.unique())
         ref_counts = ref_vals.value_counts().reindex(all_cats, fill_value=0.0001)
         cur_counts = cur_vals.value_counts().reindex(all_cats, fill_value=0.0001)
 
-        # Chi² test
         chi2_stat, p_value = stats.chisquare(
             cur_counts.values,
             f_exp=ref_counts.values / ref_counts.sum() * cur_counts.sum(),
@@ -521,8 +474,6 @@ class DriftDetector:
             mean_shift_pct= mean_shift_pct,
         )
 
-    # ── Recommandation ────────────────────────────────────────────────────────
-
     def _recommend(
         self,
         n_drifted: int,
@@ -536,19 +487,15 @@ class DriftDetector:
           "monitor" → warning, surveiller
           "retrain" → drift confirmé, retrainer le modèle
         """
-        # Drift des prédictions = signal fort → retrain
         if pred_drift and pred_drift.has_drift:
             return "retrain"
 
-        # Plus de 30% des features driftées → retrain
         if n_total > 0 and n_drifted / n_total > 0.30:
             return "retrain"
 
-        # PSI global élevé → retrain
         if dataset_psi > PSI_WARNING:
             return "retrain"
 
-        # Quelques warnings → monitor
         if dataset_psi > PSI_STABLE or n_drifted > 0 or (pred_drift and pred_drift.has_warning):
             return "monitor"
 
@@ -561,16 +508,14 @@ class DriftDetector:
             return "warning"
         return "drift"
 
-    # ── Logging ───────────────────────────────────────────────────────────────
-
     def _log_report(self, report: DriftReport) -> None:
         """Log structuré du rapport."""
         icon = {"ok": "✅", "monitor": "🟡", "retrain": "🔴"}.get(report.recommendation, "❓")
 
         logger.info(f"\n{icon} {report.summary()}")
-        logger.info(f"\n{'─'*55}")
+        logger.info(f"\n{'='*55}")
         logger.info(f"{'Feature':<25} {'Test':<6} {'Statistic':>10} {'p-value':>10} {'Status'}")
-        logger.info(f"{'─'*55}")
+        logger.info(f"{'='*55}")
 
         for r in sorted(report.feature_results, key=lambda x: x.statistic, reverse=True):
             status_icon = {"stable": "✅", "warning": "🟡", "drift": "🔴"}.get(r.severity, "❓")
@@ -583,29 +528,27 @@ class DriftDetector:
         if report.prediction_drift:
             pd_r = report.prediction_drift
             pd_icon = {"stable": "✅", "warning": "🟡", "drift": "🔴"}.get(pd_r.severity, "❓")
-            logger.info(f"{'─'*55}")
+            logger.info(f"{'='*55}")
             logger.info(
                 f"  {'[PREDICTIONS]':<23} {'psi':<6} {pd_r.psi:>10.4f} "
                 f"{pd_r.ks_p_value:>10.4f} {pd_icon} {pd_r.severity} "
                 f"(shift: {pd_r.mean_shift_pct:+.1f}%)"
             )
 
-        logger.info(f"{'─'*55}")
+        logger.info(f"{'='*55}")
 
         if report.recommendation == "retrain":
             logger.warning(
-                f"\n  🔴 DRIFT CONFIRMÉ — Retraining recommandé !\n"
+                f"\n  🔴 DRIFT CONFIRMÉ: Retraining recommandé !\n"
                 f"     Features driftées : {report.drifted_features()}\n"
                 f"     PSI global        : {report.dataset_psi:.4f}\n"
                 f"     Lancer : make train\n"
             )
         elif report.recommendation == "monitor":
             logger.warning(
-                f"\n  🟡 DRIFT EN COURS — Surveiller de près\n"
+                f"\n  🟡 DRIFT EN COURS: Surveiller de près\n"
                 f"     Features en warning : {report.warning_features()}\n"
             )
-
-    # ── Analyse historique ────────────────────────────────────────────────────
 
     def trend(self) -> Optional[dict]:
         """

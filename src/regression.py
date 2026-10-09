@@ -12,11 +12,9 @@ Améliorations v2 :
   - Logging structuré
 """
 
-# ── stdlib ────────────────────────────────────────────────────────────────────
 import pickle
 from typing import Optional
 
-# ── third-party ───────────────────────────────────────────────────────────────
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -24,7 +22,6 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score, RandomizedSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# ── local ─────────────────────────────────────────────────────────────────────
 from logger_setup import get_logger
 
 try:
@@ -37,21 +34,16 @@ except Exception:
 
 logger = get_logger(__name__)
 
-
 def _try_xgboost():
     try:
         from xgboost import XGBRegressor
         return XGBRegressor
     except ImportError:
-        logger.warning("   ⚠️  xgboost non installé — ignoré (pip install xgboost)")
+        logger.warning("   ⚠️  xgboost non installé: ignoré (pip install xgboost)")
         return None
-
 
 def get_regression_models() -> dict:
     """Retourne le dictionnaire des modèles candidats."""
-    # n_jobs=1 sur les estimateurs — cross_val_score utilise n_jobs=-1 pour
-    # paralléliser les folds. Si l'estimateur ET cross_val_score sont tous les
-    # deux n_jobs=-1, on obtient un CPU oversubscription (N_folds × N_cores²).
     models = {
         "Ridge"            : Ridge(alpha=1.0),
         "RandomForest"     : RandomForestRegressor(n_estimators=100, random_state=_RS, n_jobs=1),
@@ -61,6 +53,47 @@ def get_regression_models() -> dict:
     if XGB:
         models["XGBoost"] = XGB(n_estimators=100, random_state=_RS, n_jobs=1, verbosity=0)
     return models
+
+class PriceScaleRegressor:
+    def __init__(self, estimator, log_target=False):
+        self.estimator = estimator
+        self.log_target = log_target
+
+    def get_params(self, deep=True):
+        params = {"estimator": self.estimator, "log_target": self.log_target}
+        if deep and hasattr(self.estimator, "get_params"):
+            params.update({
+                f"estimator__{key}": value
+                for key, value in self.estimator.get_params(deep=True).items()
+            })
+        return params
+
+    def set_params(self, **params):
+        if "estimator" in params:
+            self.estimator = params.pop("estimator")
+        if "log_target" in params:
+            self.log_target = params.pop("log_target")
+        nested = {
+            key[len("estimator__"):]: value
+            for key, value in params.items()
+            if key.startswith("estimator__")
+        }
+        if nested:
+            self.estimator.set_params(**nested)
+        return self
+
+    def fit(self, X, y):
+        from sklearn.base import clone
+        self.estimator_ = clone(self.estimator)
+        target = np.log1p(y) if self.log_target else y
+        self.estimator_.fit(X, target)
+        return self
+
+    def predict(self, X):
+        from sklearn.utils.validation import check_is_fitted
+        check_is_fitted(self, "estimator_")
+        values = self.estimator_.predict(X)
+        return np.expm1(values) if self.log_target else values
 
 
 def train_regression(
@@ -78,7 +111,7 @@ def train_regression(
         (best_model, best_name, use_log_target)
     """
     logger.info("\n" + "=" * 50)
-    logger.info("📈 MODÈLE DE RÉGRESSION — Prédiction du Prix")
+    logger.info("📈 MODÈLE DE RÉGRESSION: Prédiction du Prix")
     logger.info("=" * 50)
 
     y = np.log1p(y_train) if use_log_target else y_train
@@ -89,8 +122,6 @@ def train_regression(
     results = {}
 
     for name, model in models.items():
-        # n_jobs=-1 ici = parallélisme sur les folds (outer) uniquement
-        # Les estimateurs ont n_jobs=1 pour éviter le oversubscription
         scores = cross_val_score(model, X_train, y, cv=_CV, scoring="r2", n_jobs=-1)
         results[name] = scores.mean()
         logger.info(
@@ -103,7 +134,6 @@ def train_regression(
 
     best_model.fit(X_train, y)
     return best_model, best_name, use_log_target
-
 
 def optimize_model(model, X_train, y_train, n_iter: int = None):
     """
@@ -136,7 +166,7 @@ def optimize_model(model, X_train, y_train, n_iter: int = None):
     }
     param_dist = grids.get(model_name)
     if not param_dist:
-        logger.warning(f"   ⚠️  Pas de grille pour {model_name} — optimisation ignorée")
+        logger.warning(f"   ⚠️  Pas de grille pour {model_name}: optimisation ignorée")
         return model
 
     search = RandomizedSearchCV(
@@ -147,7 +177,6 @@ def optimize_model(model, X_train, y_train, n_iter: int = None):
     logger.info(f"   ✅ Meilleurs paramètres : {search.best_params_}")
     logger.info(f"   R² CV optimisé : {search.best_score_:.4f}")
     return search.best_estimator_
-
 
 def evaluate_regression(
     model,
@@ -161,7 +190,7 @@ def evaluate_regression(
     Si use_log_target=True, inverse-transforme les prédictions avant les métriques.
 
     Args:
-        baseline_results : dict retourné par run_regression_baselines() —
+        baseline_results : dict retourné par run_regression_baselines(),
                            si fourni, vérifie que le modèle bat les baselines.
     """
     y_pred_raw = model.predict(X_test)
@@ -173,7 +202,6 @@ def evaluate_regression(
     rmse = np.sqrt(mse)
     r2   = r2_score(y_true, y_pred)
 
-    # MAPE standard — exclure les valeurs nulles (division par zéro)
     nonzero_mask = np.abs(y_true) > np.finfo(float).eps
     mape = (
         np.mean(np.abs((y_true[nonzero_mask] - y_pred[nonzero_mask])
@@ -191,13 +219,12 @@ def evaluate_regression(
     if r2 >= 0.85:
         logger.info("   🟢 Excellent modèle !")
     elif r2 >= 0.70:
-        logger.info("   🟡 Bon modèle — peut être amélioré")
+        logger.info("   🟡 Bon modèle: peut être amélioré")
     elif r2 >= 0.50:
-        logger.info("   🟠 Modèle moyen — revoir les features")
+        logger.info("   🟠 Modèle moyen: revoir les features")
     else:
-        logger.info("   🔴 Modèle faible — approfondir l'analyse")
+        logger.info("   🔴 Modèle faible: approfondir l'analyse")
 
-    # ── Vérification : le modèle doit battre les baselines ───────────────────
     if baseline_results:
         best_baseline_r2 = max(
             v.get("R2", -999) for v in baseline_results.values()
@@ -205,7 +232,7 @@ def evaluate_regression(
         if r2 <= best_baseline_r2:
             logger.warning(
                 f"\n   ⚠️  ALERTE BASELINE : R²={r2:.4f} ≤ meilleure baseline "
-                f"R²={best_baseline_r2:.4f} — le modèle ML n'apporte pas de valeur ajoutée !"
+                f"R²={best_baseline_r2:.4f}: le modèle ML n'apporte pas de valeur ajoutée !"
                 f"\n   → Vérifier : features, target leakage, données insuffisantes."
             )
         else:
@@ -215,7 +242,6 @@ def evaluate_regression(
             )
 
     return {"MAE": mae, "MSE": mse, "RMSE": rmse, "MAPE": mape, "R2": r2}
-
 
 def get_feature_importance(model, feature_names: list, top_n: int = 15):
     """
@@ -238,13 +264,11 @@ def get_feature_importance(model, feature_names: list, top_n: int = 15):
         logger.info(f"   {feat:<35s} {bar} {imp:.4f}")
     return importances
 
-
 def save_model(model, path: str = "models/regression_model.pkl") -> None:
     """Sauvegarde le modèle entraîné sur disque."""
     with open(path, "wb") as f:
         pickle.dump(model, f)
     logger.info(f"💾 Modèle régression sauvegardé → {path}")
-
 
 def load_model(path: str = "models/regression_model.pkl"):
     """Charge un modèle depuis disque."""

@@ -1,20 +1,15 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# config.yaml — Configuration centralisée du pipeline ML
-# Avito Real Estate | ML Pipeline
-# ═══════════════════════════════════════════════════════════════════════════════
 
-# ── Base de données ────────────────────────────────────────────────────────────
+
 database:
-  host: "${DB_HOST}"
-  port: "${DB_PORT}"
-  name: "${DB_NAME}"
-  user: "${DB_USER}"
+  host: "${DB_HOST:localhost}"
+  port: "${DB_PORT:5433}"
+  name: "${DB_NAME:real_estate_db}"
+  user: "${DB_USER:postgres}"
   password: "${DB_PASSWORD}"
   table: "ml_schema.feature_store"
   max_retries: 3
   retry_delay_s: 5
 
-# ── Pipeline ───────────────────────────────────────────────────────────────────
 pipeline:
   test_size: 0.2
   random_state: 42
@@ -24,16 +19,14 @@ pipeline:
   use_calibration: false
   generate_plots: true
 
-# ── Chemins de sortie ──────────────────────────────────────────────────────────
 paths:
-  models_dir: "models"
+  models_dir: "${MODELS_DIR:models}"
   plots_dir: "docs/plots"
   logs_dir: "logs"
-  reports_dir: "reports"
-  mlflow_uri: "sqlite:///mlflow.db"
+  reports_dir: "reports/runtime"
+  mlflow_uri: "${MLFLOW_TRACKING_URI:sqlite:///mlflow.db}"
   dvc_remote: "s3://my-bucket/dvc-remote"   # changer selon votre remote
 
-# ── Régression ────────────────────────────────────────────────────────────────
 regression:
   cv_folds: 5
   n_iter_search: 20          # RandomizedSearchCV iterations
@@ -60,7 +53,6 @@ regression:
       subsample: [0.7, 0.8, 1.0]
       colsample_bytree: [0.7, 0.8, 1.0]
 
-# ── Classification ─────────────────────────────────────────────────────────────
 classification:
   cv_folds: 5
   ordered_classes: ["bas", "moyen", "élevé"]
@@ -71,19 +63,16 @@ classification:
     - GradientBoosting
     - XGBoost
 
-# ── SMOTE ──────────────────────────────────────────────────────────────────────
 smote:
   sampling_strategy: "auto"
   k_neighbors: 5
 
-# ── MLflow ────────────────────────────────────────────────────────────────────
 mlflow:
   experiment_name: "avito-real-estate"
   tags:
     project: "avito-ml"
     version: "2.0"
 
-# ── SHAP ──────────────────────────────────────────────────────────────────────
 shap:
   max_display: 20           # features à afficher dans les plots SHAP
   n_samples: 500            # sous-échantillon pour accélérer le calcul
@@ -92,7 +81,6 @@ shap:
     - bar
     - waterfall
 
-# ── Data Validation (Great Expectations) ──────────────────────────────────────
 validation:
   required_columns:
     - prix
@@ -104,35 +92,30 @@ validation:
   surface_max: 10_000
   max_missing_pct: 0.30     # 30% max de valeurs manquantes par colonne
 
-# ── Prediction Intervals ───────────────────────────────────────────────────────
 prediction_intervals:
   confidence_level: 0.95    # 95% CI
   method: "quantile"        # "quantile" | "bootstrap"
   n_bootstrap: 200          # si method=bootstrap
 
-# ── Monitoring ────────────────────────────────────────────────────────────────
 monitoring:
   log_step_times: true
   alert_r2_threshold: 0.50  # alerte si R² descend en dessous
   alert_f1_threshold: 0.50
 
-# ── Logging ───────────────────────────────────────────────────────────────────
 logging:
   level: "INFO"             # DEBUG | INFO | WARNING | ERROR
-  format: "%(asctime)s [%(levelname)s] %(name)s — %(message)s"
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
   datefmt: "%Y-%m-%d %H:%M:%S"
   rotation: "midnight"      # rotation journalière des logs
   backup_count: 7           # 7 jours de logs conservés
 
-# ── Rapport HTML ──────────────────────────────────────────────────────────────
 report:
-  title: "Rapport ML — Avito Real Estate"
+  title: "Rapport ML: Avito Real Estate"
   author: "ML Pipeline automatique"
   include_shap: true
   include_plots: true
   template: "default"       # "default" | "minimal"
 
-# ── Drift Detection ────────────────────────────────────────────────────────────
 drift:
   enabled: true
   psi_threshold_warning: 0.10   # PSI entre 0.10 et 0.20 → warning
@@ -140,9 +123,8 @@ drift:
   ks_pvalue_threshold:   0.05   # KS test p-value < 0.05 → drift numérique
   chi2_pvalue_threshold: 0.05   # Chi² p-value < 0.05 → drift catégoriel
   retrain_drift_pct:     0.30   # > 30% features driftées → retrain
-  output_dir: "reports"
+  output_dir: "reports/runtime"
 
-# ── Feature Store ──────────────────────────────────────────────────────────────
 feature_store:
   enabled: true
   store_path: "feature_store/store.db"

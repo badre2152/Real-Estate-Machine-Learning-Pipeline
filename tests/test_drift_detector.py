@@ -1,7 +1,7 @@
 """
 test_drift_detector.py
 -----------------------
-Tests pour DriftDetector — PSI, KS, Chi², recommendations.
+Tests pour DriftDetector: PSI, KS, Chi², recommendations.
 """
 
 import numpy as np
@@ -10,7 +10,7 @@ import pytest
 from unittest.mock import patch
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 def _make_ref_df(n=500, seed=42) -> pd.DataFrame:
     """DataFrame de référence stable."""
@@ -54,7 +54,7 @@ def detector():
     )
 
 
-# ── Tests PSI ─────────────────────────────────────────────────────────────────
+# Tests PSI
 
 class TestPSI:
     def test_psi_stable_same_distribution(self, detector):
@@ -79,7 +79,7 @@ class TestPSI:
         assert psi > 0.20
 
 
-# ── Tests Features ────────────────────────────────────────────────────────────
+# Tests Features
 
 class TestFeatureDrift:
     def test_all_features_checked(self, detector):
@@ -112,7 +112,7 @@ class TestFeatureDrift:
             assert r.severity in ("stable", "warning", "drift")
 
 
-# ── Tests Predictions Drift ───────────────────────────────────────────────────
+# Tests Predictions Drift
 
 class TestPredictionDrift:
     def test_no_drift_similar_predictions(self, detector):
@@ -145,7 +145,7 @@ class TestPredictionDrift:
         assert abs(pred_drift.mean_shift_pct) > 50  # shift > 50%
 
 
-# ── Tests Recommandations ─────────────────────────────────────────────────────
+# Tests Recommandations
 
 class TestRecommendations:
     def test_ok_when_stable(self, detector):
@@ -176,7 +176,7 @@ class TestRecommendations:
         assert report.recommendation in ("ok", "monitor", "retrain")
 
 
-# ── Tests DriftReport ─────────────────────────────────────────────────────────
+# Tests DriftReport
 
 class TestDriftReport:
     def test_report_has_required_fields(self, detector):
@@ -213,7 +213,7 @@ class TestDriftReport:
         assert len(summary) > 10
 
 
-# ── Tests Update Reference ────────────────────────────────────────────────────
+# Tests Update Reference
 
 class TestUpdateReference:
     def test_update_reference_changes_ref_size(self):

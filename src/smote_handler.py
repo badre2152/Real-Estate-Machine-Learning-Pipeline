@@ -15,15 +15,12 @@ Usage :
     X_res, y_res = handler.fit_resample(X_train, y_train)
 """
 
-# ── stdlib ────────────────────────────────────────────────────────────────────
 from collections import Counter
 from typing import Optional, Tuple
 
-# ── third-party ───────────────────────────────────────────────────────────────
 import numpy as np
 import pandas as pd
 
-# ── local ─────────────────────────────────────────────────────────────────────
 from logger_setup import get_logger
 
 logger = get_logger(__name__)
@@ -34,8 +31,7 @@ try:
     SMOTE_AVAILABLE = True
 except ImportError:
     SMOTE_AVAILABLE = False
-    logger.warning("⚠️  imbalanced-learn non installé — SMOTE désactivé (pip install imbalanced-learn)")
-
+    logger.warning("⚠️  imbalanced-learn non installé: SMOTE désactivé (pip install imbalanced-learn)")
 
 def _class_distribution(y) -> dict:
     """Retourne la distribution des classes sous forme de dict trié."""
@@ -45,7 +41,6 @@ def _class_distribution(y) -> dict:
         cls: {"n": n, "pct": round(n / total * 100, 1)}
         for cls, n in sorted(counts.items(), key=lambda x: str(x[0]))
     }
-
 
 def _imbalance_ratio(y) -> float:
     """
@@ -57,7 +52,6 @@ def _imbalance_ratio(y) -> float:
         return 1.0
     vals = list(counts.values())
     return min(vals) / max(vals)
-
 
 def detect_imbalance(y, threshold: float = 0.5) -> Tuple[bool, float]:
     """
@@ -73,7 +67,6 @@ def detect_imbalance(y, threshold: float = 0.5) -> Tuple[bool, float]:
     ratio = _imbalance_ratio(y)
     is_imbalanced = ratio < threshold
     return is_imbalanced, ratio
-
 
 class SmoteHandler:
     """
@@ -116,8 +109,6 @@ class SmoteHandler:
         self._before_dist        = None
         self._after_dist         = None
 
-    # ── Application SMOTE ─────────────────────────────────────────────────────
-
     def fit_resample(
         self, X_train, y_train, force: bool = False
     ) -> Tuple:
@@ -130,10 +121,10 @@ class SmoteHandler:
             force:   Forcer SMOTE même si pas de déséquilibre détecté.
 
         Returns:
-            (X_resampled, y_resampled) — mêmes types que l'entrée.
+            (X_resampled, y_resampled): mêmes types que l'entrée.
         """
         logger.info("\n" + "=" * 50)
-        logger.info("⚖️  SMOTE — Gestion du déséquilibre des classes")
+        logger.info("⚖️  SMOTE: Gestion du déséquilibre des classes")
         logger.info("=" * 50)
 
         self._before_dist = _class_distribution(y_train)
@@ -143,16 +134,15 @@ class SmoteHandler:
         logger.info(f"   Ratio déséquilibre : {ratio:.3f} (seuil : {self.imbalance_threshold})")
 
         if not is_imbalanced and not force:
-            logger.info("   ℹ️  Déséquilibre non significatif — SMOTE non appliqué")
+            logger.info("   ℹ️  Déséquilibre non significatif: SMOTE non appliqué")
             self._applied = False
             return X_train, y_train
 
         if not SMOTE_AVAILABLE:
-            logger.warning("   ⚠️  SMOTE non disponible — données inchangées")
+            logger.warning("   ⚠️  SMOTE non disponible: données inchangées")
             self._applied = False
             return X_train, y_train
 
-        # Choisir SMOTE ou SMOTENC selon la présence de features catégorielles
         try:
             smote = self._build_smote(X_train)
             X_res, y_res = smote.fit_resample(X_train, y_train)
@@ -169,7 +159,7 @@ class SmoteHandler:
             return X_res, y_res
 
         except Exception as exc:
-            logger.warning(f"   ⚠️  SMOTE échoué : {exc} — données originales conservées")
+            logger.warning(f"   ⚠️  SMOTE échoué : {exc}: données originales conservées")
             self._applied = False
             return X_train, y_train
 
@@ -180,7 +170,7 @@ class SmoteHandler:
 
         if self.categorical_features:
             logger.info(
-                f"   SMOTENC activé — {len(self.categorical_features)} features catégorielles"
+                f"   SMOTENC activé: {len(self.categorical_features)} features catégorielles"
             )
             return SMOTENC(
                 categorical_features=self.categorical_features,
@@ -198,15 +188,11 @@ class SmoteHandler:
         """Nombre d'échantillons dans la classe la plus petite (pour ajuster k)."""
         return min(info["n"] for info in self._before_dist.values()) if self._before_dist else 5
 
-    # ── Logging ───────────────────────────────────────────────────────────────
-
     def _log_distribution(self, label: str, dist: dict) -> None:
         logger.info(f"   {label} :")
         for cls, info in dist.items():
             bar = "█" * int(info["pct"] / 5)
             logger.info(f"     {str(cls):<15} {info['n']:>6,}  ({info['pct']:5.1f}%)  {bar}")
-
-    # ── Rapport ───────────────────────────────────────────────────────────────
 
     def get_report(self) -> dict:
         """Retourne un rapport dictionnaire pour MLflow / rapport HTML."""
@@ -221,11 +207,6 @@ class SmoteHandler:
     @property
     def was_applied(self) -> bool:
         return self._applied
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Helper standalone pour les pipelines qui n'utilisent pas la classe
-# ─────────────────────────────────────────────────────────────────────────────
 
 def apply_smote_if_needed(
     X_train, y_train,

@@ -31,7 +31,7 @@ try:
     SHAP_AVAILABLE = True
 except ImportError:
     SHAP_AVAILABLE = False
-    logger.warning("⚠️  shap non installé — interprétabilité désactivée (pip install shap)")
+    logger.warning("⚠️  shap non installé: interprétabilité désactivée (pip install shap)")
 
 try:
     import matplotlib
@@ -40,7 +40,6 @@ try:
     MPL_AVAILABLE = True
 except ImportError:
     MPL_AVAILABLE = False
-
 
 class SHAPExplainer:
     """
@@ -80,7 +79,6 @@ class SHAPExplainer:
         if not SHAP_AVAILABLE:
             return
 
-        # Sous-échantillonner pour accélérer
         bg = X_background
         if hasattr(bg, "shape") and bg.shape[0] > self.n_samples:
             idx = np.random.choice(bg.shape[0], self.n_samples, replace=False)
@@ -120,8 +118,6 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  SHAP explainer échoué : {exc}")
             return None
 
-    # ── Calcul des SHAP values ────────────────────────────────────────────────
-
     def compute(self, X_test) -> Optional[np.ndarray]:
         """
         Calcule les SHAP values sur X_test.
@@ -130,7 +126,6 @@ class SHAPExplainer:
         if not SHAP_AVAILABLE or self.explainer is None:
             return None
 
-        # Sous-échantillonner le test pour la vitesse
         X = X_test
         if hasattr(X, "shape") and X.shape[0] > self.n_samples:
             idx = np.random.choice(X.shape[0], self.n_samples, replace=False)
@@ -140,7 +135,6 @@ class SHAPExplainer:
             logger.info(f"   Calcul SHAP values sur {X.shape[0]} échantillons ...")
             sv = self.explainer.shap_values(X)
 
-            # Pour les classifieurs multiclasses → prendre la dernière classe (élevé)
             if isinstance(sv, list):
                 sv = sv[-1]
 
@@ -153,10 +147,8 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  Calcul SHAP échoué : {exc}")
             return None
 
-    # ── Plots ─────────────────────────────────────────────────────────────────
-
     def plot_summary(self, output_dir: str, prefix: str = "") -> Optional[str]:
-        """Summary plot (beeswarm) — vue globale des features."""
+        """Summary plot (beeswarm): vue globale des features."""
         if not self._ready() or not MPL_AVAILABLE:
             return None
         try:
@@ -178,7 +170,7 @@ class SHAPExplainer:
             return None
 
     def plot_bar(self, output_dir: str, prefix: str = "") -> Optional[str]:
-        """Bar plot — importance moyenne |SHAP| par feature."""
+        """Bar plot: importance moyenne |SHAP| par feature."""
         if not self._ready() or not MPL_AVAILABLE:
             return None
         try:
@@ -203,7 +195,7 @@ class SHAPExplainer:
     def plot_waterfall(
         self, output_dir: str, sample_idx: int = 0, prefix: str = ""
     ) -> Optional[str]:
-        """Waterfall plot — explication d'une seule prédiction."""
+        """Waterfall plot: explication d'une seule prédiction."""
         if not self._ready() or not MPL_AVAILABLE:
             return None
         try:
@@ -231,8 +223,6 @@ class SHAPExplainer:
             logger.warning(f"   ⚠️  SHAP waterfall échoué : {exc}")
             return None
 
-    # ── Export des importance SHAP ────────────────────────────────────────────
-
     def get_feature_importance(self) -> Optional[pd.DataFrame]:
         """
         Retourne un DataFrame trié par importance SHAP moyenne (|SHAP|).
@@ -247,8 +237,6 @@ class SHAPExplainer:
         }).sort_values("shap_mean", ascending=False).reset_index(drop=True)
         return df
 
-    # ── Interface principale ──────────────────────────────────────────────────
-
     def run(
         self, X_test, output_dir: str = "docs/plots", prefix: str = ""
     ) -> dict[str, Optional[str]]:
@@ -260,11 +248,11 @@ class SHAPExplainer:
         """
         os.makedirs(output_dir, exist_ok=True)
         logger.info("\n" + "=" * 50)
-        logger.info("🔍 SHAP — Interprétabilité du modèle")
+        logger.info("🔍 SHAP: Interprétabilité du modèle")
         logger.info("=" * 50)
 
         if not SHAP_AVAILABLE:
-            logger.warning("   SHAP non disponible — skip")
+            logger.warning("   SHAP non disponible: skip")
             return {}
 
         self.compute(X_test)
@@ -284,8 +272,6 @@ class SHAPExplainer:
             logger.info(f"   💾 SHAP importance → {csv_path}")
 
         return plots
-
-    # ── Helpers ───────────────────────────────────────────────────────────────
 
     def _ready(self) -> bool:
         return SHAP_AVAILABLE and self.explainer is not None and self.shap_values is not None

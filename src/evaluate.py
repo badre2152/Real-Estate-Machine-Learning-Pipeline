@@ -16,7 +16,7 @@ from logger_setup import get_logger
 import os
 
 import matplotlib
-matplotlib.use("Agg")  # Backend non-interactif — compatible CI/CD
+matplotlib.use("Agg")  # Backend non-interactif: compatible CI/CD
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -26,7 +26,6 @@ from sklearn.preprocessing import label_binarize
 
 logger = get_logger(__name__)
 
-# Lire depuis config.yaml — fallback sur "docs/plots"
 try:
     from config_loader import cfg as _cfg
     PLOTS_DIR = str(_cfg.paths.plots_dir)
@@ -35,7 +34,6 @@ except Exception:
 
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
-# ── Style global sombre ───────────────────────────────────────────────────────
 plt.rcParams.update({
     "figure.facecolor": "#0f1117",
     "axes.facecolor"  : "#1a1d2e",
@@ -51,18 +49,12 @@ plt.rcParams.update({
 BLUE = "#5c8af7"
 RED  = "#f75c8a"
 
-
 def _save(path: str) -> None:
     plt.tight_layout()
     plt.savefig(path, dpi=150, bbox_inches="tight",
                 facecolor=plt.rcParams["figure.facecolor"])
     plt.close()
     logger.info(f"   📊 → {path}")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# RÉGRESSION
-# ─────────────────────────────────────────────────────────────────────────────
 
 def plot_prediction_vs_actual(y_test, y_pred, title="Régression : Prédit vs Réel"):
     """Scatter plot des valeurs prédites vs réelles. Bonne ligne = diagonale."""
@@ -74,7 +66,6 @@ def plot_prediction_vs_actual(y_test, y_pred, title="Régression : Prédit vs R�
     ax.set_title(title, fontsize=14, fontweight="bold")
     ax.legend(); ax.grid(True)
     _save(f"{PLOTS_DIR}/prediction_vs_actual.png")
-
 
 def plot_residuals(y_test, y_pred):
     """Distribution des résidus. Bon modèle = résidus centrés en 0."""
@@ -100,7 +91,6 @@ def plot_residuals(y_test, y_pred):
 
     _save(f"{PLOTS_DIR}/residuals.png")
 
-
 def plot_error_by_price_range(y_test, y_pred):
     """
     MAE médiane par quintile de prix.
@@ -119,7 +109,6 @@ def plot_error_by_price_range(y_test, y_pred):
     ax.set_ylabel("MAE Médiane (MAD)")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
     _save(f"{PLOTS_DIR}/error_by_price_range.png")
-
 
 def plot_feature_importance(model, feature_names, top_n=15, title="Importance des Features"):
     """Bar chart horizontal des features les plus importantes."""
@@ -145,7 +134,6 @@ def plot_feature_importance(model, feature_names, top_n=15, title="Importance de
     slug = title.replace(" ", "_").lower()[:30]
     _save(f"{PLOTS_DIR}/feature_importance_{slug}.png")
 
-
 def plot_learning_curve(model, X_train, y_train, scoring="r2", title="Courbe d'Apprentissage"):
     """Courbe d'apprentissage : détecte overfitting / underfitting."""
     train_sizes, train_scores, val_scores = learning_curve(
@@ -166,11 +154,6 @@ def plot_learning_curve(model, X_train, y_train, scoring="r2", title="Courbe d'A
     ax.legend(); ax.grid(True)
     _save(f"{PLOTS_DIR}/learning_curve.png")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CLASSIFICATION
-# ─────────────────────────────────────────────────────────────────────────────
-
 def plot_confusion_matrix(y_test_enc, y_pred, class_names):
     """Matrice de confusion pour la classification."""
     cm = confusion_matrix(y_test_enc, y_pred)
@@ -180,7 +163,6 @@ def plot_confusion_matrix(y_test_enc, y_pred, class_names):
     )
     ax.set_title("Matrice de Confusion", fontsize=14, fontweight="bold")
     _save(f"{PLOTS_DIR}/confusion_matrix.png")
-
 
 def plot_roc_curves(model, X_test, y_test_enc, n_classes, class_names):
     """Courbes ROC multiclasse (One-vs-Rest)."""
@@ -200,7 +182,6 @@ def plot_roc_curves(model, X_test, y_test_enc, n_classes, class_names):
     ax.legend(); ax.grid(True)
     _save(f"{PLOTS_DIR}/roc_curves.png")
 
-
 def plot_shap_summary(model, X_test, feature_names, max_display=15):
     """SHAP values pour l'interprétabilité (pip install shap)."""
     try:
@@ -214,14 +195,9 @@ def plot_shap_summary(model, X_test, feature_names, max_display=15):
         plt.title("SHAP Feature Importance", fontsize=14, fontweight="bold")
         _save(f"{PLOTS_DIR}/shap_summary.png")
     except ImportError:
-        logger.info("   ℹ️  shap non installé — ignoré (pip install shap)")
+        logger.info("   ℹ️  shap non installé: ignoré (pip install shap)")
     except Exception as exc:
         logger.warning(f"   ⚠️  SHAP échoué : {exc}")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# RUNNER COMPLET
-# ─────────────────────────────────────────────────────────────────────────────
 
 def run_full_evaluation(
     reg_model, clf_model, X_test,
@@ -238,7 +214,7 @@ def run_full_evaluation(
     plot_prediction_vs_actual(np.array(y_reg_test), y_reg_pred)
     plot_residuals(np.array(y_reg_test), y_reg_pred)
     plot_error_by_price_range(np.array(y_reg_test), y_reg_pred)
-    plot_feature_importance(reg_model, feature_names, title="Feature Importance — Régression")
+    plot_feature_importance(reg_model, feature_names, title="Feature Importance: Régression")
     plot_learning_curve(reg_model, X_test, np.array(y_reg_test))
     plot_shap_summary(reg_model, X_test, feature_names)
 
@@ -252,6 +228,6 @@ def run_full_evaluation(
         y_pred_clf = clf_model.predict(X_test)
         plot_confusion_matrix(y_clf_enc, y_pred_clf, label_encoder.classes_)
         plot_roc_curves(clf_model, X_test, y_clf_enc, len(ORDERED_CLASSES), ORDERED_CLASSES)
-        plot_feature_importance(clf_model, feature_names, title="Feature Importance — Classification")
+        plot_feature_importance(clf_model, feature_names, title="Feature Importance: Classification")
 
     logger.info(f"\n✅ Tous les graphiques sauvegardés → {PLOTS_DIR}/")

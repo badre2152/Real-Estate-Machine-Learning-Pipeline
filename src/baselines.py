@@ -23,11 +23,6 @@ from logger_setup import get_logger
 
 logger = get_logger(__name__)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# RÉGRESSION BASELINES
-# ─────────────────────────────────────────────────────────────────────────────
-
 def run_regression_baselines(
     X_train, y_train, X_test, y_test
 ) -> dict[str, dict]:
@@ -62,8 +57,6 @@ def run_regression_baselines(
         rmse = np.sqrt(mean_squared_error(y_true, y_pred))
         r2   = r2_score(y_true, y_pred)
 
-        # MAPE standard : exclure les vraies valeurs nulles (division par zéro)
-        # Utiliser eps machine au lieu de +1 pour ne pas biaiser les petites valeurs
         nonzero_mask = np.abs(y_true) > np.finfo(float).eps
         if nonzero_mask.sum() > 0:
             mape = np.mean(
@@ -79,7 +72,6 @@ def run_regression_baselines(
         )
 
     return results
-
 
 def compare_vs_regression_baseline(
     model_metrics: dict, baseline_results: dict
@@ -110,11 +102,6 @@ def compare_vs_regression_baseline(
         logger.info(
             f"   🏆 Modèle dépasse la meilleure baseline de ΔR²={model_r2 - best_baseline_r2:+.4f}"
         )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CLASSIFICATION BASELINES
-# ─────────────────────────────────────────────────────────────────────────────
 
 def run_classification_baselines(
     X_train, y_train, X_test, y_test
@@ -157,7 +144,6 @@ def run_classification_baselines(
 
     return results
 
-
 def compare_vs_classification_baseline(
     model_metrics: dict, baseline_results: dict
 ) -> None:
@@ -182,11 +168,6 @@ def compare_vs_classification_baseline(
             f"   🏆 Modèle dépasse la meilleure baseline de ΔF1={model_f1 - best_f1:+.4f}"
         )
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# RAPPORT BASELINES (DataFrame récapitulatif)
-# ─────────────────────────────────────────────────────────────────────────────
-
 def build_baseline_report(
     model_reg_metrics: dict,
     baseline_reg: dict,
@@ -199,12 +180,10 @@ def build_baseline_report(
     """
     rows = []
 
-    # Régression
     rows.append({"type": "régression", "modèle": "⭐ Modèle réel", **model_reg_metrics})
     for name, m in baseline_reg.items():
         rows.append({"type": "régression", "modèle": name, **m})
 
-    # Classification (optionnelle)
     if model_clf_metrics and baseline_clf:
         rows.append({"type": "classification", "modèle": "⭐ Modèle réel", **model_clf_metrics})
         for name, m in baseline_clf.items():

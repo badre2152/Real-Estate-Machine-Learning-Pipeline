@@ -37,11 +37,6 @@ from logger_setup import get_logger
 
 logger = get_logger(__name__)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Structures de données
-# ─────────────────────────────────────────────────────────────────────────────
-
 @dataclass
 class StepTiming:
     """Durée d'une étape du pipeline."""
@@ -66,7 +61,6 @@ class StepTiming:
             return f"{d:.2f}s"
         return f"{d/60:.1f}min"
 
-
 @dataclass
 class MetricAlert:
     """Alerte déclenchée quand une métrique passe sous un seuil."""
@@ -81,18 +75,13 @@ class MetricAlert:
             f"{self.metric_name}={self.value:.4f} < seuil={self.threshold:.4f}"
         )
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Monitor principal
-# ─────────────────────────────────────────────────────────────────────────────
-
 class PipelineMonitor:
     """
     Moniteur de pipeline : temps d'exécution + alertes métriques.
     Thread-safe pour une utilisation dans des pipelines séquentiels.
     """
 
-    def __init__(self, output_dir: str = "reports"):
+    def __init__(self, output_dir: str | None = None):
         try:
             from config_loader import cfg
             self.alert_r2  = float(cfg.monitoring.alert_r2_threshold)
@@ -103,14 +92,12 @@ class PipelineMonitor:
             self.alert_r2  = 0.50
             self.alert_f1  = 0.50
             self.log_steps = True
-            self.output_dir = output_dir
+            self.output_dir = output_dir or "reports/runtime"
 
         self._steps: list[StepTiming] = []
         self._alerts: list[MetricAlert] = []
         self._pipeline_start = time.perf_counter()
         self._pipeline_name  = "ML Pipeline"
-
-    # ── Context manager pour chronomètre ──────────────────────────────────────
 
     @contextmanager
     def step(self, name: str) -> Generator:
@@ -141,8 +128,6 @@ class PipelineMonitor:
             logger.error(f"   ❌ [{name}] ERREUR après {timing.duration_str} : {exc}")
             raise
 
-    # ── Alertes métriques ─────────────────────────────────────────────────────
-
     def check_regression_alert(self, r2: float, mae: Optional[float] = None) -> None:
         """
         Vérifie les métriques de régression et lève des alertes si nécessaire.
@@ -156,7 +141,7 @@ class PipelineMonitor:
             self._alerts.append(alert)
             logger.warning(f"   🔔 ALERTE RÉGRESSION : {alert.message}")
         else:
-            logger.info(f"   ✅ R²={r2:.4f} ≥ seuil {self.alert_r2} — OK")
+            logger.info(f"   ✅ R²={r2:.4f} ≥ seuil {self.alert_r2}: OK")
 
     def check_classification_alert(self, f1: float, accuracy: Optional[float] = None) -> None:
         """
@@ -167,16 +152,14 @@ class PipelineMonitor:
             self._alerts.append(alert)
             logger.warning(f"   🔔 ALERTE CLASSIFICATION : {alert.message}")
         else:
-            logger.info(f"   ✅ F1={f1:.4f} ≥ seuil {self.alert_f1} — OK")
-
-    # ── Résumé d'exécution ────────────────────────────────────────────────────
+            logger.info(f"   ✅ F1={f1:.4f} ≥ seuil {self.alert_f1}: OK")
 
     def print_summary(self) -> None:
         """Affiche un récapitulatif des temps d'exécution de toutes les étapes."""
         total = time.perf_counter() - self._pipeline_start
 
         logger.info("\n" + "=" * 60)
-        logger.info("📊 MONITORING — RÉSUMÉ D'EXÉCUTION")
+        logger.info("📊 MONITORING: RÉSUMÉ D'EXÉCUTION")
         logger.info("=" * 60)
 
         if not self._steps:
@@ -202,11 +185,9 @@ class PipelineMonitor:
             for a in self._alerts:
                 logger.warning(f"      [{a.severity.upper()}] {a.message}")
         else:
-            logger.info("   ✅ Aucune alerte — toutes les métriques dans les seuils")
+            logger.info("   ✅ Aucune alerte: toutes les métriques dans les seuils")
 
         logger.info("=" * 60)
-
-    # ── Export JSON ───────────────────────────────────────────────────────────
 
     def save_report(self) -> str:
         """Sauvegarde le rapport de monitoring en JSON."""
@@ -244,8 +225,6 @@ class PipelineMonitor:
         logger.info(f"   💾 Monitoring → {path}")
         return path
 
-    # ── Propriétés ────────────────────────────────────────────────────────────
-
     @property
     def total_duration_s(self) -> float:
         return time.perf_counter() - self._pipeline_start
@@ -265,11 +244,6 @@ class PipelineMonitor:
             for s in self._steps
             if s.duration_s is not None
         }
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Helpers
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _format_duration(seconds: float) -> str:
     if seconds < 60:

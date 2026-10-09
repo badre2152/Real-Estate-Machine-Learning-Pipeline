@@ -1,7 +1,7 @@
 """
 mlflow_registry.py
 ------------------
-MLflow Model Registry — إدارة lifecycle ديال الـ models.
+MLflow Model Registry: إدارة lifecycle ديال الـ models.
 
 الفرق بين Tracking والـ Registry:
   - Tracking : يسجّل كل run (metrics, params, artifacts)
@@ -17,15 +17,12 @@ Usage:
 
     registry = MLflowRegistry(model_name="avito-regression")
 
-    # بعد كل training run
     version = registry.register(run_id, "reg/R2", higher_is_better=True)
 
-    # ترقية إذا الـ model أحسن
     if registry.is_better_than_production(run_id, "reg/R2"):
         registry.promote_to_staging(version)
         registry.promote_to_production(version)
 
-    # في الـ API — جيب أحسن model من Production
     model = registry.load_production_model()
 """
 
@@ -47,23 +44,13 @@ try:
     MLFLOW_AVAILABLE = True
 except ImportError:
     MLFLOW_AVAILABLE = False
-    logger.warning("⚠️  mlflow non installé — Registry désactivé")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Stages constants
-# ─────────────────────────────────────────────────────────────────────────────
+    logger.warning("⚠️  mlflow non installé: Registry désactivé")
 
 class Stage:
     NONE       = "None"
     STAGING    = "Staging"
     PRODUCTION = "Production"
     ARCHIVED   = "Archived"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# MLflowRegistry
-# ─────────────────────────────────────────────────────────────────────────────
 
 class MLflowRegistry:
     """
@@ -90,17 +77,13 @@ class MLflowRegistry:
         if MLFLOW_AVAILABLE:
             mlflow.set_tracking_uri(self._uri)
             self._client = MlflowClient(tracking_uri=self._uri)
-            logger.info(f"📋 MLflow Registry prêt — modèle : '{model_name}'")
-
-    # ── Helpers ───────────────────────────────────────────────────────────────
+            logger.info(f"📋 MLflow Registry prêt: modèle : '{model_name}'")
 
     def _no_mlflow(self, method: str) -> bool:
         if not MLFLOW_AVAILABLE or self._client is None:
             logger.debug(f"   Registry.{method} ignoré (mlflow indisponible)")
             return True
         return False
-
-    # ── Enregistrement ────────────────────────────────────────────────────────
 
     def register(
         self,
@@ -119,7 +102,7 @@ class MLflowRegistry:
 
         Returns
         -------
-        version : str — numéro de version (ex: "3"), ou None si échec
+        version : str: numéro de version (ex: "3"), ou None si échec
         """
         if self._no_mlflow("register"):
             return None
@@ -131,7 +114,6 @@ class MLflowRegistry:
             )
             version = result.version
 
-            # Ajouter description si fournie
             if description:
                 self._client.update_model_version(
                     name=self.model_name,
@@ -139,7 +121,6 @@ class MLflowRegistry:
                     description=description,
                 )
 
-            # Tag la date d'enregistrement
             self._client.set_model_version_tag(
                 name=self.model_name,
                 version=version,
@@ -154,10 +135,8 @@ class MLflowRegistry:
             return version
 
         except MlflowException as exc:
-            logger.warning(f"⚠️  Registry.register échoué : {exc}")
+            logger.warning(f"⚠️  Registry.register échoué : {type(exc).__name__}")
             return None
-
-    # ── Transitions de stage ──────────────────────────────────────────────────
 
     def _transition(self, version: str, stage: str, archive_existing: bool = True) -> bool:
         """Transition générique vers un stage."""
@@ -175,7 +154,7 @@ class MLflowRegistry:
             )
             return True
         except MlflowException as exc:
-            logger.warning(f"⚠️  Transition vers {stage} échouée : {exc}")
+            logger.warning(f"⚠️  Transition vers {stage} échouée : {type(exc).__name__}")
             return False
 
     def promote_to_staging(self, version: str) -> bool:
@@ -192,7 +171,6 @@ class MLflowRegistry:
         """
         ok = self._transition(version, Stage.PRODUCTION, archive_existing=True)
         if ok:
-            # Tag la date de mise en production
             try:
                 self._client.set_model_version_tag(
                     name=self.model_name,
@@ -212,8 +190,6 @@ class MLflowRegistry:
         """Retire un modèle de Production → Archived (rollback)."""
         logger.warning(f"   ⚠️  Rollback : '{self.model_name}' v{version} retiré de Production")
         return self.archive(version)
-
-    # ── Comparaison de performance ────────────────────────────────────────────
 
     def get_production_metric(self, metric_key: str) -> Optional[float]:
         """
@@ -240,7 +216,7 @@ class MLflowRegistry:
             return value
 
         except MlflowException as exc:
-            logger.warning(f"⚠️  get_production_metric échoué : {exc}")
+            logger.warning(f"⚠️  get_production_metric échoué : {type(exc).__name__}")
             return None
 
     def is_better_than_production(
@@ -266,7 +242,6 @@ class MLflowRegistry:
             return True  # fallback : toujours déployer si pas de MLflow
 
         try:
-            # Métrique du nouveau run
             new_run = self._client.get_run(run_id)
             new_value = new_run.data.metrics.get(metric_key)
 
@@ -274,14 +249,12 @@ class MLflowRegistry:
                 logger.warning(f"   ⚠️  Métrique '{metric_key}' absente du run {run_id}")
                 return False
 
-            # Métrique du modèle en production
             prod_value = self.get_production_metric(metric_key)
 
             if prod_value is None:
-                logger.info(f"   ✅ Premier déploiement — pas de production à battre")
+                logger.info(f"   ✅ Premier déploiement: pas de production à battre")
                 return True
 
-            # Comparaison
             is_better = new_value > prod_value if higher_is_better else new_value < prod_value
             symbol = ">" if higher_is_better else "<"
 
@@ -293,10 +266,8 @@ class MLflowRegistry:
             return is_better
 
         except MlflowException as exc:
-            logger.warning(f"⚠️  is_better_than_production échoué : {exc}")
+            logger.warning(f"⚠️  is_better_than_production échoué : {type(exc).__name__}")
             return False
-
-    # ── Chargement des modèles ────────────────────────────────────────────────
 
     def load_production_model(self) -> Optional[Any]:
         """
@@ -315,7 +286,7 @@ class MLflowRegistry:
             logger.info(f"   ✅ Modèle Production chargé : '{self.model_name}'")
             return model
         except MlflowException as exc:
-            logger.warning(f"⚠️  load_production_model échoué : {exc}")
+            logger.warning(f"⚠️  load_production_model échoué : {type(exc).__name__}")
             return None
 
     def load_staging_model(self) -> Optional[Any]:
@@ -328,7 +299,7 @@ class MLflowRegistry:
             logger.info(f"   ✅ Modèle Staging chargé : '{self.model_name}'")
             return model
         except MlflowException as exc:
-            logger.warning(f"⚠️  load_staging_model échoué : {exc}")
+            logger.warning(f"⚠️  load_staging_model échoué : {type(exc).__name__}")
             return None
 
     def load_version(self, version: str) -> Optional[Any]:
@@ -341,10 +312,8 @@ class MLflowRegistry:
             logger.info(f"   ✅ Modèle v{version} chargé : '{self.model_name}'")
             return model
         except MlflowException as exc:
-            logger.warning(f"⚠️  load_version({version}) échoué : {exc}")
+            logger.warning(f"⚠️  load_version({version}) échoué : {type(exc).__name__}")
             return None
-
-    # ── Informations et historique ────────────────────────────────────────────
 
     def get_latest_versions(self, stages: Optional[list[str]] = None) -> list[dict]:
         """
@@ -372,7 +341,7 @@ class MLflowRegistry:
                 for v in versions
             ]
         except MlflowException as exc:
-            logger.warning(f"⚠️  get_latest_versions échoué : {exc}")
+            logger.warning(f"⚠️  get_latest_versions échoué : {type(exc).__name__}")
             return []
 
     def get_production_info(self) -> Optional[dict]:
@@ -403,11 +372,6 @@ class MLflowRegistry:
             )
         logger.info(f"{'='*55}\n")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# auto_register_and_promote — Fonction de haut niveau pour le pipeline
-# ─────────────────────────────────────────────────────────────────────────────
-
 def auto_register_and_promote(
     run_id: str,
     model_name: str,
@@ -429,7 +393,6 @@ def auto_register_and_promote(
 
     registry = MLflowRegistry(model_name=model_name, tracking_uri=tracking_uri)
 
-    # 1. Enregistrer dans le Registry
     version = registry.register(
         run_id=run_id,
         artifact_path=artifact_path,
@@ -438,7 +401,6 @@ def auto_register_and_promote(
     if version is None:
         return {"version": None, "promoted": False, "reason": "registration failed"}
 
-    # 2. Comparer avec la Production
     is_better = registry.is_better_than_production(
         run_id=run_id,
         metric_key=primary_metric,
@@ -446,9 +408,7 @@ def auto_register_and_promote(
     )
 
     if is_better:
-        # 3a. Passer en Staging d'abord
         registry.promote_to_staging(version)
-        # 3b. Puis en Production
         registry.promote_to_production(version)
         logger.info(f"   🚀 '{model_name}' v{version} promu en Production !")
         registry.print_summary()

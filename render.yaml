@@ -1,61 +1,37 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# render.yaml — Deploy على Render.com بكليك واحد
-#
-# كيفاش تستعمله:
-#   1. سجل في https://render.com (مجاني)
-#   2. New → Blueprint → ربط الـ GitHub repo
-#   3. Render يقرأ هذا الملف ويعمل deploy تلقائي
-#
-# Variables اللي تحتاج تغيّرها في Dashboard:
-#   - API_KEYS          → كلمة السر ديال الـ API
-#   - DB_PASSWORD       → كلمة السر ديال قاعدة البيانات
-# ═══════════════════════════════════════════════════════════════════════════════
 
 services:
 
-  # ── API FastAPI ────────────────────────────────────────────────────────────
   - type: web
     name: avito-ml-api
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     dockerCommand: "uvicorn src.api:app --host 0.0.0.0 --port $PORT --workers 1"
-    # تغيّر إلى "standard" (7$/شهر) للـ production
     plan: free
 
     healthCheckPath: /health
 
     envVars:
-      # Security — غيّر هذا في Render Dashboard
       - key: API_KEYS
         sync: false          # Render يطلب منك تكتبها يدوياً (أمان)
+      - key: ENVIRONMENT
+        value: production
       - key: RATE_LIMIT_PER_MINUTE
         value: "60"
       - key: CORS_ORIGINS
-        value: "*"
+        sync: false
 
-      # Database — من الـ PostgreSQL service أسفله
       - key: DB_HOST
-        fromService:
-          name: avito-ml-db
-          type: pserv
-          property: host
+        sync: false
       - key: DB_PORT
-        fromService:
-          name: avito-ml-db
-          type: pserv
-          property: port
+        sync: false
       - key: DB_NAME
-        value: real_estate_db
+        sync: false
       - key: DB_USER
-        value: postgres
+        sync: false
       - key: DB_PASSWORD
-        fromService:
-          name: avito-ml-db
-          type: pserv
-          property: connectionString
+        sync: false
 
-      # App
       - key: MODELS_DIR
         value: /app/models
       - key: PYTHONPATH
@@ -63,20 +39,3 @@ services:
       - key: LOG_LEVEL
         value: INFO
 
-  # ── PostgreSQL ─────────────────────────────────────────────────────────────
-  - type: pserv
-    name: avito-ml-db
-    runtime: docker
-    image: postgres:15-alpine
-    plan: free
-    envVars:
-      - key: POSTGRES_DB
-        value: real_estate_db
-      - key: POSTGRES_USER
-        value: postgres
-      - key: POSTGRES_PASSWORD
-        generateValue: true     # Render يولّد password عشوائي تلقائياً
-    disk:
-      name: postgres-data
-      mountPath: /var/lib/postgresql/data
-      sizeGB: 1
