@@ -151,6 +151,7 @@ def prepare_data(
     use_smote: bool = False,
     random_state: int = None,
     save_preprocessor: bool = True,
+    calibration_df: pd.DataFrame = None,
 ) -> tuple:
     """
     Prépare les données APRÈS feature engineering.
@@ -193,12 +194,18 @@ def prepare_data(
     preprocessor  = build_preprocessor(numeric_cols, categorical_cols)
     X_train_arr   = preprocessor.fit_transform(X_train_raw)
     X_test_arr    = preprocessor.transform(X_test_raw)
+    X_cal = y_cal = None
+    if calibration_df is not None:
+        X_cal_arr = preprocessor.transform(calibration_df[valid_cols])
+        y_cal = calibration_df[TARGET_REGRESSION].reset_index(drop=True)
 
     ohe_names = []
     if categorical_cols and "cat" in preprocessor.named_transformers_:
         ohe = preprocessor.named_transformers_["cat"]["encoder"]
         ohe_names = list(ohe.get_feature_names_out(categorical_cols))
     feature_names = numeric_cols + ohe_names
+    if calibration_df is not None:
+        X_cal = pd.DataFrame(X_cal_arr, columns=feature_names)
 
     X_train = pd.DataFrame(X_train_arr, columns=feature_names)
     X_test  = pd.DataFrame(X_test_arr,  columns=feature_names)
@@ -223,4 +230,5 @@ def prepare_data(
         logger.info("   Préprocesseur sauvegardé dans %s", preprocessor_path)
 
     logger.info(f"\n✅ Train : {len(X_train):,} | Test : {len(X_test):,} | Features : {len(feature_names)}")
-    return X_train, X_test, y_reg_train, y_reg_test, y_clf_train, y_clf_test, feature_names, X_train_clf
+    result = (X_train, X_test, y_reg_train, y_reg_test, y_clf_train, y_clf_test, feature_names, X_train_clf)
+    return result + (X_cal, y_cal) if calibration_df is not None else result
