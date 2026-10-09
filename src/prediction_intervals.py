@@ -118,14 +118,14 @@ class PredictionIntervalBuilder:
         logger.info(f"   PI : bootstrap avec {self.n_bootstrap} modèles ...")
         rng = np.random.default_rng(self.random_state)
         n   = len(y_train)
-        X_np = X_train.values if hasattr(X_train, "values") else np.array(X_train)
-        y_np = np.array(y_train)
+        y_np = np.asarray(y_train)
 
         self._bootstrap_models = []
         for i in range(self.n_bootstrap):
             idx = rng.integers(0, n, size=n)
-            m   = clone(model)
-            m.fit(X_np[idx], y_np[idx])
+            X_sample = X_train.iloc[idx] if hasattr(X_train, "iloc") else np.asarray(X_train)[idx]
+            m = clone(model)
+            m.fit(X_sample, y_np[idx])
             self._bootstrap_models.append(m)
             if (i + 1) % 50 == 0:
                 logger.debug(f"      Bootstrap {i+1}/{self.n_bootstrap}")
@@ -153,10 +153,16 @@ class PredictionIntervalBuilder:
             upper = point_pred + self._residual_upper
 
         elif self.method == "bootstrap":
-            X_np = X_test.values if hasattr(X_test, "values") else np.array(X_test)
-            all_preds = np.stack([m.predict(X_np) for m in self._bootstrap_models], axis=1)
+            if not self._bootstrap_models:
+                raise ValueError("No bootstrap models available")
+            all_preds = np.stack([m.predict(X_test) for m in self._bootstrap_models], axis=1)
             lower = np.quantile(all_preds, self.alpha / 2, axis=1)
             upper = np.quantile(all_preds, 1 - self.alpha / 2, axis=1)
+
+        if not np.all(np.isfinite(point_pred)) or not np.all(np.isfinite(lower)) or not np.all(np.isfinite(upper)):
+            raise ValueError("Nonfinite prediction interval values")
+        if np.any(point_pred < 0):
+            raise ValueError("Negative point prediction")
 
         lower = np.maximum(lower, 0.0)
         lower = np.minimum(lower, point_pred)
