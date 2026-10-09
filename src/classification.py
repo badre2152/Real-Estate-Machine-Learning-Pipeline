@@ -11,10 +11,8 @@ Améliorations v2 :
   - Logging structuré
 """
 
-# stdlib
 import pickle
 
-# third-party
 import numpy as np
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
@@ -27,7 +25,6 @@ from sklearn.metrics import (
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 
-# local
 from logger_setup import get_logger
 
 try:
@@ -40,9 +37,7 @@ except Exception:
 
 logger = get_logger(__name__)
 
-# Ordre ordinal des classes
 ORDERED_CLASSES = _CLASSES
-
 
 def _try_xgboost():
     try:
@@ -51,10 +46,8 @@ def _try_xgboost():
     except ImportError:
         return None
 
-
 def get_classification_models() -> dict:
     """Retourne les modèles candidats."""
-    # n_jobs=1 sur les estimateurs: cross_val_score gère le parallélisme outer
     models = {
         "LogisticRegression": LogisticRegression(max_iter=1000, random_state=_RS),
         "RandomForest"      : RandomForestClassifier(n_estimators=100, random_state=_RS, n_jobs=1),
@@ -68,7 +61,6 @@ def get_classification_models() -> dict:
         )
     return models
 
-
 def encode_target(y_train, y_test):
     """
     Encode la variable cible en entiers avec ordre ordinal :
@@ -79,7 +71,6 @@ def encode_target(y_train, y_test):
     le.fit(ORDERED_CLASSES)
 
     def _safe_transform(y):
-        # Normaliser en minuscules + mapping des variantes (Luxe → élevé)
         mapping = {"luxe": "élevé", "luxury": "élevé"}
         s = pd.Series(y).astype(str).str.lower().str.strip()
         s = s.map(lambda v: mapping.get(v, v))
@@ -90,7 +81,6 @@ def encode_target(y_train, y_test):
     y_te = _safe_transform(y_test)
     logger.info(f"   Classes encodées : {list(le.classes_)}")
     return y_tr, y_te, le
-
 
 def check_class_balance(y_enc, label_encoder) -> float:
     """Affiche la distribution des classes et retourne le ratio min/max."""
@@ -105,7 +95,6 @@ def check_class_balance(y_enc, label_encoder) -> float:
             f"   ⚠️  Déséquilibre détecté (ratio={ratio:.2f}): envisager SMOTE ou class_weight"
         )
     return ratio
-
 
 def train_classification(
     X_train, y_train, use_calibration: bool = False
@@ -145,10 +134,8 @@ def train_classification(
     best_model = models[best_name]
     logger.info(f"\n🏆 Meilleur modèle : {best_name} (F1={results[best_name]:.4f})")
 
-    # Fit final: XGBoost avec early stopping sur un validation set interne
     if best_name == "XGBoost":
         try:
-            # Réserver 15% du train comme validation set pour early stopping
             from sklearn.model_selection import train_test_split as _tts
             X_fit, X_val, y_fit, y_val = _tts(
                 X_train, y_enc, test_size=0.15, random_state=_RS, stratify=y_enc
@@ -167,7 +154,6 @@ def train_classification(
                 f"{best_model.best_iteration} estimateurs retenus / 500"
             )
         except Exception as es_exc:
-            # Fallback si early stopping non supporté (version ancienne de XGBoost)
             logger.warning(f"   ⚠️  Early stopping ignoré : {es_exc}")
             best_model.fit(X_train, y_enc)
     else:
@@ -175,15 +161,12 @@ def train_classification(
 
     if use_calibration and hasattr(best_model, "predict_proba"):
         logger.info("   🎯 Calibration isotonique des probabilités ...")
-        # CalibratedClassifierCV (cv=5) ré-entraîne le modèle sans eval_set
-        # → early_stopping_rounds doit être désactivé sinon XGBoost plante
         if hasattr(best_model, "set_params") and hasattr(best_model, "early_stopping_rounds"):
             best_model.set_params(early_stopping_rounds=None)
         best_model = CalibratedClassifierCV(best_model, method="isotonic", cv=5)
         best_model.fit(X_train, y_enc)
 
     return best_model, best_name, le
-
 
 def evaluate_classification(model, X_test, y_test, label_encoder):
     """Évalue le modèle de classification sur le test set."""
@@ -234,7 +217,6 @@ def evaluate_classification(model, X_test, y_test, label_encoder):
         "Recall": recall, "F1": f1, "ROC-AUC": roc_auc,
     }
 
-
 def get_feature_importance(model, feature_names: list, top_n: int = 15):
     """Importance des features pour la classification."""
     if hasattr(model, "feature_importances_"):
@@ -250,13 +232,11 @@ def get_feature_importance(model, feature_names: list, top_n: int = 15):
         logger.info(f"   {feat:<35s} {bar} {val:.4f}")
     return imp
 
-
 def save_model(model, label_encoder, path: str = "models/classification_model.pkl") -> None:
     """Sauvegarde le modèle + encodeur dans un seul fichier."""
     with open(path, "wb") as f:
         pickle.dump({"model": model, "label_encoder": label_encoder}, f)
     logger.info(f"💾 Modèle classification sauvegardé → {path}")
-
 
 def load_model(path: str = "models/classification_model.pkl"):
     """Charge le modèle et l'encodeur depuis disque."""
