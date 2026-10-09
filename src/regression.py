@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score, RandomizedSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -42,7 +43,7 @@ def get_regression_models() -> dict:
         models["XGBoost"] = XGB(n_estimators=100, random_state=_RS, n_jobs=1, verbosity=0)
     return models
 
-class PriceScaleRegressor:
+class PriceScaleRegressor(RegressorMixin, BaseEstimator):
     def __init__(self, estimator, log_target=False):
         self.estimator = estimator
         self.log_target = log_target
