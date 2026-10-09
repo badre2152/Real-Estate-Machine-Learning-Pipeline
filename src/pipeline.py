@@ -273,12 +273,26 @@ def run_pipeline(
             logger.info("📈 ÉTAPE 9A: Entraînement Régression")
             logger.info("=" * 50)
             import numpy as np
+            regression_X = X_train
+            regression_y = y_reg_train
+            X_cal = y_cal = None
+            if cfg.prediction_intervals.method == "quantile":
+                if len(X_train) < 12:
+                    raise ValueError("Not enough training samples for independent interval calibration")
+                from sklearn.model_selection import train_test_split
+                indices_fit, indices_cal = train_test_split(
+                    np.arange(len(X_train)), test_size=0.2, random_state=random_state
+                )
+                regression_X = X_train.iloc[indices_fit]
+                regression_y = y_reg_train.iloc[indices_fit]
+                X_cal = X_train.iloc[indices_cal]
+                y_cal = y_reg_train.iloc[indices_cal]
             reg_model, reg_name, _ = train_regression(
-                X_train, y_reg_train, use_log_target=use_log_target
+                regression_X, regression_y, use_log_target=use_log_target
             )
             if optimize:
-                y_opt = np.log1p(y_reg_train) if use_log_target else y_reg_train
-                reg_model = optimize_model(reg_model, X_train, y_opt)
+                y_opt = np.log1p(regression_y) if use_log_target else regression_y
+                reg_model = optimize_model(reg_model, regression_X, y_opt)
 
         with monitor.step("9a_regression_eval"):
             reg_metrics = evaluate_regression(reg_model, X_test, y_reg_test, use_log_target)
@@ -369,7 +383,7 @@ def run_pipeline(
                 n_bootstrap      = int(cfg.prediction_intervals.n_bootstrap),
                 random_state     = random_state,
             )
-            pi_builder.fit(reg_model, X_train, y_reg_train)
+            pi_builder.fit(reg_model, regression_X, regression_y, X_cal=X_cal, y_cal=y_cal)
             pi_df    = pi_builder.predict_with_interval(X_test)
             pi_cover = pi_builder.evaluate_coverage(X_test, y_reg_test)
             tracker.log_metrics({
