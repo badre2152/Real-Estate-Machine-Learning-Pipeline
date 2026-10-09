@@ -340,7 +340,14 @@ def run_pipeline(
 
         clf_model = clf_name = label_enc = None
 
-        if y_clf_train is not None:
+        classification_counts = (
+            y_clf_train.astype("string").str.strip().str.lower().value_counts()
+            if y_clf_train is not None else pd.Series(dtype="int64")
+        )
+        can_train_classification = (
+            len(classification_counts) >= 2 and classification_counts.min() >= 2
+        )
+        if can_train_classification:
             with monitor.step("9b_classification_train"):
                 logger.info("\n" + "=" * 50)
                 logger.info("🧠 ÉTAPE 9B: Entraînement Classification")
@@ -382,7 +389,7 @@ def run_pipeline(
                     f"{'🚀 promu Production' if clf_registry_result['promoted'] else '🟡 Staging'}"
                 )
         else:
-            logger.warning("⚠️  Classification ignorée: cible non disponible dans l'OBT")
+            logger.warning("Classification skipped: missing target, fewer than two types, or rare labels")
 
         with monitor.step("10_prediction_intervals"):
             logger.info("\n" + "=" * 50)
