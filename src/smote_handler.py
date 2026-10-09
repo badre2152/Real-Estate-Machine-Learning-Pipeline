@@ -15,15 +15,12 @@ Usage :
     X_res, y_res = handler.fit_resample(X_train, y_train)
 """
 
-# stdlib
 from collections import Counter
 from typing import Optional, Tuple
 
-# third-party
 import numpy as np
 import pandas as pd
 
-# local
 from logger_setup import get_logger
 
 logger = get_logger(__name__)
@@ -36,7 +33,6 @@ except ImportError:
     SMOTE_AVAILABLE = False
     logger.warning("⚠️  imbalanced-learn non installé: SMOTE désactivé (pip install imbalanced-learn)")
 
-
 def _class_distribution(y) -> dict:
     """Retourne la distribution des classes sous forme de dict trié."""
     counts = Counter(y)
@@ -45,7 +41,6 @@ def _class_distribution(y) -> dict:
         cls: {"n": n, "pct": round(n / total * 100, 1)}
         for cls, n in sorted(counts.items(), key=lambda x: str(x[0]))
     }
-
 
 def _imbalance_ratio(y) -> float:
     """
@@ -57,7 +52,6 @@ def _imbalance_ratio(y) -> float:
         return 1.0
     vals = list(counts.values())
     return min(vals) / max(vals)
-
 
 def detect_imbalance(y, threshold: float = 0.5) -> Tuple[bool, float]:
     """
@@ -73,7 +67,6 @@ def detect_imbalance(y, threshold: float = 0.5) -> Tuple[bool, float]:
     ratio = _imbalance_ratio(y)
     is_imbalanced = ratio < threshold
     return is_imbalanced, ratio
-
 
 class SmoteHandler:
     """
@@ -116,8 +109,6 @@ class SmoteHandler:
         self._before_dist        = None
         self._after_dist         = None
 
-    # Application SMOTE
-
     def fit_resample(
         self, X_train, y_train, force: bool = False
     ) -> Tuple:
@@ -152,7 +143,6 @@ class SmoteHandler:
             self._applied = False
             return X_train, y_train
 
-        # Choisir SMOTE ou SMOTENC selon la présence de features catégorielles
         try:
             smote = self._build_smote(X_train)
             X_res, y_res = smote.fit_resample(X_train, y_train)
@@ -198,15 +188,11 @@ class SmoteHandler:
         """Nombre d'échantillons dans la classe la plus petite (pour ajuster k)."""
         return min(info["n"] for info in self._before_dist.values()) if self._before_dist else 5
 
-    # Logging
-
     def _log_distribution(self, label: str, dist: dict) -> None:
         logger.info(f"   {label} :")
         for cls, info in dist.items():
             bar = "█" * int(info["pct"] / 5)
             logger.info(f"     {str(cls):<15} {info['n']:>6,}  ({info['pct']:5.1f}%)  {bar}")
-
-    # Rapport
 
     def get_report(self) -> dict:
         """Retourne un rapport dictionnaire pour MLflow / rapport HTML."""
@@ -221,11 +207,6 @@ class SmoteHandler:
     @property
     def was_applied(self) -> bool:
         return self._applied
-
-
-# 
-# Helper standalone pour les pipelines qui n'utilisent pas la classe
-# 
 
 def apply_smote_if_needed(
     X_train, y_train,
