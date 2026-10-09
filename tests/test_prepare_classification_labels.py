@@ -1,9 +1,14 @@
 """Regression tests for classification data validation."""
 
+import sys
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
-from src.prepare import prepare_data
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from prepare import prepare_data
 
 
 def test_prepare_data_rejects_missing_classification_labels():
