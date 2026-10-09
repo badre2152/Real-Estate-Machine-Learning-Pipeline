@@ -1,21 +1,4 @@
-"""
-pipeline.py  (v2: intégration complète)
------------------------------------------
-Orchestrateur principal du pipeline ML immobilier Avito.
-
-Nouveautés v2 :
-  ✅ Config centralisée (config.yaml)
-  ✅ Logging professionnel (logger_setup)
-  ✅ Data Validation avant traitement
-  ✅ Baseline Models (régression + classification)
-  ✅ SMOTE via SmoteHandler
-  ✅ MLflow Tracking
-  ✅ SHAP Explainer
-  ✅ Monitoring (chronomètre par étape, alertes)
-  ✅ Prediction Intervals (CI 95%)
-  ✅ Rapport HTML automatique
-  ✅ Sauvegarde complète API-compatible
-"""
+"""Coordinate real estate machine learning training and evaluation."""
 
 import argparse
 import json
