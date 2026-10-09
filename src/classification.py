@@ -157,7 +157,7 @@ def train_classification(
         best_model.fit(X_train, y_enc)
 
     if use_calibration and hasattr(best_model, "predict_proba"):
-        logger.info("   🎯 Calibration isotonique des probabilités ...")
+        logger.info("   🎯 Calibration sigmoid des probabilités ...")
         if hasattr(best_model, "set_params") and hasattr(best_model, "early_stopping_rounds"):
             best_model.set_params(early_stopping_rounds=None)
         best_model = CalibratedClassifierCV(best_model, method="sigmoid", cv=min(3, int(counts.min())))
@@ -168,6 +168,13 @@ def train_classification(
 def evaluate_classification(model, X_test, y_test, label_encoder):
     """Évalue le modèle de classification sur le test set."""
     labels = pd.Series(y_test).astype("string").str.strip().str.lower()
+    known = labels.isin(label_encoder.classes_)
+    if not known.all():
+        logger.warning("Ignoring %s evaluation rows with unseen property types", int((~known).sum()))
+    if not known.any():
+        raise ValueError("No known property types remain for classification evaluation")
+    labels = labels.loc[known]
+    X_test = X_test.loc[known.to_numpy()] if hasattr(X_test, "loc") else np.asarray(X_test)[known.to_numpy()]
     y_te_enc = label_encoder.transform(labels)
     y_pred = model.predict(X_test)
 
