@@ -286,9 +286,9 @@ def run_pipeline(
             if y_clf_train is not None:
                 baseline_clf = run_classification_baselines(
                     X_train_clf_raw,
-                    y_clf_train,
+                    y_clf_train.astype("string").str.strip().str.lower(),
                     X_test.iloc[classification_eval_mask],
-                    y_clf_test.iloc[classification_eval_mask],
+                    y_clf_test.iloc[classification_eval_mask].astype("string").str.strip().str.lower(),
                 )
 
             tracker.log_baseline_results(baseline_reg, baseline_clf or None)
