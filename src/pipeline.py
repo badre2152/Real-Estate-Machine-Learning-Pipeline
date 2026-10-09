@@ -1,21 +1,4 @@
-"""
-pipeline.py  (v2: intégration complète)
------------------------------------------
-Orchestrateur principal du pipeline ML immobilier Avito.
-
-Nouveautés v2 :
-  ✅ Config centralisée (config.yaml)
-  ✅ Logging professionnel (logger_setup)
-  ✅ Data Validation avant traitement
-  ✅ Baseline Models (régression + classification)
-  ✅ SMOTE via SmoteHandler
-  ✅ MLflow Tracking
-  ✅ SHAP Explainer
-  ✅ Monitoring (chronomètre par étape, alertes)
-  ✅ Prediction Intervals (CI 95%)
-  ✅ Rapport HTML automatique
-  ✅ Sauvegarde complète API-compatible
-"""
+"""Coordinate real estate machine learning training and evaluation."""
 
 import argparse
 import json
@@ -318,11 +301,14 @@ def run_pipeline(
             regression_X = X_train
             regression_y = y_reg_train
             reg_model, reg_name, _ = train_regression(
-                regression_X, regression_y, use_log_target=use_log_target
+                regression_X, regression_y, use_log_target=use_log_target,
+                cv_frame=df_train,
             )
             if optimize:
                 y_opt = np.log1p(regression_y) if use_log_target else regression_y
-                reg_model = optimize_model(reg_model, regression_X, y_opt)
+                reg_model = optimize_model(
+                    reg_model, regression_X, y_opt, cv_frame=df_train
+                )
 
         with monitor.step("9a_regression_eval"):
             reg_metrics = evaluate_regression(reg_model, X_test, y_reg_test, use_log_target)

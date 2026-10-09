@@ -1,16 +1,4 @@
-"""
-regression.py
--------------
-Modèle de régression pour prédire le prix des biens immobiliers.
-
-Améliorations v2 :
-  - XGBoost ajouté (souvent meilleur sur données tabulaires)
-  - RandomizedSearchCV (bien plus rapide que GridSearchCV)
-  - MAPE ajouté comme métrique complémentaire
-  - Support du log-target avec inverse-transform automatique
-  - Feature importance pour tous les modèles (coefficients pour Ridge)
-  - Logging structuré
-"""
+"""Train and evaluate property price regression models."""
 
 import pickle
 from typing import Optional
@@ -18,6 +6,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score, RandomizedSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -39,7 +28,7 @@ def _try_xgboost():
         from xgboost import XGBRegressor
         return XGBRegressor
     except ImportError:
-        logger.warning("   ⚠️  xgboost non installé: ignoré (pip install xgboost)")
+        logger.warning("     xgboost non installé: ignoré (pip install xgboost)")
         return None
 
 def get_regression_models() -> dict:
@@ -54,7 +43,7 @@ def get_regression_models() -> dict:
         models["XGBoost"] = XGB(n_estimators=100, random_state=_RS, n_jobs=1, verbosity=0)
     return models
 
-class PriceScaleRegressor:
+class PriceScaleRegressor(RegressorMixin, BaseEstimator):
     def __init__(self, estimator, log_target=False):
         self.estimator = estimator
         self.log_target = log_target
@@ -97,7 +86,7 @@ class PriceScaleRegressor:
 
 
 def train_regression(
-    X_train, y_train, use_log_target: bool = False
+    X_train, y_train, use_log_target: bool = False, cv_frame=None
 ):
     """
     Entraîne plusieurs modèles de régression et retourne le meilleur.
@@ -111,18 +100,38 @@ def train_regression(
         (best_model, best_name, use_log_target)
     """
     logger.info("\n" + "=" * 50)
-    logger.info("📈 MODÈLE DE RÉGRESSION: Prédiction du Prix")
+    logger.info(" MODÈLE DE RÉGRESSION: Prédiction du Prix")
     logger.info("=" * 50)
 
     y = np.log1p(y_train) if use_log_target else y_train
     if use_log_target:
-        logger.info("   🔁 Target : log1p(prix)")
+        logger.info("    Target : log1p(prix)")
 
     models  = get_regression_models()
     results = {}
 
+    cv_features = X_train
+    cv_preprocessor = None
+    if cv_frame is not None:
+        from sklearn.pipeline import Pipeline
+        from sklearn.base import clone
+        from prepare import build_preprocessor, detect_column_types
+
+        numeric_cols, categorical_cols = detect_column_types(cv_frame)
+        selected_cols = numeric_cols + categorical_cols
+        if not selected_cols:
+            raise ValueError("Cross-validation requires usable features")
+        cv_features = cv_frame[selected_cols]
+        cv_preprocessor = build_preprocessor(numeric_cols, categorical_cols)
+
     for name, model in models.items():
-        scores = cross_val_score(model, X_train, y, cv=_CV, scoring="r2", n_jobs=-1)
+        cv_model = model
+        if cv_preprocessor is not None:
+            cv_model = Pipeline([
+                ("preprocessor", clone(cv_preprocessor)),
+                ("estimator", clone(model)),
+            ])
+        scores = cross_val_score(cv_model, cv_features, y, cv=_CV, scoring="r2", n_jobs=-1)
         results[name] = scores.mean()
         logger.info(
             f"   {name:<25s} → R² CV : {scores.mean():.4f} (±{scores.std():.4f})"
@@ -130,17 +139,17 @@ def train_regression(
 
     best_name  = max(results, key=results.get)
     best_model = models[best_name]
-    logger.info(f"\n🏆 Meilleur modèle : {best_name} (R² = {results[best_name]:.4f})")
+    logger.info(f"\n Meilleur modèle : {best_name} (R² = {results[best_name]:.4f})")
 
     best_model.fit(X_train, y)
     return best_model, best_name, use_log_target
 
-def optimize_model(model, X_train, y_train, n_iter: int = None):
+def optimize_model(model, X_train, y_train, n_iter: int = None, cv_frame=None):
     """
     Optimise les hyperparamètres via RandomizedSearchCV.
     Plus rapide que GridSearchCV, aussi efficace en pratique.
     """
-    logger.info("\n🔍 Optimisation des hyperparamètres (RandomizedSearchCV) ...")
+    logger.info("\n Optimisation des hyperparamètres (RandomizedSearchCV) ...")
     model_name = type(model).__name__
 
     grids = {
@@ -166,17 +175,45 @@ def optimize_model(model, X_train, y_train, n_iter: int = None):
     }
     param_dist = grids.get(model_name)
     if not param_dist:
-        logger.warning(f"   ⚠️  Pas de grille pour {model_name}: optimisation ignorée")
+        logger.warning(f"     Pas de grille pour {model_name}: optimisation ignorée")
         return model
 
+    search_model = model
+    search_features = X_train
+    if cv_frame is not None:
+        from sklearn.base import clone
+        from sklearn.pipeline import Pipeline
+        from prepare import build_preprocessor, detect_column_types
+
+        numeric_cols, categorical_cols = detect_column_types(cv_frame)
+        selected_cols = numeric_cols + categorical_cols
+        if not selected_cols:
+            raise ValueError("Cross-validation requires usable features")
+        search_features = cv_frame[selected_cols]
+        search_model = Pipeline([
+            ("preprocessor", build_preprocessor(numeric_cols, categorical_cols)),
+            ("estimator", clone(model)),
+        ])
+        param_dist = {
+            f"estimator__{key}": values for key, values in param_dist.items()
+        }
+
     search = RandomizedSearchCV(
-        model, param_dist, n_iter=(n_iter or _NIT), cv=_CV,
+        search_model, param_dist, n_iter=(n_iter or _NIT), cv=_CV,
         scoring="r2", random_state=_RS, n_jobs=-1, verbose=0,
     )
-    search.fit(X_train, y_train)
-    logger.info(f"   ✅ Meilleurs paramètres : {search.best_params_}")
-    logger.info(f"   R² CV optimisé : {search.best_score_:.4f}")
-    return search.best_estimator_
+    search.fit(search_features, y_train)
+    logger.info("Optimized CV score: %.4f", search.best_score_)
+    if cv_frame is None:
+        return search.best_estimator_
+
+    best_params = {
+        key.removeprefix("estimator__"): value
+        for key, value in search.best_params_.items()
+    }
+    tuned_model = clone(model).set_params(**best_params)
+    tuned_model.fit(X_train, y_train)
+    return tuned_model
 
 def evaluate_regression(
     model,
@@ -209,7 +246,7 @@ def evaluate_regression(
         if nonzero_mask.sum() > 0 else float("nan")
     )
 
-    logger.info("\n📊 RÉSULTATS RÉGRESSION (Test Set) :")
+    logger.info("\n RÉSULTATS RÉGRESSION (Test Set) :")
     logger.info(f"   MAE  : {mae:>15,.2f} MAD")
     logger.info(f"   MSE  : {mse:>15,.2f}")
     logger.info(f"   RMSE : {rmse:>15,.2f} MAD")
@@ -217,13 +254,13 @@ def evaluate_regression(
     logger.info(f"   R²   : {r2:>14.4f}")
 
     if r2 >= 0.85:
-        logger.info("   🟢 Excellent modèle !")
+        logger.info("    Excellent modèle !")
     elif r2 >= 0.70:
-        logger.info("   🟡 Bon modèle: peut être amélioré")
+        logger.info("    Bon modèle: peut être amélioré")
     elif r2 >= 0.50:
-        logger.info("   🟠 Modèle moyen: revoir les features")
+        logger.info("    Modèle moyen: revoir les features")
     else:
-        logger.info("   🔴 Modèle faible: approfondir l'analyse")
+        logger.info("    Modèle faible: approfondir l'analyse")
 
     if baseline_results:
         best_baseline_r2 = max(
@@ -231,13 +268,13 @@ def evaluate_regression(
         )
         if r2 <= best_baseline_r2:
             logger.warning(
-                f"\n   ⚠️  ALERTE BASELINE : R²={r2:.4f} ≤ meilleure baseline "
+                f"\n     ALERTE BASELINE : R²={r2:.4f} ≤ meilleure baseline "
                 f"R²={best_baseline_r2:.4f}: le modèle ML n'apporte pas de valeur ajoutée !"
                 f"\n   → Vérifier : features, target leakage, données insuffisantes."
             )
         else:
             logger.info(
-                f"   ✅ Baseline battue : R²={r2:.4f} > baseline={best_baseline_r2:.4f} "
+                f"    Baseline battue : R²={r2:.4f} > baseline={best_baseline_r2:.4f} "
                 f"(+{r2 - best_baseline_r2:.4f})"
             )
 
@@ -254,11 +291,11 @@ def get_feature_importance(model, feature_names: list, top_n: int = 15):
     elif hasattr(model, "coef_"):
         importances = pd.Series(np.abs(model.coef_), index=feature_names)
     else:
-        logger.warning("   ⚠️  Modèle sans feature importance")
+        logger.warning("     Modèle sans feature importance")
         return None
 
     importances = importances.sort_values(ascending=False)
-    logger.info(f"\n🔑 Top {top_n} features (régression) :")
+    logger.info(f"\n Top {top_n} features (régression) :")
     for feat, imp in importances.head(top_n).items():
         bar = "█" * int(imp * 40)
         logger.info(f"   {feat:<35s} {bar} {imp:.4f}")

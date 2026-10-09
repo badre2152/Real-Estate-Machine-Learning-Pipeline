@@ -1,14 +1,4 @@
-"""
-prepare.py
-----------
-Préparation des données pour le ML (post-extraction OBT).
-
-ORDRE CORRECT selon le contexte du projet :
-  Extraction OBT → Split → Feature Engineering → Scaling/Encoding → Training
-
-Le split est donc la PREMIÈRE transformation après l'extraction.
-Le feature engineering est fait APRÈS le split pour éviter la fuite de données.
-"""
+"""Prepare features and labels for property modeling."""
 
 import os
 import pickle
@@ -65,7 +55,7 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     - Supprime les prix <= 0 (aberrants)
     La table OBT est déjà nettoyée, ce nettoyage est une sécurité.
     """
-    logger.info("🧹 Nettoyage de sécurité ...")
+    logger.info(" Nettoyage de sécurité ...")
     n0 = len(df)
     df = df.drop_duplicates()
     df = df.dropna(subset=[TARGET_REGRESSION])
@@ -92,7 +82,7 @@ def split_data(
     if len(df) < 2:
         raise ValueError("At least two rows are required to split data")
     df_train, df_test = train_test_split(df, test_size=effective_size, random_state=effective_state)
-    logger.info(f"   ✅ Split : {len(df_train):,} train | {len(df_test):,} test")
+    logger.info(f"    Split : {len(df_train):,} train | {len(df_test):,} test")
     return df_train.reset_index(drop=True), df_test.reset_index(drop=True)
 
 def detect_column_types(df: pd.DataFrame) -> tuple[list, list]:
@@ -151,10 +141,10 @@ def apply_smote(X_train: pd.DataFrame, y_train, random_state: int = 42):
         from imblearn.over_sampling import SMOTE
         sm = SMOTE(random_state=random_state)
         X_res, y_res = sm.fit_resample(X_train, y_train)
-        logger.info(f"   ✅ SMOTE : {len(X_train):,} → {len(X_res):,} échantillons")
+        logger.info(f"    SMOTE : {len(X_train):,} → {len(X_res):,} échantillons")
         return X_res, y_res
     except ImportError:
-        logger.warning("   ⚠️  imbalanced-learn non installé: SMOTE ignoré")
+        logger.warning("     imbalanced-learn non installé: SMOTE ignoré")
         return X_train, y_train
 
 def prepare_data(
@@ -182,7 +172,7 @@ def prepare_data(
         feature_names
     """
     logger.info("\n" + "=" * 50)
-    logger.info("🔧 PRÉPARATION: Encoding + Scaling")
+    logger.info(" PRÉPARATION: Encoding + Scaling")
     logger.info("=" * 50)
 
     y_reg_train = df_train_fe[TARGET_REGRESSION].reset_index(drop=True)
@@ -233,10 +223,12 @@ def prepare_data(
     X_train_clf = X_train.copy()
     if y_clf_train is not None:
         counts = y_clf_train.value_counts()
-        ratio  = counts.min() / counts.max()
+        if counts.empty:
+            raise ValueError("Classification labels contain no valid values")
+        ratio = counts.min() / counts.max()
         logger.info(f"   Distribution classes : {counts.to_dict()}")
         if ratio < 0.5:
-            logger.warning(f"   ⚠️  Déséquilibre (ratio={ratio:.2f})")
+            logger.warning(f"     Déséquilibre (ratio={ratio:.2f})")
             if use_smote:
                 X_train_clf, y_clf_train = apply_smote(X_train_clf, y_clf_train, random_state or _RS)
 
@@ -249,6 +241,6 @@ def prepare_data(
             pickle.dump(preprocessor, f)
         logger.info("   Préprocesseur sauvegardé dans %s", preprocessor_path)
 
-    logger.info(f"\n✅ Train : {len(X_train):,} | Test : {len(X_test):,} | Features : {len(feature_names)}")
+    logger.info(f"\n Train : {len(X_train):,} | Test : {len(X_test):,} | Features : {len(feature_names)}")
     result = (X_train, X_test, y_reg_train, y_reg_test, y_clf_train, y_clf_test, feature_names, X_train_clf)
     return result + (X_cal, y_cal) if calibration_df is not None else result

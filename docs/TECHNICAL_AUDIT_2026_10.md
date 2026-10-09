@@ -1,0 +1,26 @@
+# Machine Learning Pipeline Technical Audit
+
+Audit date: 2026-10-10
+Branch: audit-ml-quality-2026-10
+
+## Scope
+
+Source-level inspection of `README.md`, `requirements.txt`, `src/pipeline.py`, `src/regression.py`, `src/prepare.py`, and `src/features.py`. Focused tests including actual synthetic cross-validation and API preprocessing compatibility passed in GitHub Actions Run #10. Production training, complete project test suite, Docker build and deployment have not been verified. Serialized artifact test exposed a scikit-learn compatibility failure in CI Run #12. Fix committed; the next CI result is required.
+
+## Findings
+
+| Severity | Location | Evidence | Recommendation |
+| --- | --- | --- | --- |
+| Medium | `src/regression.py`, `train_regression` | Candidate models are selected through cross-validation after one shared preparation step; verify all learned preprocessing is inside each CV fold rather than fitted on the full training set before CV. | Confirmed: `prepare_data()` fits transformations before `cross_val_score()` in `train_regression()`. Model selection now receives a fold-local sklearn preprocessing pipeline from unfitted training features. A regression test was added but has not yet run in CI. Hyperparameter optimization now searches using unfitted fold-local preprocessing, then refits the selected estimator on the existing final training matrix for API compatibility. Regression tests were added; they have not been executed. Hold-out evaluation remains separate. |
+| Medium | `src/prepare.py`, `prepare_data` | Classification imbalance logic computes `counts.min() / counts.max()` without an explicit guard for an empty label distribution. | Reject entirely missing labels and explicitly handle single-class labels with focused tests. Missing-label validation fixed on branch; test added but not run. |
+| Medium | `requirements.txt` | Broad minimum-only package constraints across scikit-learn, pandas, Great Expectations, and MLflow do not guarantee that a fresh install reproduces the same environment. | Produce a tested lock or constraints file after a successful environment build. |
+| High | `src/regression.py`, `PriceScaleRegressor.predict` | The wrapper used `check_is_fitted`, but did not inherit scikit-learn estimator base classes; actual saved-artifact prediction failed with missing `__sklearn_tags__` on newer scikit-learn. | Fixed inheritance with `RegressorMixin` and `BaseEstimator`; serialization regression test added, awaiting successful CI. |\n| Low | `src/pipeline.py`, `src/regression.py`, `src/prepare.py`, `src/features.py` | Long historical changelog docstrings, decorative log symbols and instructional comments obscure runtime behavior. | Remove nonessential narration in small behavior-preserving commits. |
+| Informational | `README.md` | Report acknowledges that historical performance values and SHAP features are not current validated results. | Retain this honest distinction until a reproducible training and evaluation run is available. |
+
+## Verification requirements
+
+1. The focused CI environment is operational. Inventory and run the broader existing test suite before merge.
+2. Synthetic regression cross-validation and preprocessing checks passed; complete training pipeline and API HTTP endpoint require broader integration tests.
+3. Fold-local preprocessing is covered by targeted tests.
+4. Verify serialized model and preprocessing artifacts with the newly added regression test.
+5. Require a green CI result for the latest commit and final PR review before merge.
