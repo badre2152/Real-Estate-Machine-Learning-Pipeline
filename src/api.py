@@ -433,7 +433,7 @@ async def predict(data: PropertyInput, request: Request):
     t0 = time.perf_counter()
     req_id = getattr(request.state, "request_id", str(uuid.uuid4())[:8])
 
-    if _state["reg_model"] is None:
+    if _state["reg_model"] is None or _state["preprocessor"] is None:
         raise HTTPException(
             status_code=503,
             detail={"error": "model_unavailable", "message": "Modèle non disponible.", "request_id": req_id},
@@ -441,7 +441,7 @@ async def predict(data: PropertyInput, request: Request):
 
     try:
         row = _build_input_df(data)
-        X = _state["preprocessor"].transform(row) if _state["preprocessor"] else row.values
+        X = _state["preprocessor"].transform(row)
         pred = float(_state["reg_model"].predict(X)[0])
 
         lower, upper = pred, pred
@@ -492,6 +492,12 @@ async def predict_batch(data: BatchInput, request: Request):
     """Prédictions en lot pour plusieurs biens simultanément (max 100)."""
     t0 = time.perf_counter()
     req_id = getattr(request.state, "request_id", str(uuid.uuid4())[:8])
+    if _state["reg_model"] is None or _state["preprocessor"] is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "model_unavailable",
+            "message": "Modèle ou préprocesseur indisponible.",
+            "request_id": req_id,
+        })
     results, n_success, n_errors = [], 0, 0
 
     for prop in data.properties:
