@@ -1,27 +1,21 @@
-# Environnement
 .env
 __pycache__/
 *.pyc
 
-# Modèles entraînés (trop lourds pour git)
 models/*.pkl
 models/*.log
 models/results.json
 
-# Plots générés
 docs/plots/*.png
 
-# IDE
 .vscode/
 .idea/
 *.swp
 
-# OS
 .DS_Store
 Thumbs.db
 feature_store/*.db
 
-# Secrets & credentials — ne jamais commiter
 .env
 .env.local
 .env.production
@@ -30,21 +24,17 @@ feature_store/*.db
 nginx/certs/
 secrets/
 
-# Feature Store DB
 feature_store/*.db
 feature_store/*.db-shm
 feature_store/*.db-wal
 
-# Drift reports (peuvent contenir des données sensibles)
 reports/drift_report_*.json
 
-# MLflow local tracking artifacts
 mlflow.db
 mlflow.db-shm
 mlflow.db-wal
 mlruns/
 
-# Additional local environments and runtime files
 .env.*
 !.env.example
 .venv/
@@ -60,12 +50,9 @@ models/*.pickle
 .mypy_cache/
 .ruff_cache/
 
-# Generated reference datasets and report pages
 feature_store/*.pkl
 reports/*.html
 
-# DVC validation output generated locally
 reports/dvc/
 
-# Generated pipeline runtime reports
 reports/runtime/
