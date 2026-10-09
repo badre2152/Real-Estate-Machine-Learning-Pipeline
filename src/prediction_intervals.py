@@ -48,16 +48,15 @@ class PredictionIntervalBuilder:
             n_bootstrap:      Nombre de modèles bootstrap (ignoré si method="quantile").
             random_state:     Graine pour la reproductibilité.
         """
-        try:
-            from config_loader import cfg
-            pi = cfg.prediction_intervals
-            self.method           = method or pi.method
-            self.confidence_level = float(pi.confidence_level)
-            self.n_bootstrap      = int(pi.n_bootstrap)
-        except Exception:
-            self.method           = method
-            self.confidence_level = confidence_level
-            self.n_bootstrap      = n_bootstrap
+        self.method = method
+        self.confidence_level = float(confidence_level)
+        self.n_bootstrap = int(n_bootstrap)
+        if self.method not in ("quantile", "bootstrap"):
+            raise ValueError("Unknown prediction interval method")
+        if not 0 < self.confidence_level < 1:
+            raise ValueError("Confidence level must be between zero and one")
+        if self.method == "bootstrap" and self.n_bootstrap < 1:
+            raise ValueError("Bootstrap requires at least one model")
 
         self.random_state = random_state
         self.alpha        = 1 - self.confidence_level
