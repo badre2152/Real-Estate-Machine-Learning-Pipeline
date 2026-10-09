@@ -243,7 +243,7 @@ def run_pipeline(
             logger.info("=" * 50)
             prepared = prepare_data(
                 df_train, df_test,
-                use_smote=False,       # SMOTE géré séparément ci-dessous
+                use_smote=False,
                 random_state=random_state,
                 save_preprocessor=True,
                 calibration_df=calibration_df,
