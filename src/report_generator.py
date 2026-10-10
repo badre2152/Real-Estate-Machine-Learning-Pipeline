@@ -68,7 +68,7 @@ def _baseline_comparison_table(model_metrics: dict, baselines: dict, metric_key:
     if not baselines:
         return ""
     model_val = model_metrics.get(metric_key, 0)
-    rows = f"<tr><td>⭐ Modèle réel</td><td><strong>{model_val:.4f}</strong></td><td>N/A</td></tr>"
+    rows = f"<tr><td>MODEL Modèle réel</td><td><strong>{model_val:.4f}</strong></td><td>N/A</td></tr>"
     for name, m in baselines.items():
         bv   = m.get(metric_key, 0)
         diff = model_val - bv
@@ -180,7 +180,7 @@ class ReportGenerator:
 <body>
 <div class="container">
   <header>
-    <h1>📊 {title}</h1>
+    <h1> {title}</h1>
     <p>{author} · Généré le {timestamp}</p>
   </header>
 
@@ -201,7 +201,7 @@ class ReportGenerator:
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
 
-        logger.info(f"   📄 Rapport HTML → {path}")
+        logger.info(f"    Rapport HTML → {path}")
         return path
 
     def _section_summary(self, reg: dict, clf: dict) -> str:
@@ -221,7 +221,7 @@ class ReportGenerator:
         )
         return f"""
   <div class="section">
-    <h2>🎯 Résumé exécutif</h2>
+    <h2> Résumé exécutif</h2>
     <div class="metrics-grid">{cards}</div>
   </div>"""
 
@@ -234,7 +234,7 @@ class ReportGenerator:
         clf_tbl = _baseline_comparison_table(clf, bl_clf, "F1") if bl_clf else ""
         return f"""
   <div class="section">
-    <h2>📏 Comparaison avec les Baselines</h2>
+    <h2> Comparaison avec les Baselines</h2>
     <h3>Régression (R²)</h3>{reg_tbl}
     {"<h3>Classification (F1)</h3>" + clf_tbl if clf_tbl else ""}
   </div>"""
@@ -242,15 +242,15 @@ class ReportGenerator:
     def _section_validation(self, report) -> str:
         if not report:
             return ""
-        badge = '<span class="badge badge-pass">✅ PASSED</span>' if report.passed \
-                else '<span class="badge badge-fail">❌ FAILED</span>'
+        badge = '<span class="badge badge-pass">PASS PASSED</span>' if report.passed \
+                else '<span class="badge badge-fail">FAIL FAILED</span>'
         rows = ""
         for r in report.results[:20]:   # limiter à 20 tests pour la lisibilité
-            icon = "✅" if r.passed else ("❌" if r.severity == "error" else "⚠️")
+            icon = "PASS" if r.passed else ("FAIL" if r.severity == "error" else "WARNING")
             rows += f"<tr><td>{icon} {r.name}</td><td>{r.message}</td></tr>"
         return f"""
   <div class="section">
-    <h2>🛡️ Validation des Données {badge}</h2>
+    <h2> Validation des Données {badge}</h2>
     <p style="margin-bottom:1rem; color:#6b7280">
       {report.n_rows:,} lignes · {report.n_cols} colonnes ·
       {report.n_passed} OK · {report.n_failed} erreurs · {report.n_warnings} warnings
@@ -264,7 +264,7 @@ class ReportGenerator:
             info = "SMOTE non appliqué (données équilibrées ou non requis)"
             return f"""
   <div class="section">
-    <h2>⚖️ SMOTE: Équilibrage des classes</h2>
+    <h2> SMOTE: Équilibrage des classes</h2>
     <div class="ok-box">{info}</div>
   </div>"""
         before = report.get("before_dist", {})
@@ -279,7 +279,7 @@ class ReportGenerator:
         )
         return f"""
   <div class="section">
-    <h2>⚖️ SMOTE: Équilibrage des classes</h2>
+    <h2> SMOTE: Équilibrage des classes</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
       <div><h3>Avant SMOTE</h3>
         <table><thead><tr><th>Classe</th><th>N</th><th>%</th></tr></thead>
@@ -312,7 +312,7 @@ class ReportGenerator:
             return ""
         return f"""
   <div class="section">
-    <h2>🔍 SHAP: Interprétabilité du modèle</h2>
+    <h2> SHAP: Interprétabilité du modèle</h2>
     <div class="plots-grid">{imgs}</div>
   </div>"""
 
@@ -322,18 +322,18 @@ class ReportGenerator:
         total = data.get("total_duration_s", 0)
         rows  = ""
         for s in data.get("steps", []):
-            status = "✅" if s.get("success") else "❌"
+            status = "PASS" if s.get("success") else "FAIL"
             dur    = f"{(s.get('duration_s') or 0):.2f}s"
             rows  += f"<tr><td>{status} {s['name']}</td><td>{dur}</td></tr>"
         alerts = data.get("alerts", [])
         alert_html = ""
         for a in alerts:
-            alert_html += f'<div class="alert-box">🔔 {a["metric"]}={a["value"]:.4f} &lt; seuil={a["threshold"]}</div>'
+            alert_html += f'<div class="alert-box"> {a["metric"]}={a["value"]:.4f} &lt; seuil={a["threshold"]}</div>'
         if not alerts:
-            alert_html = '<div class="ok-box">✅ Aucune alerte: toutes les métriques dans les seuils</div>'
+            alert_html = '<div class="ok-box">PASS Aucune alerte: toutes les métriques dans les seuils</div>'
         return f"""
   <div class="section">
-    <h2>📈 Monitoring: Exécution du pipeline</h2>
+    <h2> Monitoring: Exécution du pipeline</h2>
     <p style="margin-bottom:0.75rem;color:#6b7280">Durée totale : <strong>{total:.1f}s</strong></p>
     <table><thead><tr><th>Étape</th><th>Durée</th></tr></thead>
     <tbody>{rows}</tbody></table>
@@ -354,7 +354,7 @@ class ReportGenerator:
             )
         return f"""
   <div class="section">
-    <h2>📐 Intervalles de Prédiction (95% CI)</h2>
+    <h2> Intervalles de Prédiction (95% CI)</h2>
     <table>
       <thead><tr>
         <th>#</th><th>Prédiction (MAD)</th>
