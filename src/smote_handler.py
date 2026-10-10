@@ -31,7 +31,7 @@ try:
     SMOTE_AVAILABLE = True
 except ImportError:
     SMOTE_AVAILABLE = False
-    logger.warning("⚠️  imbalanced-learn non installé: SMOTE désactivé (pip install imbalanced-learn)")
+    logger.warning("WARNING  imbalanced-learn non installé: SMOTE désactivé (pip install imbalanced-learn)")
 
 def _class_distribution(y) -> dict:
     """Retourne la distribution des classes sous forme de dict trié."""
@@ -124,7 +124,7 @@ class SmoteHandler:
             (X_resampled, y_resampled): mêmes types que l'entrée.
         """
         logger.info("\n" + "=" * 50)
-        logger.info("⚖️  SMOTE: Gestion du déséquilibre des classes")
+        logger.info("  SMOTE: Gestion du déséquilibre des classes")
         logger.info("=" * 50)
 
         self._before_dist = _class_distribution(y_train)
@@ -134,12 +134,12 @@ class SmoteHandler:
         logger.info(f"   Ratio déséquilibre : {ratio:.3f} (seuil : {self.imbalance_threshold})")
 
         if not is_imbalanced and not force:
-            logger.info("   ℹ️  Déséquilibre non significatif: SMOTE non appliqué")
+            logger.info("     Déséquilibre non significatif: SMOTE non appliqué")
             self._applied = False
             return X_train, y_train
 
         if not SMOTE_AVAILABLE:
-            logger.warning("   ⚠️  SMOTE non disponible: données inchangées")
+            logger.warning("   WARNING  SMOTE non disponible: données inchangées")
             self._applied = False
             return X_train, y_train
 
@@ -153,13 +153,13 @@ class SmoteHandler:
             self._log_distribution("Après SMOTE", self._after_dist)
             gain = len(X_res) - len(X_train)
             logger.info(
-                f"   ✅ SMOTE appliqué : {len(X_train):,} → {len(X_res):,} "
+                f"   PASS SMOTE appliqué : {len(X_train):,} → {len(X_res):,} "
                 f"(+{gain:,} samples synthétiques)"
             )
             return X_res, y_res
 
         except Exception as exc:
-            logger.warning(f"   ⚠️  SMOTE échoué : {exc}: données originales conservées")
+            logger.warning(f"   WARNING  SMOTE échoué : {exc}: données originales conservées")
             self._applied = False
             return X_train, y_train
 
