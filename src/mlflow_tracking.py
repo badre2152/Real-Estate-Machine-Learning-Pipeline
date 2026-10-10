@@ -32,7 +32,7 @@ try:
     MLFLOW_AVAILABLE = True
 except ImportError:
     MLFLOW_AVAILABLE = False
-    logger.warning("⚠️  mlflow non installé: tracking désactivé (pip install mlflow)")
+    logger.warning("WARNING  mlflow non installé: tracking désactivé (pip install mlflow)")
 
 class MLflowTracker:
     """
@@ -80,9 +80,9 @@ class MLflowTracker:
                 tags=self._tags,
             )
             self._active = True
-            logger.info(f"🔬 MLflow run démarré: ID : {self._run.info.run_id}")
+            logger.info(f" MLflow run démarré: ID : {self._run.info.run_id}")
         except Exception as exc:
-            logger.warning(f"⚠️  MLflow start échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  MLflow start échoué : {type(exc).__name__}")
 
     def end(self, success: bool = True) -> None:
         if not MLFLOW_AVAILABLE or not self._active:
@@ -91,9 +91,9 @@ class MLflowTracker:
             status = "FINISHED" if success else "FAILED"
             mlflow.end_run(status=status)
             self._active = False
-            logger.info(f"🔬 MLflow run terminé [{status}]")
+            logger.info(f" MLflow run terminé [{status}]")
         except Exception as exc:
-            logger.warning(f"⚠️  MLflow end échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  MLflow end échoué : {type(exc).__name__}")
 
     def log_params(self, params: dict[str, Any]) -> None:
         """Enregistre les paramètres du pipeline (hyperparamètres, options)."""
@@ -104,7 +104,7 @@ class MLflowTracker:
             mlflow.log_params(safe)
             logger.debug(f"   MLflow params : {list(safe.keys())}")
         except Exception as exc:
-            logger.warning(f"⚠️  mlflow.log_params échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  mlflow.log_params échoué : {type(exc).__name__}")
 
     def log_metrics(self, metrics: dict[str, float], step: Optional[int] = None) -> None:
         """Enregistre les métriques de performance."""
@@ -115,7 +115,7 @@ class MLflowTracker:
             mlflow.log_metrics(clean, step=step)
             logger.debug(f"   MLflow metrics : {list(clean.keys())}")
         except Exception as exc:
-            logger.warning(f"⚠️  mlflow.log_metrics échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  mlflow.log_metrics échoué : {type(exc).__name__}")
 
     def log_model(self, model: Any, artifact_name: str) -> None:
         """Enregistre un modèle sklearn comme artefact MLflow."""
@@ -123,9 +123,9 @@ class MLflowTracker:
             return
         try:
             mlflow.sklearn.log_model(model, artifact_name)
-            logger.info(f"   📦 Modèle MLflow enregistré → {artifact_name}")
+            logger.info(f"    Modèle MLflow enregistré → {artifact_name}")
         except Exception as exc:
-            logger.warning(f"⚠️  mlflow.log_model échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  mlflow.log_model échoué : {type(exc).__name__}")
 
     def log_artifact(self, local_path: str, artifact_path: Optional[str] = None) -> None:
         """Enregistre un fichier (plot, rapport, CSV) comme artefact."""
@@ -138,7 +138,7 @@ class MLflowTracker:
             mlflow.log_artifact(local_path, artifact_path)
             logger.debug(f"   MLflow artefact : {local_path}")
         except Exception as exc:
-            logger.warning(f"⚠️  mlflow.log_artifact échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  mlflow.log_artifact échoué : {type(exc).__name__}")
 
     def log_artifacts_dir(self, local_dir: str, artifact_path: Optional[str] = None) -> None:
         """Enregistre tous les fichiers d'un dossier comme artefacts."""
@@ -148,9 +148,9 @@ class MLflowTracker:
             return
         try:
             mlflow.log_artifacts(local_dir, artifact_path)
-            logger.info(f"   📁 Dossier MLflow : {local_dir}")
+            logger.info(f"    Dossier MLflow : {local_dir}")
         except Exception as exc:
-            logger.warning(f"⚠️  mlflow.log_artifacts échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  mlflow.log_artifacts échoué : {type(exc).__name__}")
 
     def set_tag(self, key: str, value: str) -> None:
         """Ajoute un tag au run courant."""
@@ -159,7 +159,7 @@ class MLflowTracker:
         try:
             mlflow.set_tag(key, str(value))
         except Exception as exc:
-            logger.warning(f"⚠️  mlflow.set_tag échoué : {type(exc).__name__}")
+            logger.warning(f"WARNING  mlflow.set_tag échoué : {type(exc).__name__}")
 
     def log_pipeline_params(self, options: dict, data_info: dict) -> None:
         """Raccourci pour logger tous les paramètres pipeline en une fois."""
