@@ -1,20 +1,4 @@
-"""
-data_validation.py
-------------------
-Validation des données à l'entrée du pipeline.
-
-Deux modes disponibles :
-  1. Validation personnalisée (toujours actif): tests rapides sans dépendance
-  2. Great Expectations (optionnel): si ge installé, génère un rapport HTML riche
-
-Les validations couvrent :
-  - Colonnes obligatoires présentes
-  - Types de données cohérents
-  - Plages de valeurs acceptables (prix, surface)
-  - Taux de valeurs manquantes par colonne
-  - Doublons
-  - Distribution statistique (z-score outliers)
-"""
+"""Validate property records before model training."""
 
 import json
 import os
