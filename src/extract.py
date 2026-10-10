@@ -55,7 +55,7 @@ def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
             engine = create_engine(url, pool_pre_ping=True)
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
-            logger.info(f"✅ Connexion PostgreSQL établie ({host}:{port}/{name})")
+            logger.info(f"PASS Connexion PostgreSQL établie ({host}:{port}/{name})")
             return engine
         except OperationalError as exc:
             if engine is not None:
@@ -65,7 +65,7 @@ def get_db_engine(max_retries: int = 3, retry_delay: int = 5):
                 time.sleep(retry_delay)
             else:
                 raise RuntimeError(
-                    f"❌ Impossible de se connecter à PostgreSQL après {max_retries} tentatives."
+                    f"FAIL Impossible de se connecter à PostgreSQL après {max_retries} tentatives."
                 ) from exc
 
 def validate_schema(df: pd.DataFrame) -> None:
@@ -76,10 +76,10 @@ def validate_schema(df: pd.DataFrame) -> None:
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
         raise ValueError(
-            f"❌ Colonnes manquantes dans la table OBT : {missing}\n"
+            f"FAIL Colonnes manquantes dans la table OBT : {missing}\n"
             f"   Colonnes disponibles : {list(df.columns)}"
         )
-    logger.info(f"✅ Schéma validé: {len(df.columns)} colonnes présentes")
+    logger.info(f"PASS Schéma validé: {len(df.columns)} colonnes présentes")
 
 ALLOWED_TABLES = {
     "ml_schema.feature_store",
@@ -95,7 +95,7 @@ def _safe_table(table: str) -> str:
     """Valide le nom de table contre une allowlist: lève ValueError si non autorisé."""
     if table not in ALLOWED_TABLES:
         raise ValueError(
-            f"❌ Table non autorisée : '{table}'. "
+            f"FAIL Table non autorisée : '{table}'. "
             f"Tables autorisées : {sorted(ALLOWED_TABLES)}"
         )
     return table
@@ -117,7 +117,7 @@ def _build_safe_query(
     if filter_col is not None and filter_val is not None:
         if filter_col not in ALLOWED_FILTER_COLS:
             raise ValueError(
-                f"❌ Colonne de filtre non autorisée : '{filter_col}'. "
+                f"FAIL Colonne de filtre non autorisée : '{filter_col}'. "
                 f"Colonnes autorisées : {sorted(ALLOWED_FILTER_COLS)}"
             )
         query += f" WHERE {filter_col} = :filter_val"
@@ -125,7 +125,7 @@ def _build_safe_query(
 
     if limit is not None:
         if not isinstance(limit, int) or limit <= 0:
-            raise ValueError(f"❌ limit doit être un entier positif, reçu : {limit!r}")
+            raise ValueError(f"FAIL limit doit être un entier positif, reçu : {limit!r}")
         query += " LIMIT :limit"
         params["limit"] = limit
 
@@ -153,14 +153,14 @@ def extract_obt(
     """
     if filters is not None:
         logger.warning(
-            "⚠️  Paramètre 'filters' déprécié (risque SQL injection): "
+            "WARNING  Paramètre 'filters' déprécié (risque SQL injection): "
             "utiliser 'filter_col' + 'filter_val' à la place."
         )
 
     query, params = _build_safe_query(table, filter_col, filter_val, limit)
     engine = get_db_engine()
 
-    logger.info(f"📥 Extraction depuis {table} ...")
+    logger.info(f" Extraction depuis {table} ...")
     t0 = time.time()
     try:
         df = pd.read_sql(text(query), engine, params=params)
@@ -169,7 +169,7 @@ def extract_obt(
     elapsed = time.time() - t0
 
     logger.info(
-        f"✅ {len(df):,} lignes extraites: {df.shape[1]} colonnes ({elapsed:.2f}s)"
+        f"PASS {len(df):,} lignes extraites: {df.shape[1]} colonnes ({elapsed:.2f}s)"
     )
 
     validate_schema(df)
@@ -177,7 +177,7 @@ def extract_obt(
     missing_pct = df.isnull().mean() * 100
     top_missing = missing_pct[missing_pct > 0].sort_values(ascending=False)
     if not top_missing.empty:
-        logger.info("📊 Valeurs manquantes détectées :")
+        logger.info(" Valeurs manquantes détectées :")
         for col, pct in top_missing.items():
             logger.info(f"   {col:<35s} {pct:.1f}%")
 
@@ -198,7 +198,7 @@ def extract_sample(n: int = 1000) -> pd.DataFrame:
 
     engine = get_db_engine()
     query = text("SELECT * FROM ml_schema.feature_store ORDER BY RANDOM() LIMIT :limit")
-    logger.info(f"📥 Échantillon aléatoire ({n} lignes) ...")
+    logger.info(f" Échantillon aléatoire ({n} lignes) ...")
     try:
         df = pd.read_sql(query, engine, params={"limit": n})
     finally:
@@ -206,7 +206,7 @@ def extract_sample(n: int = 1000) -> pd.DataFrame:
 
     validate_schema(df)
 
-    logger.info(f"✅ Échantillon extrait et validé : {df.shape}")
+    logger.info(f"PASS Échantillon extrait et validé : {df.shape}")
     return df
 
 if __name__ == "__main__":
