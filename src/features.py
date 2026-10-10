@@ -22,7 +22,7 @@ def add_log_price(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFrame:
         return df
     if TARGET_REGRESSION in df.columns:
         df["log_prix"] = np.log1p(df[TARGET_REGRESSION])
-        logger.info("   ✅ log_prix créé (train uniquement)")
+        logger.info("   PASS log_prix créé (train uniquement)")
     return df
 
 def add_price_per_m2(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFrame:
@@ -39,13 +39,13 @@ def add_price_per_m2(df: pd.DataFrame, is_inference: bool = False) -> pd.DataFra
         is_inference: True = mode API/prediction (pas de target) → feature omise.
     """
     if is_inference:
-        logger.debug("   ℹ️  prix_par_m2 omis en mode inference (target inconnue)")
+        logger.debug("     prix_par_m2 omis en mode inference (target inconnue)")
         return df
 
     if TARGET_REGRESSION in df.columns and "surface_m2" in df.columns:
         df["prix_par_m2"]     = df[TARGET_REGRESSION] / (df["surface_m2"] + 1)
         df["log_prix_par_m2"] = np.log1p(df["prix_par_m2"])
-        logger.info("   ✅ prix_par_m2 + log_prix_par_m2 créés (train uniquement)")
+        logger.info("   PASS prix_par_m2 + log_prix_par_m2 créés (train uniquement)")
     return df
 
 def add_surface_rooms_interaction(df: pd.DataFrame) -> pd.DataFrame:
@@ -53,10 +53,10 @@ def add_surface_rooms_interaction(df: pd.DataFrame) -> pd.DataFrame:
     if "surface_m2" in df.columns and "nb_chambres" in df.columns:
         df["surface_x_chambres"]  = df["surface_m2"] * df["nb_chambres"]
         df["surface_par_chambre"] = df["surface_m2"] / (df["nb_chambres"] + 1)
-        logger.info("   ✅ surface_x_chambres + surface_par_chambre créés")
+        logger.info("   PASS surface_x_chambres + surface_par_chambre créés")
     if "nb_chambres" in df.columns and "nb_salles_bain" in df.columns:
         df["ratio_chambres_bains"] = df["nb_chambres"] / (df["nb_salles_bain"] + 1)
-        logger.info("   ✅ ratio_chambres_bains créé")
+        logger.info("   PASS ratio_chambres_bains créé")
     return df
 
 def add_luxury_score(df: pd.DataFrame) -> pd.DataFrame:
@@ -66,7 +66,7 @@ def add_luxury_score(df: pd.DataFrame) -> pd.DataFrame:
     existing = [c for c in luxury_cols if c in df.columns]
     if existing:
         df["score_luxe"] = df[existing].fillna(0).astype(int).sum(axis=1)
-        logger.info(f"   ✅ score_luxe créé ({len(existing)} équipements)")
+        logger.info(f"   PASS score_luxe créé ({len(existing)} équipements)")
     return df
 
 def add_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -83,9 +83,9 @@ def add_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
         df["jours_depuis_annonce"] = (
             df[date_col].max() - df[date_col]
         ).dt.days.clip(lower=0)
-        logger.info(f"   ✅ Features temporelles créées depuis '{date_col}'")
+        logger.info(f"   PASS Features temporelles créées depuis '{date_col}'")
     else:
-        logger.warning("   ⚠️  Pas de colonne date: features temporelles ignorées")
+        logger.warning("   WARNING  Pas de colonne date: features temporelles ignorées")
     return df
 
 def fit_geographic_stats(df_train: pd.DataFrame) -> dict:
@@ -107,7 +107,7 @@ def fit_geographic_stats(df_train: pd.DataFrame) -> dict:
 
         rank_map = city_stats["ville_prix_median"].rank(ascending=False).to_dict()
         stats_dict["city_rank"] = rank_map
-        logger.info(f"   ✅ Stats géo fittées sur {len(df_train):,} lignes train")
+        logger.info(f"   PASS Stats géo fittées sur {len(df_train):,} lignes train")
 
     if TARGET_REGRESSION in df_train.columns and "region" in df_train.columns:
         region_stats = df_train.groupby("region")[TARGET_REGRESSION].median()
@@ -131,7 +131,7 @@ def apply_geographic_stats(df: pd.DataFrame, geo_stats: dict) -> pd.DataFrame:
 
         rank_map = geo_stats.get("city_rank", {})
         df["ville_rang_prix"] = df["ville"].map(rank_map).fillna(rank_map and max(rank_map.values()) + 1 or 999)
-        logger.info("   ✅ Stats géo appliquées")
+        logger.info("   PASS Stats géo appliquées")
 
     if "region_stats" in geo_stats and "region" in df.columns:
         region_stats = geo_stats["region_stats"].rename("region_prix_median")
@@ -177,7 +177,7 @@ def engineer_features_train(df_train: pd.DataFrame) -> tuple[pd.DataFrame, dict]
     À appeler APRÈS le split.
     """
     logger.info("\n" + "=" * 50)
-    logger.info("⚙️  FEATURE ENGINEERING: TRAIN SET")
+    logger.info("  FEATURE ENGINEERING: TRAIN SET")
     logger.info("=" * 50)
 
     n_before = df_train.shape[1]
@@ -187,7 +187,7 @@ def engineer_features_train(df_train: pd.DataFrame) -> tuple[pd.DataFrame, dict]
     geo_stats = fit_geographic_stats(df_train)
     df_train  = apply_geographic_stats(df_train, geo_stats)
 
-    logger.info(f"\n✅ Train FE terminé : {n_before} → {df_train.shape[1]} colonnes")
+    logger.info(f"\nPASS Train FE terminé : {n_before} → {df_train.shape[1]} colonnes")
     return df_train, geo_stats
 
 def engineer_features_test(df_test: pd.DataFrame, geo_stats: dict) -> pd.DataFrame:
@@ -199,8 +199,8 @@ def engineer_features_test(df_test: pd.DataFrame, geo_stats: dict) -> pd.DataFra
     (prix_par_m2, log_prix): ces features ne sont pas calculables au moment
     de la prédiction car la target est inconnue → anti data leakage.
     """
-    logger.info("\n⚙️  FEATURE ENGINEERING: TEST SET")
+    logger.info("\n  FEATURE ENGINEERING: TEST SET")
     df_test = apply_stateless_features(df_test, is_inference=True)
     df_test = apply_geographic_stats(df_test, geo_stats)
-    logger.info(f"✅ Test FE terminé : {df_test.shape[1]} colonnes")
+    logger.info(f"PASS Test FE terminé : {df_test.shape[1]} colonnes")
     return df_test
