@@ -1,33 +1,4 @@
-"""
-drift_detector.py
------------------
-Drift Detection للـ MLOps الحقيقي: Avito Real Estate Pipeline v3.
-
-نوعان من الـ Drift:
-  1. Data Drift    : توزيع الـ features تغيّر (السوق تغيّر، بيانات جديدة مختلفة)
-  2. Concept Drift : العلاقة بين features والـ target تغيّرت (الأسعار تضخّمت مثلاً)
-
-Tests المستعملة:
-  - PSI  (Population Stability Index)  → أشهر test في الـ industry
-  - KS   (Kolmogorov-Smirnov)          → مقارنة توزيعات numerical
-  - Chi² (Chi-Squared)                 → categorical features
-  - Prediction Drift                   → توزيع الـ predictions تغيّر
-
-Thresholds المعيارية:
-  PSI < 0.10  → PASS Stable
-  PSI 0.10-0.20 → WARNING Warning
-  PSI > 0.20  → DRIFT Drift détecté
-
-Usage :
-    from drift_detector import DriftDetector
-
-    detector = DriftDetector(reference_data=X_train)
-
-    report = detector.detect(current_data=X_new)
-
-    if report.has_drift:
-        print(report.summary())
-"""
+"""Detect changes in feature and prediction distributions."""
 
 from __future__ import annotations
 
