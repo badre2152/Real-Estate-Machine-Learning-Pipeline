@@ -9,11 +9,11 @@ Feature Store للـ ML Pipeline: Avito Real Estate v3.
   pipeline أو API يحتاجهم يجيبهم مباشرة: سريع ومتّسق.
 
 المشكلة اللي يحلّها:
-  ❌ قبل : pipeline → OBT → compute features → train
+  FAIL قبل : pipeline → OBT → compute features → train
             API     → OBT → compute features → predict
             → نفس الـ features محسوبة مرتين بطريقتين مختلفتين!
 
-  ✅ دابا : pipeline → OBT → FeatureStore.write() → train
+  PASS دابا : pipeline → OBT → FeatureStore.write() → train
             API     → FeatureStore.read() → predict
             → نفس الـ features دائماً، مرة واحدة
 
@@ -145,7 +145,7 @@ class FeatureStore:
         Path(store_path).parent.mkdir(parents=True, exist_ok=True)
 
         self._init_db()
-        logger.info(f"🏪 FeatureStore initialisé → {store_path}")
+        logger.info(f" FeatureStore initialisé → {store_path}")
 
     def _init_db(self) -> None:
         """Crée les tables SQLite si elles n'existent pas."""
@@ -241,7 +241,7 @@ class FeatureStore:
         written_at   = datetime.now().isoformat()
 
         logger.info(
-            f"   🏪 FeatureStore.write → '{group_name}' v{version} | "
+            f"    FeatureStore.write → '{group_name}' v{version} | "
             f"{len(df)} entités | {len(feature_cols)} features"
         )
 
@@ -313,7 +313,7 @@ class FeatureStore:
         )
 
         logger.info(
-            f"   ✅ Écrit en {elapsed_ms:.1f}ms | "
+            f"   PASS Écrit en {elapsed_ms:.1f}ms | "
             f"{size_bytes/1024:.1f} KB | checksum={checksum[:8]}"
         )
         return stats
@@ -346,7 +346,7 @@ class FeatureStore:
         if use_cache and cache_key in self._memory_cache:
             df_cached, ts = self._memory_cache[cache_key]
             if time.time() - ts < self._cache_ttl:
-                logger.debug(f"   🏪 Cache HIT → '{group}' v{version}")
+                logger.debug(f"    Cache HIT → '{group}' v{version}")
                 return df_cached[features] if features else df_cached
 
         t0 = time.perf_counter()
@@ -370,7 +370,7 @@ class FeatureStore:
 
         if not rows:
             logger.warning(
-                f"   ⚠️  FeatureStore.read → '{group}' v{version} : "
+                f"   WARNING  FeatureStore.read → '{group}' v{version} : "
                 f"aucune donnée trouvée"
             )
             return pd.DataFrame()
@@ -392,7 +392,7 @@ class FeatureStore:
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
         logger.info(
-            f"   🏪 FeatureStore.read → '{group}' v{version} | "
+            f"    FeatureStore.read → '{group}' v{version} | "
             f"{len(df)} entités | {elapsed_ms:.1f}ms"
         )
 
@@ -433,7 +433,7 @@ class FeatureStore:
             """, (group, version, timestamp)).fetchall()
 
         if not rows:
-            logger.warning(f"   ⚠️  read_as_of → aucune donnée avant {timestamp}")
+            logger.warning(f"   WARNING  read_as_of → aucune donnée avant {timestamp}")
             return pd.DataFrame()
 
         records = []
@@ -455,7 +455,7 @@ class FeatureStore:
                     pass
 
         logger.info(
-            f"   🏪 read_as_of('{group}', {timestamp[:10]}) → {len(df)} entités"
+            f"    read_as_of('{group}', {timestamp[:10]}) → {len(df)} entités"
         )
         return df
 
@@ -481,18 +481,18 @@ class FeatureStore:
         -------
         DataFrame avec toutes les features des groupes demandés
         """
-        logger.info(f"   🏪 Assemblage dataset : {groups}")
+        logger.info(f"    Assemblage dataset : {groups}")
 
         dfs = []
         for group in groups:
             df = self.read_all(group=group, version=version)
             if df.empty:
-                logger.warning(f"   ⚠️  Groupe '{group}' vide: ignoré")
+                logger.warning(f"   WARNING  Groupe '{group}' vide: ignoré")
                 continue
             dfs.append(df)
 
         if not dfs:
-            logger.error("   ❌ Aucun groupe disponible pour assembler le dataset")
+            logger.error("   FAIL Aucun groupe disponible pour assembler le dataset")
             return pd.DataFrame()
 
         result = dfs[0]
@@ -501,7 +501,7 @@ class FeatureStore:
             result = result.merge(df[cols_to_add], on=join_key, how="left")
 
         logger.info(
-            f"   ✅ Dataset assemblé : {len(result)} entités × {len(result.columns)} features"
+            f"   PASS Dataset assemblé : {len(result)} entités × {len(result.columns)} features"
         )
         return result
 
@@ -563,7 +563,7 @@ class FeatureStore:
             age_h = (now - last).total_seconds() / 3600
             if age_h > 24:
                 logger.warning(
-                    f"   ⚠️  Groupe '{group}' obsolète: "
+                    f"   WARNING  Groupe '{group}' obsolète: "
                     f"dernière MAJ il y a {age_h:.1f}h"
                 )
 
@@ -575,7 +575,7 @@ class FeatureStore:
         freshness = self.get_feature_freshness()
 
         logger.info(f"\n{'='*60}")
-        logger.info(f"   🏪 Feature Store Summary")
+        logger.info(f"    Feature Store Summary")
         logger.info(f"   Fichier : {self.store_path}")
         logger.info(f"{'='*60}")
 
@@ -587,9 +587,9 @@ class FeatureStore:
                 age_marker = ""
                 if last != "jamais":
                     age_h = (datetime.now() - datetime.fromisoformat(last)).total_seconds() / 3600
-                    age_marker = f"⚠️  ({age_h:.1f}h)" if age_h > 24 else "✅"
+                    age_marker = f"WARNING  ({age_h:.1f}h)" if age_h > 24 else "PASS"
                 logger.info(
-                    f"   📦 {g['name']:<25} | v{g['version']} | "
+                    f"    {g['name']:<25} | v{g['version']} | "
                     f"{g['n_entities']:>6} entités | "
                     f"{len(g['features']):>3} features | "
                     f"{last} {age_marker}"
@@ -698,7 +698,7 @@ def pipeline_write_features(
     df_ref = df_train[feature_names].copy() if all(c in df_train.columns for c in feature_names) else df_train.copy()
     with open(ref_path, "wb") as f:
         pickle.dump(df_ref, f)
-    logger.info(f"   💾 Référence drift sauvegardée → {ref_path}")
+    logger.info(f"    Référence drift sauvegardée → {ref_path}")
 
     fs.print_summary()
     return stats
