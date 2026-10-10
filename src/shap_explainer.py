@@ -1,19 +1,4 @@
-"""
-shap_explainer.py
------------------
-Interprétabilité des modèles via SHAP (SHapley Additive exPlanations).
-
-Génère automatiquement :
-  - Summary plot   : vue globale des features les plus impactantes
-  - Bar plot       : importance moyenne |SHAP| par feature
-  - Waterfall plot : explication d'une prédiction individuelle
-  - SHAP values    : exportées pour le rapport HTML
-
-Usage :
-    from shap_explainer import SHAPExplainer
-    explainer = SHAPExplainer(model, X_train, feature_names)
-    explainer.run(X_test, output_dir="docs/plots")
-"""
+"""Explain fitted model predictions using SHAP."""
 
 import os
 from pathlib import Path

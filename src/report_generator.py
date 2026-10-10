@@ -1,25 +1,4 @@
-"""
-report_generator.py
--------------------
-Génération automatique d'un rapport HTML complet après chaque run du pipeline.
-
-Le rapport inclut :
-  - Résumé exécutif (métriques clés)
-  - Comparaison modèle vs baselines
-  - Plots SHAP (si disponibles)
-  - Résultats de la validation des données
-  - Monitoring (durées d'exécution)
-  - Intervalles de prédiction (exemples)
-
-Usage :
-    from report_generator import ReportGenerator
-    gen = ReportGenerator()
-    path = gen.build(
-        reg_metrics=..., clf_metrics=...,
-        baseline_reg=..., validation_report=...,
-        shap_plots=..., monitoring_report=...,
-    )
-"""
+"""Generate HTML reports from pipeline evaluation artifacts."""
 
 import base64
 import json

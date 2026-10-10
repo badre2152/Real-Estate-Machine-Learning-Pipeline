@@ -1,21 +1,4 @@
-"""
-mlflow_tracking.py
-------------------
-Intégration MLflow pour le tracking des expériences, métriques et paramètres.
-
-Chaque run du pipeline est enregistré avec :
-  - Paramètres   : options du pipeline, hyperparamètres du modèle
-  - Métriques    : R², MAE, RMSE, MAPE, F1, Accuracy, ROC-AUC
-  - Artefacts    : modèles .pkl, plots, rapport HTML
-  - Tags         : version, date, nom du modèle
-
-Usage :
-    from mlflow_tracking import MLflowTracker
-    with MLflowTracker() as tracker:
-        tracker.log_params({...})
-        tracker.log_metrics({...})
-        tracker.log_model(model, "regression")
-"""
+"""Track model experiments, metrics and artifacts with MLflow."""
 
 import os
 from contextlib import contextmanager

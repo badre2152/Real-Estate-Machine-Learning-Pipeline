@@ -1,21 +1,4 @@
-"""
-prediction_intervals.py
------------------------
-Intervalles de prédiction pour les modèles de régression.
-
-Au lieu de renvoyer une seule valeur, le modèle retourne un intervalle
-de confiance [lower, upper] autour de la prédiction centrale.
-
-Deux méthodes disponibles :
-  1. Quantile (GradientBoosting / XGBoost natif): précise et rapide
-  2. Bootstrap: universelle, fonctionne avec tout modèle sklearn
-
-Usage :
-    from prediction_intervals import PredictionIntervalBuilder
-    builder = PredictionIntervalBuilder(method="bootstrap", n_bootstrap=200)
-    builder.fit(model, X_train, y_train)
-    df_pred = builder.predict_with_interval(X_test)
-"""
+"""Estimate prediction intervals for regression models."""
 
 import numpy as np
 import pandas as pd

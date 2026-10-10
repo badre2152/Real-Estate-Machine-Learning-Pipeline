@@ -1,30 +1,4 @@
-"""
-mlflow_registry.py
-------------------
-MLflow Model Registry: إدارة lifecycle ديال الـ models.
-
-الفرق بين Tracking والـ Registry:
-  - Tracking : يسجّل كل run (metrics, params, artifacts)
-  - Registry : يختار أحسن model ويحط فيه label (Staging / Production)
-
-Lifecycle:
-  [run enregistré] → register() → "None" → promote_to_staging()
-       → "Staging" → promote_to_production() → "Production"
-       → archive() → "Archived"
-
-Usage:
-    from mlflow_registry import MLflowRegistry
-
-    registry = MLflowRegistry(model_name="avito-regression")
-
-    version = registry.register(run_id, "reg/R2", higher_is_better=True)
-
-    if registry.is_better_than_production(run_id, "reg/R2"):
-        registry.promote_to_staging(version)
-        registry.promote_to_production(version)
-
-    model = registry.load_production_model()
-"""
+"""Manage model registration and promotion with MLflow."""
 
 from __future__ import annotations
 

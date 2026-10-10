@@ -1,15 +1,4 @@
-"""
-classification.py
------------------
-Modèle de classification pour prédire la catégorie de prix (bas/moyen/élevé).
-
-Améliorations v2 :
-  - XGBoost ajouté
-  - Encodage ordinal correct (bas < moyen < élevé)
-  - Calibration isotonique des probabilités (optionnelle)
-  - Rapport de déséquilibre automatique
-  - Logging structuré
-"""
+"""Train and evaluate property type classifiers."""
 
 import pickle
 
