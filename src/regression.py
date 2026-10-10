@@ -305,11 +305,11 @@ def save_model(model, path: str = "models/regression_model.pkl") -> None:
     """Sauvegarde le modèle entraîné sur disque."""
     with open(path, "wb") as f:
         pickle.dump(model, f)
-    logger.info(f"💾 Modèle régression sauvegardé → {path}")
+    logger.info(f" Modèle régression sauvegardé → {path}")
 
 def load_model(path: str = "models/regression_model.pkl"):
     """Charge un modèle depuis disque."""
     with open(path, "rb") as f:
         model = pickle.load(f)
-    logger.info(f"📂 Modèle régression chargé depuis {path}")
+    logger.info(f" Modèle régression chargé depuis {path}")
     return model
