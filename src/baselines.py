@@ -1,15 +1,4 @@
-"""
-baselines.py
-------------
-Baseline Models pour établir une référence minimale avant les vrais modèles.
-
-Un bon modèle ML doit TOUJOURS battre ses baselines.
-Si ce n'est pas le cas, le problème vient du modèle ou des données.
-
-Baselines disponibles :
-  - Régression  : DummyRegressor (mean, median, quantile)
-  - Classification : DummyClassifier (most_frequent, stratified, uniform)
-"""
+"""Evaluate simple reference models for regression and classification."""
 
 import numpy as np
 import pandas as pd
