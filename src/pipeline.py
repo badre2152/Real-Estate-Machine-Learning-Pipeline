@@ -57,7 +57,7 @@ def _save_artifact(obj, path: str) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
         pickle.dump(obj, f)
-    logger.info(f"   💾 Sauvegardé → {path}")
+    logger.info(f"    Sauvegardé → {path}")
 
 def run_pipeline(
     optimize: bool        = None,
@@ -103,7 +103,7 @@ def run_pipeline(
     Path(reports_dir).mkdir(parents=True, exist_ok=True)
 
     logger.info("")
-    logger.info("🚀 " + "=" * 47)
+    logger.info(" " + "=" * 47)
     logger.info("   AVITO REAL ESTATE: ML PIPELINE v2")
     logger.info(f"   Options : optimize={optimize} | log_target={use_log_target} | smote={use_smote}")
     logger.info("=" * 50)
@@ -143,7 +143,7 @@ def run_pipeline(
 
         with monitor.step("1_extraction"):
             logger.info("\n" + "=" * 50)
-            logger.info("📥 ÉTAPE 1: Extraction OBT")
+            logger.info(" ÉTAPE 1: Extraction OBT")
             logger.info("=" * 50)
             df = pd.read_parquet(input_parquet) if input_parquet else extract_obt(table=table)
 
@@ -154,7 +154,7 @@ def run_pipeline(
 
         with monitor.step("2_validation"):
             logger.info("\n" + "=" * 50)
-            logger.info("🛡️  ÉTAPE 2: Validation des données")
+            logger.info("  ÉTAPE 2: Validation des données")
             logger.info("=" * 50)
             validator         = DataValidator()
             validation_report = validator.validate(df, stage="input")
@@ -167,18 +167,18 @@ def run_pipeline(
             })
 
         if not validation_report.passed:
-            logger.warning("⚠️  Validation échouée: vérifier les données avant de continuer.")
+            logger.warning("WARNING  Validation échouée: vérifier les données avant de continuer.")
 
         with monitor.step("3_cleaning"):
             logger.info("\n" + "=" * 50)
-            logger.info("🧹 ÉTAPE 3: Nettoyage")
+            logger.info(" ÉTAPE 3: Nettoyage")
             logger.info("=" * 50)
             if not train_features:
                 df = clean_dataframe(df)
 
         with monitor.step("4_split"):
             logger.info("\n" + "=" * 50)
-            logger.info("✂️  ÉTAPE 4: Split train/test")
+            logger.info("  ÉTAPE 4: Split train/test")
             logger.info("=" * 50)
             if train_features:
                 df_train = pd.read_parquet(train_features)
@@ -206,7 +206,7 @@ def run_pipeline(
 
         with monitor.step("5_feature_engineering"):
             logger.info("\n" + "=" * 50)
-            logger.info("⚙️  ÉTAPE 5: Feature Engineering")
+            logger.info("  ÉTAPE 5: Feature Engineering")
             logger.info("=" * 50)
             if not train_features:
                 df_train, geo_stats = engineer_features_train(df_train)
@@ -220,7 +220,7 @@ def run_pipeline(
 
         with monitor.step("6_encoding_scaling"):
             logger.info("\n" + "=" * 50)
-            logger.info("🔧 ÉTAPE 6: Encoding + Scaling")
+            logger.info(" ÉTAPE 6: Encoding + Scaling")
             logger.info("=" * 50)
             prepared = prepare_data(
                 df_train, df_test,
@@ -236,7 +236,7 @@ def run_pipeline(
         import os as _os
         _preproc_src = f"{models_dir}/preprocessor.pkl"
         if not _os.path.exists(_preproc_src):
-            logger.warning("   ⚠️  preprocessor.pkl absent: il sera créé par prepare_data()")
+            logger.warning("   WARNING  preprocessor.pkl absent: il sera créé par prepare_data()")
         _save_artifact(feature_names, f"{models_dir}/feature_names.pkl")
         tracker.log_params({
             "data.n_train"   : len(X_train),
@@ -262,7 +262,7 @@ def run_pipeline(
 
         with monitor.step("7_baselines"):
             logger.info("\n" + "=" * 50)
-            logger.info("📏 ÉTAPE 7: Baseline Models")
+            logger.info(" ÉTAPE 7: Baseline Models")
             logger.info("=" * 50)
             baseline_reg = run_regression_baselines(X_train, y_reg_train, X_test, y_reg_test)
 
@@ -280,7 +280,7 @@ def run_pipeline(
         if y_clf_train is not None:
             with monitor.step("8_smote"):
                 logger.info("\n" + "=" * 50)
-                logger.info("⚖️  ÉTAPE 8: SMOTE")
+                logger.info("  ÉTAPE 8: SMOTE")
                 logger.info("=" * 50)
                 smote_handler = SmoteHandler(random_state=random_state)
                 X_train_clf, y_clf_train = smote_handler.fit_resample(
@@ -295,7 +295,7 @@ def run_pipeline(
 
         with monitor.step("9a_regression_train"):
             logger.info("\n" + "=" * 50)
-            logger.info("📈 ÉTAPE 9A: Entraînement Régression")
+            logger.info(" ÉTAPE 9A: Entraînement Régression")
             logger.info("=" * 50)
             import numpy as np
             regression_X = X_train
@@ -338,9 +338,9 @@ def run_pipeline(
                 description     = f"{reg_name} | R²={reg_metrics.get('R2', 0):.4f}",
             )
             logger.info(
-                f"   📋 Registry régression → "
+                f"    Registry régression → "
                 f"v{reg_registry_result['version']} | "
-                f"{'🚀 promu Production' if reg_registry_result['promoted'] else '🟡 Staging'}"
+                f"{' promu Production' if reg_registry_result['promoted'] else 'WARNING Staging'}"
             )
 
         clf_model = clf_name = label_enc = None
@@ -348,7 +348,7 @@ def run_pipeline(
         if classification_enabled:
             with monitor.step("9b_classification_train"):
                 logger.info("\n" + "=" * 50)
-                logger.info("🧠 ÉTAPE 9B: Entraînement Classification")
+                logger.info(" ÉTAPE 9B: Entraînement Classification")
                 logger.info("=" * 50)
                 clf_model, clf_name, label_enc = train_classification(
                     X_train_clf, y_clf_train, use_calibration=use_calibration
@@ -382,16 +382,16 @@ def run_pipeline(
                     description     = f"{clf_name} | F1={clf_metrics.get('F1', 0):.4f}",
                 )
                 logger.info(
-                    f"   📋 Registry classification → "
+                    f"    Registry classification → "
                     f"v{clf_registry_result['version']} | "
-                    f"{'🚀 promu Production' if clf_registry_result['promoted'] else '🟡 Staging'}"
+                    f"{' promu Production' if clf_registry_result['promoted'] else 'WARNING Staging'}"
                 )
         else:
             logger.warning("Classification skipped: missing target, fewer than two types, or rare labels")
 
         with monitor.step("10_prediction_intervals"):
             logger.info("\n" + "=" * 50)
-            logger.info("📐 ÉTAPE 10: Intervalles de Prédiction (95% CI)")
+            logger.info(" ÉTAPE 10: Intervalles de Prédiction (95% CI)")
             logger.info("=" * 50)
             pi_builder = PredictionIntervalBuilder(
                 method           = cfg.prediction_intervals.method,
@@ -412,7 +412,7 @@ def run_pipeline(
 
         with monitor.step("11_shap"):
             logger.info("\n" + "=" * 50)
-            logger.info("🔍 ÉTAPE 11: SHAP Interprétabilité")
+            logger.info(" ÉTAPE 11: SHAP Interprétabilité")
             logger.info("=" * 50)
             shap_exp = SHAPExplainer(
                 model        = reg_model_raw,
@@ -432,7 +432,7 @@ def run_pipeline(
         if generate_plots:
             with monitor.step("12_plots"):
                 logger.info("\n" + "=" * 50)
-                logger.info("📊 ÉTAPE 12: Visualisations")
+                logger.info(" ÉTAPE 12: Visualisations")
                 logger.info("=" * 50)
                 run_full_evaluation(
                     reg_model, clf_model, X_test,
@@ -443,7 +443,7 @@ def run_pipeline(
         fs_stats = {}
         with monitor.step("12a_feature_store"):
             logger.info("\n" + "=" * 50)
-            logger.info("🏪 ÉTAPE 12A: Feature Store (écriture features)")
+            logger.info(" ÉTAPE 12A: Feature Store (écriture features)")
             logger.info("=" * 50)
             try:
                 X_train_df = (
@@ -465,16 +465,16 @@ def run_pipeline(
                     "feature_store/total_rows": sum(s.n_rows for s in fs_stats.values()),
                 })
                 tracker.set_tag("feature_store.version", "v1")
-                logger.info(f"   ✅ {len(fs_stats)} groupes écrits dans le Feature Store")
+                logger.info(f"   PASS {len(fs_stats)} groupes écrits dans le Feature Store")
 
             except Exception as fs_exc:
-                logger.warning(f"   ⚠️  Feature Store ignoré : {fs_exc}")
+                logger.warning(f"   WARNING  Feature Store ignoré : {fs_exc}")
 
         drift_report = None
         drift_report_path = None
         with monitor.step("12b_drift_detection"):
             logger.info("\n" + "=" * 50)
-            logger.info("🔍 ÉTAPE 12B: Drift Detection (Train vs Test)")
+            logger.info(" ÉTAPE 12B: Drift Detection (Train vs Test)")
             logger.info("=" * 50)
             try:
                 X_train_df = pd.DataFrame(X_train, columns=feature_names) if not isinstance(X_train, pd.DataFrame) else X_train
@@ -512,11 +512,11 @@ def run_pipeline(
                 logger.info(f"   {drift_report.summary()}")
 
             except Exception as drift_exc:
-                logger.warning(f"   ⚠️  Drift Detection ignorée : {drift_exc}")
+                logger.warning(f"   WARNING  Drift Detection ignorée : {drift_exc}")
 
         with monitor.step("13_report"):
             logger.info("\n" + "=" * 50)
-            logger.info("📄 ÉTAPE 13: Rapport HTML")
+            logger.info(" ÉTAPE 13: Rapport HTML")
             logger.info("=" * 50)
 
             tracker.log_metrics(monitor.get_step_durations())
@@ -542,22 +542,22 @@ def run_pipeline(
         tracker.end(success=True)
 
         logger.info("\n" + "=" * 50)
-        logger.info("✅ PIPELINE v2 TERMINÉ AVEC SUCCÈS")
+        logger.info("PASS PIPELINE v2 TERMINÉ AVEC SUCCÈS")
         logger.info("=" * 50)
         logger.info(
-            f"   📈 Régression     → R²={reg_metrics.get('R2', 0):.4f} | "
+            f"    Régression     → R²={reg_metrics.get('R2', 0):.4f} | "
             f"MAE={reg_metrics.get('MAE', 0):,.0f} MAD | "
             f"MAPE={reg_metrics.get('MAPE', 0):.1f}%"
         )
         if clf_metrics:
             logger.info(
-                f"   🧠 Classification → F1={clf_metrics.get('F1', 0):.4f} | "
+                f"    Classification → F1={clf_metrics.get('F1', 0):.4f} | "
                 f"Accuracy={clf_metrics.get('Accuracy', 0):.4f}"
             )
-        logger.info(f"   📐 PI Coverage    → {pi_cover.get('picp', 0):.1%} (cible 95%)")
-        logger.info(f"   ⏱  Durée totale  → {monitor.total_duration_s:.0f}s")
-        logger.info(f"   📄 Rapport       → {report_path}")
-        logger.info(f"   🔬 MLflow UI     → mlflow ui --backend-store-uri {cfg.paths.mlflow_uri}")
+        logger.info(f"    PI Coverage    → {pi_cover.get('picp', 0):.1%} (cible 95%)")
+        logger.info(f"     Durée totale  → {monitor.total_duration_s:.0f}s")
+        logger.info(f"    Rapport       → {report_path}")
+        logger.info(f"    MLflow UI     → mlflow ui --backend-store-uri {cfg.paths.mlflow_uri}")
         logger.info("=" * 50)
 
         results = {
@@ -602,12 +602,12 @@ def run_pipeline(
         results_path = f"{models_dir}/results.json"
         with open(results_path, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, default=str)
-        logger.info(f"   📋 Résultats JSON → {results_path}")
+        logger.info(f"    Résultats JSON → {results_path}")
 
         return results
 
     except Exception as exc:
-        logger.error(f"\n❌ PIPELINE ÉCHOUÉ : {exc}", exc_info=True)
+        logger.error(f"\nFAIL PIPELINE ÉCHOUÉ : {exc}", exc_info=True)
         tracker.end(success=False)
         monitor.print_summary()
         raise

@@ -112,20 +112,20 @@ class PipelineMonitor:
         self._steps.append(timing)
 
         if self.log_steps:
-            logger.info(f"   ⏱  [{name}] démarré ...")
+            logger.info(f"     [{name}] démarré ...")
 
         try:
             yield timing
             timing.end_time = time.perf_counter()
             timing.success  = True
             if self.log_steps:
-                logger.info(f"   ✅ [{name}] terminé en {timing.duration_str}")
+                logger.info(f"   PASS [{name}] terminé en {timing.duration_str}")
 
         except Exception as exc:
             timing.end_time  = time.perf_counter()
             timing.success   = False
             timing.error_msg = str(exc)
-            logger.error(f"   ❌ [{name}] ERREUR après {timing.duration_str} : {exc}")
+            logger.error(f"   FAIL [{name}] ERREUR après {timing.duration_str} : {exc}")
             raise
 
     def check_regression_alert(self, r2: float, mae: Optional[float] = None) -> None:
@@ -139,9 +139,9 @@ class PipelineMonitor:
         if r2 < self.alert_r2:
             alert = MetricAlert("R2", r2, self.alert_r2, severity="warning")
             self._alerts.append(alert)
-            logger.warning(f"   🔔 ALERTE RÉGRESSION : {alert.message}")
+            logger.warning(f"    ALERTE RÉGRESSION : {alert.message}")
         else:
-            logger.info(f"   ✅ R²={r2:.4f} ≥ seuil {self.alert_r2}: OK")
+            logger.info(f"   PASS R²={r2:.4f} ≥ seuil {self.alert_r2}: OK")
 
     def check_classification_alert(self, f1: float, accuracy: Optional[float] = None) -> None:
         """
@@ -150,16 +150,16 @@ class PipelineMonitor:
         if f1 < self.alert_f1:
             alert = MetricAlert("F1", f1, self.alert_f1, severity="warning")
             self._alerts.append(alert)
-            logger.warning(f"   🔔 ALERTE CLASSIFICATION : {alert.message}")
+            logger.warning(f"    ALERTE CLASSIFICATION : {alert.message}")
         else:
-            logger.info(f"   ✅ F1={f1:.4f} ≥ seuil {self.alert_f1}: OK")
+            logger.info(f"   PASS F1={f1:.4f} ≥ seuil {self.alert_f1}: OK")
 
     def print_summary(self) -> None:
         """Affiche un récapitulatif des temps d'exécution de toutes les étapes."""
         total = time.perf_counter() - self._pipeline_start
 
         logger.info("\n" + "=" * 60)
-        logger.info("📊 MONITORING: RÉSUMÉ D'EXÉCUTION")
+        logger.info(" MONITORING: RÉSUMÉ D'EXÉCUTION")
         logger.info("=" * 60)
 
         if not self._steps:
@@ -169,7 +169,7 @@ class PipelineMonitor:
         max_name = max(len(s.name) for s in self._steps)
 
         for s in self._steps:
-            status = "✅" if s.success else "❌"
+            status = "PASS" if s.success else "FAIL"
             dur    = s.duration_s or 0
             pct    = dur / total * 100 if total > 0 else 0
             bar    = "█" * int(pct / 5)
@@ -178,14 +178,14 @@ class PipelineMonitor:
                 f"({pct:4.1f}%)  {bar}"
             )
 
-        logger.info(f"\n   ⏱  Total pipeline : {_format_duration(total)}")
+        logger.info(f"\n     Total pipeline : {_format_duration(total)}")
 
         if self._alerts:
-            logger.info(f"\n   🔔 {len(self._alerts)} alerte(s) déclenchée(s) :")
+            logger.info(f"\n    {len(self._alerts)} alerte(s) déclenchée(s) :")
             for a in self._alerts:
                 logger.warning(f"      [{a.severity.upper()}] {a.message}")
         else:
-            logger.info("   ✅ Aucune alerte: toutes les métriques dans les seuils")
+            logger.info("   PASS Aucune alerte: toutes les métriques dans les seuils")
 
         logger.info("=" * 60)
 
@@ -222,7 +222,7 @@ class PipelineMonitor:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
 
-        logger.info(f"   💾 Monitoring → {path}")
+        logger.info(f"    Monitoring → {path}")
         return path
 
     @property

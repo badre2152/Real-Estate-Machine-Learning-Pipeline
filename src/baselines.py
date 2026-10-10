@@ -38,7 +38,7 @@ def run_regression_baselines(
         dict { strategy: {MAE, RMSE, R2, MAPE} }
     """
     logger.info("\n" + "=" * 50)
-    logger.info("📏 BASELINES RÉGRESSION")
+    logger.info("BASELINES RÉGRESSION")
     logger.info("=" * 50)
 
     strategies = {
@@ -80,14 +80,14 @@ def compare_vs_regression_baseline(
     Compare les métriques du vrai modèle contre les baselines
     et loggue si le modèle bat (ou non) chaque baseline.
     """
-    logger.info("\n📊 Comparaison modèle vs baselines (régression) :")
+    logger.info("\nComparaison modèle vs baselines (régression) :")
     model_r2  = model_metrics.get("R2", 0)
     model_mae = model_metrics.get("MAE", float("inf"))
 
     for name, bm in baseline_results.items():
         r2_gain  = model_r2 - bm["R2"]
         mae_gain = bm["MAE"] - model_mae
-        status   = "✅" if r2_gain > 0 else "❌"
+        status   = "PASS" if r2_gain > 0 else "FAIL"
         logger.info(
             f"   {status} vs {name:<20s} → ΔR²={r2_gain:+.4f} | ΔMAE={mae_gain:>+12,.0f}"
         )
@@ -95,12 +95,12 @@ def compare_vs_regression_baseline(
     best_baseline_r2 = max(b["R2"] for b in baseline_results.values())
     if model_r2 <= best_baseline_r2:
         logger.warning(
-            "   ⚠️  Le modèle ne bat PAS la meilleure baseline ! "
+            "   Le modèle ne bat PAS la meilleure baseline ! "
             "Revoir les features ou le pipeline."
         )
     else:
         logger.info(
-            f"   🏆 Modèle dépasse la meilleure baseline de ΔR²={model_r2 - best_baseline_r2:+.4f}"
+            f"   Modèle dépasse la meilleure baseline de ΔR²={model_r2 - best_baseline_r2:+.4f}"
         )
 
 def run_classification_baselines(
@@ -118,7 +118,7 @@ def run_classification_baselines(
         dict { strategy: {Accuracy, F1, Precision, Recall} }
     """
     logger.info("\n" + "=" * 50)
-    logger.info("📏 BASELINES CLASSIFICATION")
+    logger.info("BASELINES CLASSIFICATION")
     logger.info("=" * 50)
 
     strategies = {
@@ -150,22 +150,22 @@ def compare_vs_classification_baseline(
     """
     Compare le vrai modèle contre les baselines de classification.
     """
-    logger.info("\n📊 Comparaison modèle vs baselines (classification) :")
+    logger.info("\nComparaison modèle vs baselines (classification) :")
     model_f1 = model_metrics.get("F1", 0)
 
     for name, bm in baseline_results.items():
         gain   = model_f1 - bm["F1"]
-        status = "✅" if gain > 0 else "❌"
+        status = "PASS" if gain > 0 else "FAIL"
         logger.info(f"   {status} vs {name:<25s} → ΔF1={gain:+.4f}")
 
     best_f1 = max(b["F1"] for b in baseline_results.values())
     if model_f1 <= best_f1:
         logger.warning(
-            "   ⚠️  Le modèle ne bat PAS la meilleure baseline de classification !"
+            "   Le modèle ne bat PAS la meilleure baseline de classification !"
         )
     else:
         logger.info(
-            f"   🏆 Modèle dépasse la meilleure baseline de ΔF1={model_f1 - best_f1:+.4f}"
+            f"   Modèle dépasse la meilleure baseline de ΔF1={model_f1 - best_f1:+.4f}"
         )
 
 def build_baseline_report(
@@ -180,12 +180,12 @@ def build_baseline_report(
     """
     rows = []
 
-    rows.append({"type": "régression", "modèle": "⭐ Modèle réel", **model_reg_metrics})
+    rows.append({"type": "régression", "modèle": "Modèle réel", **model_reg_metrics})
     for name, m in baseline_reg.items():
         rows.append({"type": "régression", "modèle": name, **m})
 
     if model_clf_metrics and baseline_clf:
-        rows.append({"type": "classification", "modèle": "⭐ Modèle réel", **model_clf_metrics})
+        rows.append({"type": "classification", "modèle": "Modèle réel", **model_clf_metrics})
         for name, m in baseline_clf.items():
             rows.append({"type": "classification", "modèle": name, **m})
 

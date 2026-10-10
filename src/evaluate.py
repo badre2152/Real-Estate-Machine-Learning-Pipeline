@@ -54,7 +54,7 @@ def _save(path: str) -> None:
     plt.savefig(path, dpi=150, bbox_inches="tight",
                 facecolor=plt.rcParams["figure.facecolor"])
     plt.close()
-    logger.info(f"   📊 → {path}")
+    logger.info(f"    → {path}")
 
 def plot_prediction_vs_actual(y_test, y_pred, title="Régression : Prédit vs Réel"):
     """Scatter plot des valeurs prédites vs réelles. Bonne ligne = diagonale."""
@@ -186,7 +186,7 @@ def plot_shap_summary(model, X_test, feature_names, max_display=15):
     """SHAP values pour l'interprétabilité (pip install shap)."""
     try:
         import shap
-        logger.info("   🔍 Calcul SHAP values ...")
+        logger.info("    Calcul SHAP values ...")
         explainer   = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_test[:200])
         sv = shap_values[0] if isinstance(shap_values, list) else shap_values
@@ -195,9 +195,9 @@ def plot_shap_summary(model, X_test, feature_names, max_display=15):
         plt.title("SHAP Feature Importance", fontsize=14, fontweight="bold")
         _save(f"{PLOTS_DIR}/shap_summary.png")
     except ImportError:
-        logger.info("   ℹ️  shap non installé: ignoré (pip install shap)")
+        logger.info("     shap non installé: ignoré (pip install shap)")
     except Exception as exc:
-        logger.warning(f"   ⚠️  SHAP échoué : {exc}")
+        logger.warning(f"   WARNING  SHAP échoué : {exc}")
 
 def run_full_evaluation(
     reg_model, clf_model, X_test,
@@ -205,12 +205,12 @@ def run_full_evaluation(
 ):
     """Lance toutes les visualisations d'évaluation en un seul appel."""
     logger.info("\n" + "=" * 50)
-    logger.info("📊 ÉVALUATION COMPLÈTE DES MODÈLES")
+    logger.info(" ÉVALUATION COMPLÈTE DES MODÈLES")
     logger.info("=" * 50)
 
     y_reg_pred = reg_model.predict(X_test)
 
-    logger.info("\n📈 Régression :")
+    logger.info("\n Régression :")
     plot_prediction_vs_actual(np.array(y_reg_test), y_reg_pred)
     plot_residuals(np.array(y_reg_test), y_reg_pred)
     plot_error_by_price_range(np.array(y_reg_test), y_reg_pred)
@@ -219,7 +219,7 @@ def run_full_evaluation(
     plot_shap_summary(reg_model, X_test, feature_names)
 
     if clf_model is not None and y_clf_test is not None:
-        logger.info("\n🧠 Classification :")
+        logger.info("\n Classification :")
         from classification import ORDERED_CLASSES
         y_clf_enc = label_encoder.transform(
             pd.Series(y_clf_test).astype(str)
@@ -230,4 +230,4 @@ def run_full_evaluation(
         plot_roc_curves(clf_model, X_test, y_clf_enc, len(ORDERED_CLASSES), ORDERED_CLASSES)
         plot_feature_importance(clf_model, feature_names, title="Feature Importance: Classification")
 
-    logger.info(f"\n✅ Tous les graphiques sauvegardés → {PLOTS_DIR}/")
+    logger.info(f"\nPASS Tous les graphiques sauvegardés → {PLOTS_DIR}/")

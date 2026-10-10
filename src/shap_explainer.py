@@ -31,7 +31,7 @@ try:
     SHAP_AVAILABLE = True
 except ImportError:
     SHAP_AVAILABLE = False
-    logger.warning("⚠️  shap non installé: interprétabilité désactivée (pip install shap)")
+    logger.warning("WARNING  shap non installé: interprétabilité désactivée (pip install shap)")
 
 try:
     import matplotlib
@@ -115,7 +115,7 @@ class SHAPExplainer:
                 return shap.KernelExplainer(model.predict, summary)
 
         except Exception as exc:
-            logger.warning(f"   ⚠️  SHAP explainer échoué : {exc}")
+            logger.warning(f"   WARNING  SHAP explainer échoué : {exc}")
             return None
 
     def compute(self, X_test) -> Optional[np.ndarray]:
@@ -140,11 +140,11 @@ class SHAPExplainer:
 
             self.shap_values = sv
             self.X_explained = X
-            logger.info("   ✅ SHAP values calculées")
+            logger.info("   PASS SHAP values calculées")
             return sv
 
         except Exception as exc:
-            logger.warning(f"   ⚠️  Calcul SHAP échoué : {exc}")
+            logger.warning(f"   WARNING  Calcul SHAP échoué : {exc}")
             return None
 
     def plot_summary(self, output_dir: str, prefix: str = "") -> Optional[str]:
@@ -163,10 +163,10 @@ class SHAPExplainer:
             plt.tight_layout()
             plt.savefig(path, dpi=150, bbox_inches="tight")
             plt.close()
-            logger.info(f"   📊 SHAP summary → {path}")
+            logger.info(f"    SHAP summary → {path}")
             return path
         except Exception as exc:
-            logger.warning(f"   ⚠️  SHAP summary plot échoué : {exc}")
+            logger.warning(f"   WARNING  SHAP summary plot échoué : {exc}")
             return None
 
     def plot_bar(self, output_dir: str, prefix: str = "") -> Optional[str]:
@@ -186,10 +186,10 @@ class SHAPExplainer:
             plt.tight_layout()
             plt.savefig(path, dpi=150, bbox_inches="tight")
             plt.close()
-            logger.info(f"   📊 SHAP bar → {path}")
+            logger.info(f"    SHAP bar → {path}")
             return path
         except Exception as exc:
-            logger.warning(f"   ⚠️  SHAP bar plot échoué : {exc}")
+            logger.warning(f"   WARNING  SHAP bar plot échoué : {exc}")
             return None
 
     def plot_waterfall(
@@ -217,10 +217,10 @@ class SHAPExplainer:
             plt.tight_layout()
             plt.savefig(path, dpi=150, bbox_inches="tight")
             plt.close()
-            logger.info(f"   📊 SHAP waterfall → {path}")
+            logger.info(f"    SHAP waterfall → {path}")
             return path
         except Exception as exc:
-            logger.warning(f"   ⚠️  SHAP waterfall échoué : {exc}")
+            logger.warning(f"   WARNING  SHAP waterfall échoué : {exc}")
             return None
 
     def get_feature_importance(self) -> Optional[pd.DataFrame]:
@@ -248,7 +248,7 @@ class SHAPExplainer:
         """
         os.makedirs(output_dir, exist_ok=True)
         logger.info("\n" + "=" * 50)
-        logger.info("🔍 SHAP: Interprétabilité du modèle")
+        logger.info(" SHAP: Interprétabilité du modèle")
         logger.info("=" * 50)
 
         if not SHAP_AVAILABLE:
@@ -269,7 +269,7 @@ class SHAPExplainer:
             csv_path = os.path.join(output_dir, f"{prefix}shap_importance.csv")
             importance_df.to_csv(csv_path, index=False)
             plots["importance_csv"] = csv_path
-            logger.info(f"   💾 SHAP importance → {csv_path}")
+            logger.info(f"    SHAP importance → {csv_path}")
 
         return plots
 
