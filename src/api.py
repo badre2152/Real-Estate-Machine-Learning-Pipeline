@@ -4,15 +4,15 @@ api.py  (v3: FastAPI service)
 API de prédiction FastAPI pour le pipeline ML Avito Real Estate.
 
 Améliorations v3 :
-  ✅ Authentication par API Key (header X-API-Key)
-  ✅ Rate Limiting (60 req/min par IP: in-memory)
-  ✅ /health endpoint complet (liveness probe)
-  ✅ /ready endpoint (readiness probe: modèles chargés ?)
-  ✅ Gestion des erreurs structurée avec request_id
-  ✅ Request ID unique par requête (tracing)
-  ✅ Compression GZip automatique
-  ✅ Versioning dans l'URL (/v1/...)
-  ✅ Backward compatibility avec anciens endpoints
+  PASS Authentication par API Key (header X-API-Key)
+  PASS Rate Limiting (60 req/min par IP: in-memory)
+  PASS /health endpoint complet (liveness probe)
+  PASS /ready endpoint (readiness probe: modèles chargés ?)
+  PASS Gestion des erreurs structurée avec request_id
+  PASS Request ID unique par requête (tracing)
+  PASS Compression GZip automatique
+  PASS Versioning dans l'URL (/v1/...)
+  PASS Backward compatibility avec anciens endpoints
 
 Endpoints :
   GET  /health          : liveness probe (sans auth)
@@ -133,7 +133,7 @@ _state: dict = {
 async def load_models():
     """Charge les modèles depuis le dossier models/ au démarrage."""
     _state["uptime_start"] = time.time()
-    logger.info("🚀 Démarrage API v3: chargement des modèles ...")
+    logger.info(" Démarrage API v3: chargement des modèles ...")
 
     files = {
         "reg_model"    : ["best_regression_model.pkl", "regression_model.pkl"],
@@ -222,7 +222,7 @@ async def require_api_key(
         )
     if api_key not in VALID_API_KEYS:
         client_ip = request.client.host if request.client else "unknown"
-        logger.warning(f"   🔑 Clé API invalide depuis {client_ip}")
+        logger.warning(f"    Clé API invalide depuis {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -954,7 +954,7 @@ async def trigger_retrain(data: RetrainRequest, request: Request):
     job_id = f"retrain_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{req_id}"
 
     logger.warning(
-        f"🔴 RETRAINING DÉCLENCHÉ: job={job_id} | "
+        f"DRIFT RETRAINING DÉCLENCHÉ: job={job_id} | "
         f"drift={drift_recommendation}"
     )
 
