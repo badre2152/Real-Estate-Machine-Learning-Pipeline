@@ -14,9 +14,9 @@ Tests المستعملة:
   - Prediction Drift                   → توزيع الـ predictions تغيّر
 
 Thresholds المعيارية:
-  PSI < 0.10  → ✅ Stable
-  PSI 0.10-0.20 → 🟡 Warning
-  PSI > 0.20  → 🔴 Drift détecté
+  PSI < 0.10  → PASS Stable
+  PSI 0.10-0.20 → WARNING Warning
+  PSI > 0.20  → DRIFT Drift détecté
 
 Usage :
     from drift_detector import DriftDetector
@@ -167,12 +167,12 @@ class DriftReport:
 
     def summary(self) -> str:
         """Résumé lisible en une ligne."""
-        icon = {"ok": "✅", "monitor": "🟡", "retrain": "🔴"}.get(self.recommendation, "❓")
+        icon = {"ok": "PASS", "monitor": "WARNING", "retrain": "DRIFT"}.get(self.recommendation, "")
         return (
             f"{icon} Drift [{self.recommendation.upper()}]: "
             f"{self.n_drifted}/{self.n_features_checked} features driftées | "
             f"PSI global={self.dataset_psi:.3f} | "
-            f"{'Prédictions OK' if not self.prediction_drift or not self.prediction_drift.has_drift else 'Prédictions driftées ⚠️'}"
+            f"{'Prédictions OK' if not self.prediction_drift or not self.prediction_drift.has_drift else 'Prédictions driftées WARNING'}"
         )
 
     def to_dict(self) -> dict:
@@ -199,7 +199,7 @@ class DriftReport:
         path = os.path.join(output_dir, f"drift_report_{ts}.json")
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
-        logger.info(f"   💾 Drift report → {path}")
+        logger.info(f"    Drift report → {path}")
         return path
 
 def _compute_psi(
@@ -285,7 +285,7 @@ class DriftDetector:
         self._reports: list[DriftReport] = []
 
         logger.info(
-            f"🔍 DriftDetector initialisé: "
+            f" DriftDetector initialisé: "
             f"ref={len(reference_data)} lignes | "
             f"{len(self.numerical_cols)} num | "
             f"{len(self.categorical_cols)} cat"
@@ -314,7 +314,7 @@ class DriftDetector:
         """
         logger.info(
             f"\n{'='*55}\n"
-            f"🔍 DRIFT DETECTION\n"
+            f" DRIFT DETECTION\n"
             f"   Référence : {len(self.reference)} lignes\n"
             f"   Courant   : {len(current_data)} lignes\n"
             f"{'='*55}"
@@ -510,7 +510,7 @@ class DriftDetector:
 
     def _log_report(self, report: DriftReport) -> None:
         """Log structuré du rapport."""
-        icon = {"ok": "✅", "monitor": "🟡", "retrain": "🔴"}.get(report.recommendation, "❓")
+        icon = {"ok": "PASS", "monitor": "WARNING", "retrain": "DRIFT"}.get(report.recommendation, "")
 
         logger.info(f"\n{icon} {report.summary()}")
         logger.info(f"\n{'='*55}")
@@ -518,7 +518,7 @@ class DriftDetector:
         logger.info(f"{'='*55}")
 
         for r in sorted(report.feature_results, key=lambda x: x.statistic, reverse=True):
-            status_icon = {"stable": "✅", "warning": "🟡", "drift": "🔴"}.get(r.severity, "❓")
+            status_icon = {"stable": "PASS", "warning": "WARNING", "drift": "DRIFT"}.get(r.severity, "")
             pval_str = f"{r.p_value:.4f}" if r.p_value is not None else "  N/A  "
             logger.info(
                 f"  {r.feature:<23} {r.test_used:<6} {r.statistic:>10.4f} "
@@ -527,7 +527,7 @@ class DriftDetector:
 
         if report.prediction_drift:
             pd_r = report.prediction_drift
-            pd_icon = {"stable": "✅", "warning": "🟡", "drift": "🔴"}.get(pd_r.severity, "❓")
+            pd_icon = {"stable": "PASS", "warning": "WARNING", "drift": "DRIFT"}.get(pd_r.severity, "")
             logger.info(f"{'='*55}")
             logger.info(
                 f"  {'[PREDICTIONS]':<23} {'psi':<6} {pd_r.psi:>10.4f} "
@@ -539,14 +539,14 @@ class DriftDetector:
 
         if report.recommendation == "retrain":
             logger.warning(
-                f"\n  🔴 DRIFT CONFIRMÉ: Retraining recommandé !\n"
+                f"\n  DRIFT DRIFT CONFIRMÉ: Retraining recommandé !\n"
                 f"     Features driftées : {report.drifted_features()}\n"
                 f"     PSI global        : {report.dataset_psi:.4f}\n"
                 f"     Lancer : make train\n"
             )
         elif report.recommendation == "monitor":
             logger.warning(
-                f"\n  🟡 DRIFT EN COURS: Surveiller de près\n"
+                f"\n  WARNING DRIFT EN COURS: Surveiller de près\n"
                 f"     Features en warning : {report.warning_features()}\n"
             )
 
@@ -573,5 +573,5 @@ class DriftDetector:
         """
         self.reference = new_reference.copy()
         logger.info(
-            f"   🔄 Référence mise à jour → {len(new_reference)} lignes"
+            f"    Référence mise à jour → {len(new_reference)} lignes"
         )
