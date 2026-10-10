@@ -66,7 +66,7 @@ class ValidationReport:
         )
 
     def summary(self) -> str:
-        status = "✅ PASSED" if self.passed else "❌ FAILED"
+        status = "PASS PASSED" if self.passed else "FAIL FAILED"
         return (
             f"{status} | {self.n_passed} OK / {self.n_failed} erreurs "
             f"/ {self.n_warnings} warnings | {self.n_rows:,} lignes"
@@ -280,7 +280,7 @@ class DataValidator:
             ValidationReport
         """
         logger.info(f"\n{'='*50}")
-        logger.info(f"🛡️  VALIDATION DONNÉES: stade : {stage}")
+        logger.info(f"  VALIDATION DONNÉES: stade : {stage}")
         logger.info(f"{'='*50}")
 
         all_results: list[ValidationResult] = []
@@ -308,13 +308,13 @@ class DataValidator:
         )
 
         for r in all_results:
-            icon = "✅" if r.passed else ("❌" if r.severity == "error" else "⚠️")
+            icon = "PASS" if r.passed else ("FAIL" if r.severity == "error" else "WARNING")
             logger.info(f"   {icon} {r.message}")
 
         logger.info(f"\n   {report.summary()}")
 
         if not report.passed:
-            logger.error("   ❌ Validation ÉCHOUÉE: vérifier les données avant de continuer")
+            logger.error("   FAIL Validation ÉCHOUÉE: vérifier les données avant de continuer")
         return report
 
     def save_report(self, report: ValidationReport, output_dir: str = "reports") -> str:
@@ -330,7 +330,7 @@ class DataValidator:
                 return super().default(o)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2, ensure_ascii=False, cls=_Encoder)
-        logger.info(f"   💾 Rapport validation → {path}")
+        logger.info(f"    Rapport validation → {path}")
         return path
 
 def run_great_expectations(df: pd.DataFrame, output_dir: str = "reports/ge") -> Optional[dict]:
@@ -346,7 +346,7 @@ def run_great_expectations(df: pd.DataFrame, output_dir: str = "reports/ge") -> 
         return None
 
     os.makedirs(output_dir, exist_ok=True)
-    logger.info("   🔍 Great Expectations validation ...")
+    logger.info("    Great Expectations validation ...")
 
     try:
         gdf = ge.from_pandas(df)
@@ -371,5 +371,5 @@ def run_great_expectations(df: pd.DataFrame, output_dir: str = "reports/ge") -> 
         return results
 
     except Exception as exc:
-        logger.warning(f"   ⚠️  Great Expectations échoué : {exc}")
+        logger.warning(f"   WARNING  Great Expectations échoué : {exc}")
         return None
