@@ -263,7 +263,7 @@ class DataValidator:
             results.append(ValidationResult(
                 name=f"dtype_{col}",
                 passed=is_num,
-                message=f"[{col}] type : {df[col].dtype} {'✓' if is_num else '→ attendu numérique'}",
+                message=f"[{col}] type : {df[col].dtype} {'PASS' if is_num else '→ attendu numérique'}",
                 severity="error" if not is_num else "info",
             ))
         return results
