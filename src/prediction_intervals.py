@@ -137,7 +137,7 @@ class PredictionIntervalBuilder:
             if (i + 1) % 50 == 0:
                 logger.debug(f"      Bootstrap {i+1}/{self.n_bootstrap}")
 
-        logger.info(f"   ✅ {self.n_bootstrap} modèles bootstrap entraînés")
+        logger.info(f"   PASS {self.n_bootstrap} modèles bootstrap entraînés")
 
     def predict_with_interval(self, X_test) -> pd.DataFrame:
         """
@@ -180,7 +180,7 @@ class PredictionIntervalBuilder:
         n_degenerate = int(np.sum(interval_width <= 0))
         if n_degenerate > 0:
             logger.warning(
-                f"   ⚠️  {n_degenerate} intervalles dégénérés (lower >= upper) "
+                f"   WARNING  {n_degenerate} intervalles dégénérés (lower >= upper) "
                 f"Vérifier le calibrage du modèle."
             )
 
@@ -222,15 +222,15 @@ class PredictionIntervalBuilder:
         }
 
         logger.info(
-            f"   📐 Couverture réelle : {coverage:.1%} "
+            f"    Couverture réelle : {coverage:.1%} "
             f"(cible : {self.confidence_level:.1%}, "
             f"écart : {metrics['coverage_gap']:+.1%})"
         )
-        logger.info(f"   📐 Largeur moyenne   : {metrics['mpiw']:,.0f}")
+        logger.info(f"    Largeur moyenne   : {metrics['mpiw']:,.0f}")
 
         if abs(metrics["coverage_gap"]) > 0.05:
             logger.warning(
-                f"   ⚠️  Écart couverture > 5%: envisager une recalibration"
+                f"   WARNING  Écart couverture > 5%: envisager une recalibration"
             )
 
         return metrics
