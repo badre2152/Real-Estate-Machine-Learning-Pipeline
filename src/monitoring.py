@@ -1,28 +1,4 @@
-"""
-monitoring.py
--------------
-Monitoring du pipeline ML : durée d'exécution, métriques par étape,
-alertes sur les seuils de performance.
-
-Fonctionnalités :
-  - Chronomètre par étape (context manager)
-  - Résumé des temps d'exécution
-  - Alertes si R² ou F1 < seuils configurés
-  - Export JSON des métriques de monitoring
-
-Usage :
-    from monitoring import PipelineMonitor
-    monitor = PipelineMonitor()
-
-    with monitor.step("data_loading"):
-        df = load_data()
-
-    with monitor.step("training"):
-        model.fit(X_train, y_train)
-
-    monitor.check_regression_alert(r2=0.72)
-    monitor.print_summary()
-"""
+"""Record pipeline timings and performance alerts."""
 
 import json
 import os
