@@ -86,7 +86,7 @@ def check_class_balance(y_enc, label_encoder) -> float:
         logger.info(f"     {label_encoder.classes_[idx]:<10s} : {cnt:>5d} ({pct:.1f}%)")
     if ratio < 0.5:
         logger.warning(
-            f"   ⚠️  Déséquilibre détecté (ratio={ratio:.2f}): envisager SMOTE ou class_weight"
+            f"   WARNING  Déséquilibre détecté (ratio={ratio:.2f}): envisager SMOTE ou class_weight"
         )
     return ratio
 
@@ -105,7 +105,7 @@ def train_classification(
         (best_model, best_name, label_encoder)
     """
     logger.info("\n" + "=" * 50)
-    logger.info("🧠 MODÈLE DE CLASSIFICATION: Type de Bien")
+    logger.info(" MODÈLE DE CLASSIFICATION: Type de Bien")
     logger.info("=" * 50)
 
     y_enc, _, le = encode_target(y_train, y_train)
@@ -129,7 +129,7 @@ def train_classification(
 
     best_name  = max(results, key=results.get)
     best_model = models[best_name]
-    logger.info(f"\n🏆 Meilleur modèle : {best_name} (F1={results[best_name]:.4f})")
+    logger.info(f"\nBEST Meilleur modèle : {best_name} (F1={results[best_name]:.4f})")
 
     if best_name == "XGBoost":
         try:
@@ -147,17 +147,17 @@ def train_classification(
                 verbose=False,
             )
             logger.info(
-                f"   🎯 XGBoost early stopping : "
+                f"    XGBoost early stopping : "
                 f"{best_model.best_iteration} estimateurs retenus / 500"
             )
         except Exception as es_exc:
-            logger.warning(f"   ⚠️  Early stopping ignoré : {es_exc}")
+            logger.warning(f"   WARNING  Early stopping ignoré : {es_exc}")
             best_model.fit(X_train, y_enc)
     else:
         best_model.fit(X_train, y_enc)
 
     if use_calibration and hasattr(best_model, "predict_proba"):
-        logger.info("   🎯 Calibration sigmoid des probabilités ...")
+        logger.info("    Calibration sigmoid des probabilités ...")
         if hasattr(best_model, "set_params") and hasattr(best_model, "early_stopping_rounds"):
             best_model.set_params(early_stopping_rounds=None)
         best_model = CalibratedClassifierCV(best_model, method="sigmoid", cv=min(3, int(counts.min())))
@@ -191,9 +191,9 @@ def evaluate_classification(model, X_test, y_test, label_encoder):
                 y_te_enc, y_proba, multi_class="ovr", average="weighted"
             )
         except Exception as exc:
-            logger.warning(f"   ⚠️  ROC-AUC non calculable : {exc}")
+            logger.warning(f"   WARNING  ROC-AUC non calculable : {exc}")
 
-    logger.info("\n📊 RÉSULTATS CLASSIFICATION (Test Set) :")
+    logger.info("\n RÉSULTATS CLASSIFICATION (Test Set) :")
     logger.info(f"   Accuracy  : {accuracy:.4f}")
     logger.info(f"   Precision : {precision:.4f}")
     logger.info(f"   Recall    : {recall:.4f}")
@@ -201,18 +201,18 @@ def evaluate_classification(model, X_test, y_test, label_encoder):
     if roc_auc:
         logger.info(f"   ROC-AUC   : {roc_auc:.4f}")
     logger.info(
-        "\n📋 Rapport détaillé :\n"
+        "\n Rapport détaillé :\n"
         + classification_report(y_te_enc, y_pred, labels=np.arange(len(label_encoder.classes_)), target_names=label_encoder.classes_, zero_division=0)
     )
 
     if f1 >= 0.85:
-        logger.info("🟢 Excellent modèle !")
+        logger.info("OK Excellent modèle !")
     elif f1 >= 0.70:
-        logger.info("🟡 Bon modèle")
+        logger.info("WARNING Bon modèle")
     elif f1 >= 0.55:
-        logger.info("🟠 Modèle moyen: revoir features ou SMOTE")
+        logger.info(" Modèle moyen: revoir features ou SMOTE")
     else:
-        logger.info("🔴 Modèle faible: déséquilibre ou features insuffisantes")
+        logger.info("DRIFT Modèle faible: déséquilibre ou features insuffisantes")
 
     return {
         "Accuracy": accuracy, "Precision": precision,
@@ -228,7 +228,7 @@ def get_feature_importance(model, feature_names: list, top_n: int = 15):
     else:
         return None
     imp = imp.sort_values(ascending=False)
-    logger.info(f"\n🔑 Top {top_n} features (classification) :")
+    logger.info(f"\n Top {top_n} features (classification) :")
     for feat, val in imp.head(top_n).items():
         bar = "█" * int(val * 40)
         logger.info(f"   {feat:<35s} {bar} {val:.4f}")
@@ -238,11 +238,11 @@ def save_model(model, label_encoder, path: str = "models/classification_model.pk
     """Sauvegarde le modèle + encodeur dans un seul fichier."""
     with open(path, "wb") as f:
         pickle.dump({"model": model, "label_encoder": label_encoder}, f)
-    logger.info(f"💾 Modèle classification sauvegardé → {path}")
+    logger.info(f" Modèle classification sauvegardé → {path}")
 
 def load_model(path: str = "models/classification_model.pkl"):
     """Charge le modèle et l'encodeur depuis disque."""
     with open(path, "rb") as f:
         payload = pickle.load(f)
-    logger.info(f"📂 Modèle classification chargé depuis {path}")
+    logger.info(f" Modèle classification chargé depuis {path}")
     return payload["model"], payload["label_encoder"]
